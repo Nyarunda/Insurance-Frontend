@@ -1,0 +1,7 @@
+{
+  "name": "Commercial Insurance Underwriter Suite",
+  "description": "Comprehensive underwriting, customer 360, quote rating, policy administration, claims tracking, product factory, and referral authority workflow application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
