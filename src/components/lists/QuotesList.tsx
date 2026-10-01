@@ -56,7 +56,7 @@ export const QuotesList: React.FC<QuotesListProps> = ({ onNavigate, densityMode 
             <span>{q.quoteNumber}</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </div>
-          <div className="text-[11px] text-slate-500 font-sans">{q.lineOfBusiness}</div>
+          <div className="text-xs text-slate-500 font-sans">{q.lineOfBusiness}</div>
         </div>
       ),
     },
@@ -74,7 +74,7 @@ export const QuotesList: React.FC<QuotesListProps> = ({ onNavigate, densityMode 
           >
             {q.customerName}
           </div>
-          <div className="text-[11px] text-slate-400 font-mono">{q.customerId}</div>
+          <div className="text-xs text-slate-400 font-mono">{q.customerId}</div>
         </div>
       ),
     },

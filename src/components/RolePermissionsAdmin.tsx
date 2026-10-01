@@ -177,7 +177,7 @@ export const RolePermissionsAdmin: React.FC<RolePermissionsAdminProps> = ({ onNa
                 </table>
               </div>
 
-              <p className="mt-3 text-[11px] text-[var(--hz-text-subtle)]">
+              <p className="mt-3 text-xs text-[var(--hz-text-subtle)]">
                 "Can Initiate" grants Delegation-of-Authority Level 0 — required alongside "Add" to originate new records (e.g.
                 issuing a quotation, registering a claim) rather than just acting on existing ones.
               </p>

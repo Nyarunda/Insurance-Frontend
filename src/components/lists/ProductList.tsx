@@ -53,7 +53,7 @@ export const ProductList: React.FC<ProductListProps> = ({ onNavigate, densityMod
             <span>{p.name}</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </div>
-          <div className="text-[11px] text-slate-500 font-mono">
+          <div className="text-xs text-slate-500 font-mono">
             {p.productCode} • IRA Ref: {p.iraFilingReference}
           </div>
         </div>

@@ -175,9 +175,9 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
     densityMode === 'compact' ? 'py-2 px-3' : densityMode === 'spacious' ? 'py-4 px-4' : 'py-3 px-4';
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-150">
+    <div className="space-y-4 animate-in fade-in duration-150">
       {/* Header Banner */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="hz-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60">
@@ -202,7 +202,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
           <div className="px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600" />
             <span className="font-semibold">2 High Priority</span>
-            <span className="text-[10px] text-rose-600">(1 SLA Overdue)</span>
+            <span className="text-xs text-rose-600">(1 SLA Overdue)</span>
           </div>
           <div className="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-600" />
@@ -212,7 +212,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
       </div>
 
       {/* Control Bar: Tabs, Module Filter, Search */}
-      <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      <div className="hz-panel p-3 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Tab Filters */}
         <div className="flex items-center p-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600">
           <button
@@ -295,7 +295,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
 
       {/* Requests to Approve */}
       {activeTab === 'approvals' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="hz-panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -346,7 +346,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
                         <td className={`${paddingClass} text-right`}>
                           <button
                             onClick={() => setReviewingInstanceId(instance.id)}
-                            className="px-2.5 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-[11px] border border-teal-200/60"
+                            className="px-2.5 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-xs border border-teal-200/60"
                           >
                             Review
                           </button>
@@ -363,7 +363,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
 
       {/* Task Table */}
       {activeTab !== 'approvals' && (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="hz-panel overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -402,12 +402,12 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
                         <div className="font-semibold text-slate-900 flex items-center gap-1.5">
                           <span>{task.title}</span>
                           {task.amount && (
-                            <span className="font-mono text-slate-500 text-[11px]">
+                            <span className="font-mono text-slate-500 text-xs">
                               (KES {task.amount.toLocaleString()})
                             </span>
                           )}
                         </div>
-                        <div className="font-mono text-[11px] text-teal-700 font-medium">
+                        <div className="font-mono text-xs text-teal-700 font-medium">
                           {task.referenceId}
                         </div>
                       </td>
@@ -420,13 +420,13 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
                         </span>
                       </td>
                       <td className={paddingClass}>
-                        <span className="text-slate-500 font-mono text-[11px]">{task.age}</span>
+                        <span className="text-slate-500 font-mono text-xs">{task.age}</span>
                       </td>
                       <td className={paddingClass}>
                         <div
-                          className={`font-mono text-[11px] font-semibold flex items-center gap-1 ${
-                            task.slaOverdue ? 'text-rose-700' : 'text-slate-700'
-                          }`}
+                          className={`font-mono text-xs font-semibold flex items-center gap-1 ${
+ task.slaOverdue ? 'text-rose-700' : 'text-slate-700'
+ }`}
                         >
                           <Clock className="w-3 h-3" />
                           <span>{task.sla}</span>
@@ -439,7 +439,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => handleRouteTask(task)}
-                            className="px-2.5 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-[11px] flex items-center gap-1 transition-colors border border-teal-200/60"
+                            className="px-2.5 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold text-xs flex items-center gap-1 transition-colors border border-teal-200/60"
                           >
                             <span>Open</span>
                             <ArrowUpRight className="w-3 h-3" />
@@ -447,11 +447,11 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
                           <button
                             onClick={() => handleQuickApprove(task.id)}
                             disabled={isCompleted}
-                            className={`px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-                              isCompleted
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
+                            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+ isCompleted
+ ? 'bg-emerald-100 text-emerald-800'
+ : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+ }`}
                           >
                             {isCompleted ? 'Approved ✓' : 'Approve'}
                           </button>

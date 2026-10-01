@@ -187,7 +187,7 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onNavigate, dens
       />
 
       <HorizonPageContent>
-        <div className={densityMode === 'compact' ? 'p-4 space-y-4' : 'p-5 space-y-5'}>
+        <div className={densityMode === 'compact' ? 'p-4 space-y-4' : 'p-5 space-y-4'}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <MetricCard label="Configured Endpoints" value={String(endpoints.length)} />
             <MetricCard label="Healthy / Active" value={`${healthyCount} / ${activeCount}`} tone="success" />
@@ -226,7 +226,7 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onNavigate, dens
                       <StatusBadge label={endpoint.status} tone={statusTone[endpoint.status]} />
                     </div>
                     <h2 className="mt-2 text-sm font-bold text-[var(--hz-text-primary)]">{endpoint.name}</h2>
-                    <p className="mt-1 text-[11px] text-[var(--hz-text-subtle)]">
+                    <p className="mt-1 text-xs text-[var(--hz-text-subtle)]">
                       {endpoint.provider} - {endpoint.category}
                     </p>
                   </div>
@@ -252,7 +252,7 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onNavigate, dens
                   </div>
                 </div>
 
-                <div className="rounded-[var(--hz-radius-md)] border border-[var(--hz-border)] bg-[var(--hz-surface-subtle)] px-3 py-2 font-mono text-[11px] text-[var(--hz-text-primary)] break-all">
+                <div className="rounded-[var(--hz-radius-md)] border border-[var(--hz-border)] bg-[var(--hz-surface-subtle)] px-3 py-2 font-mono text-xs text-[var(--hz-text-primary)] break-all">
                   {endpoint.endpointUrl}
                 </div>
 
@@ -264,14 +264,14 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onNavigate, dens
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-[var(--hz-divider)] pt-3">
-                  <div className="text-[11px] text-[var(--hz-text-subtle)]">
+                  <div className="text-xs text-[var(--hz-text-subtle)]">
                     Owner: <span className="font-semibold text-[var(--hz-text-secondary)]">{endpoint.owner}</span> - Uptime 90d:{' '}
                     <span className="font-mono font-bold">{endpoint.uptime90d.toFixed(2)}%</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => onNavigate?.('failed-transactions')}
-                    className="text-[11px] font-bold text-[var(--hz-primary)] hover:text-[var(--hz-primary-hover)] inline-flex items-center gap-1"
+                    className="text-xs font-bold text-[var(--hz-primary)] hover:text-[var(--hz-primary-hover)] inline-flex items-center gap-1"
                   >
                     <Activity className="h-3.5 w-3.5" />
                     Inspect Logs

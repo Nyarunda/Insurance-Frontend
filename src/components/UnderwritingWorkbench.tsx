@@ -56,7 +56,7 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
   return (
     <div id="underwriting-workbench-view" className="space-y-6 animate-in fade-in duration-150">
       {/* Top Banner */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -166,10 +166,10 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
       </div>
 
       {/* Decisioning Engine: Automated Evaluation & Explainability */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left 2 Cols: Automated Decision & Triggered Rules */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+          <div className="hz-card">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">
@@ -194,7 +194,7 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
               <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
                 <div className="bg-amber-500 h-full w-[72%]" />
               </div>
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+              <div className="flex justify-between text-xs text-slate-400 mt-1 font-mono">
                 <span>0 (Prime Low Risk)</span>
                 <span>50 (Moderate Standard)</span>
                 <span className="text-amber-700 font-bold">72 (Referral Band)</span>
@@ -249,8 +249,8 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
                             {rule.severity}
                           </span>
                         </div>
-                        <p className="text-slate-600 text-[11px] mt-0.5">{rule.description}</p>
-                        <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-1 font-mono">
+                        <p className="text-slate-600 text-xs mt-0.5">{rule.description}</p>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-mono">
                           <span>Observed: {rule.currentValue}</span>
                           <span>•</span>
                           <span>Threshold: {rule.threshold}</span>
@@ -259,7 +259,7 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
                     </div>
 
                     {rule.actionRequired && (
-                      <span className="text-[10px] font-medium text-amber-800 bg-amber-100/80 px-2 py-1 rounded max-w-[160px] text-right shrink-0">
+                      <span className="text-xs font-medium text-amber-800 bg-amber-100/80 px-2 py-1 rounded max-w-[160px] text-right shrink-0">
                         {rule.actionRequired}
                       </span>
                     )}
@@ -273,14 +273,14 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
         {/* Right 1 Col: System Recommendation & Sign-Off Controls */}
         <div className="space-y-6">
           {/* System Recommendation Panel */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+          <div className="hz-card">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono pb-3 border-b border-slate-100">
               System Recommendation
             </h2>
 
             <div className="mt-3 p-3.5 rounded-lg bg-teal-50/60 border border-teal-200/80 text-xs space-y-2">
               <div className="font-bold text-teal-900">Approve with Conditions:</div>
-              <ul className="space-y-1.5 text-teal-950 text-[11px]">
+              <ul className="space-y-1.5 text-teal-950 text-xs">
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-teal-700 shrink-0" />
                   <span>5% Policy Excess (Min. KES 50,000)</span>

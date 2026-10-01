@@ -150,7 +150,7 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
                   onChange={(e) => setAmount(Number(e.target.value))}
                   className="w-full text-base font-mono font-bold p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-teal-500"
                 />
-                <div className="flex justify-between text-[11px] text-slate-500 mt-1">
+                <div className="flex justify-between text-xs text-slate-500 mt-1">
                   <span>Current Outstanding Balance:</span>
                   <span className="font-mono font-bold text-rose-600">
                     KES {customer.outstandingKes.toLocaleString()}
@@ -170,7 +170,7 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full text-xs font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500"
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
+                  <span className="text-xs text-slate-500 mt-1 block">
                     Instant STK Push prompt will be dispatched to this handset.
                   </span>
                   {attempted && <FieldError message={errors.phone} />}

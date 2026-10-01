@@ -80,7 +80,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2 font-mono">$14.28M</div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-medium">
+          <div className="text-xs text-emerald-400 flex items-center gap-1 mt-1 font-medium">
             <TrendingUp className="w-3 h-3" />
             +18.4% vs target ($12.0M)
           </div>
@@ -92,7 +92,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <PieChart className="w-4 h-4 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2 font-mono">44.6%</div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-medium">
+          <div className="text-xs text-emerald-400 flex items-center gap-1 mt-1 font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             Within plan (Target &lt;52%)
           </div>
@@ -104,7 +104,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <Briefcase className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2 font-mono">24</div>
-          <div className="text-[11px] text-slate-400 mt-1 font-medium">
+          <div className="text-xs text-slate-400 mt-1 font-medium">
             5 New • 8 In Triage • 11 Active
           </div>
         </div>
@@ -115,7 +115,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2 font-mono">1.8 Days</div>
-          <div className="text-[11px] text-emerald-400 flex items-center gap-1 mt-1 font-medium">
+          <div className="text-xs text-emerald-400 flex items-center gap-1 mt-1 font-medium">
             <span>-0.4 days vs SLA (2.5d)</span>
           </div>
         </div>
@@ -126,7 +126,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <AlertTriangle className="w-4 h-4 text-rose-400" />
           </div>
           <div className="text-2xl font-bold text-amber-400 mt-2 font-mono">2 Escalated</div>
-          <div className="text-[11px] text-amber-400/90 flex items-center gap-1 mt-1 font-medium">
+          <div className="text-xs text-amber-400/90 flex items-center gap-1 mt-1 font-medium">
             <span>Awaiting CUO Sign-off</span>
           </div>
         </div>
@@ -187,7 +187,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500" title="High Priority"></span>
                       )}
                     </div>
-                    <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
+                    <div className="text-xs font-mono text-slate-400 flex items-center gap-2 mt-0.5">
                       <span>{item.id}</span>
                       <span>•</span>
                       <span>Eff: {item.effectiveDate}</span>
@@ -201,7 +201,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="text-slate-200">{item.broker}</div>
-                    <div className="text-[11px] text-slate-400">{item.brokerFirm}</div>
+                    <div className="text-xs text-slate-400">{item.brokerFirm}</div>
                   </td>
                   <td className="px-4 py-3.5 font-mono text-slate-100 font-bold">
                     ${item.premium.toLocaleString()}
@@ -233,7 +233,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                           style={{ width: `${item.riskScore}%` }}
                         ></div>
                       </div>
-                      <span className="font-mono text-[11px] text-slate-300 font-semibold">
+                      <span className="font-mono text-xs text-slate-300 font-semibold">
                         {item.riskScore}
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                       id={`action-workbench-${item.id}`}
                       data-path="underwriting-workbench"
                       onClick={() => onNavigate('underwriting-workbench', 'none')}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-300 rounded text-[11px] font-medium border border-slate-700 transition"
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-300 rounded text-xs font-medium border border-slate-700 transition"
                     >
                       Workbench
                     </button>
@@ -266,7 +266,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                       id={`action-quote-${item.id}`}
                       data-path="quote-workspace"
                       onClick={() => onNavigate('quote-workspace', 'none')}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-300 rounded text-[11px] font-medium border border-slate-700 transition"
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-300 rounded text-xs font-medium border border-slate-700 transition"
                     >
                       Quote
                     </button>
@@ -279,7 +279,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
       </div>
 
       {/* Underwriting Appetite & Portfolio Analytics Bento Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Underwriting Appetite Guide */}
         <div className="bg-slate-900/90 border border-slate-800/80 rounded-xl p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
@@ -287,7 +287,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
               <Shield className="w-4 h-4 text-blue-400" />
               Underwriting Appetite Matrix (Q3/Q4)
             </h3>
-            <span className="text-[10px] text-slate-400 font-mono">v2026.2</span>
+            <span className="text-xs text-slate-400 font-mono">v2026.2</span>
           </div>
           <p className="text-xs text-slate-400">
             Automated eligibility rules enforced during broker ingestion and rating.
@@ -296,7 +296,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-800/30 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-emerald-300">Target Appetite</span>
-                <p className="text-[11px] text-slate-400">Dry Van Freight, Intermodal Drayage, Samsara-equipped fleets</p>
+                <p className="text-xs text-slate-400">Dry Van Freight, Intermodal Drayage, Samsara-equipped fleets</p>
               </div>
               <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold">
                 AUTO-PASS
@@ -305,7 +305,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-800/30 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-amber-300">Conditional Appetite</span>
-                <p className="text-[11px] text-slate-400">HazMat Class 3, Fleet size &gt;100 units, Refrigerated Goods</p>
+                <p className="text-xs text-slate-400">HazMat Class 3, Fleet size &gt;100 units, Refrigerated Goods</p>
               </div>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono font-bold">
                 REFERRAL
@@ -314,7 +314,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
             <div className="p-2.5 rounded-lg bg-rose-950/30 border border-rose-800/30 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-rose-300">Restricted / Prohibited</span>
-                <p className="text-[11px] text-slate-400">Explosives (Class 1), Over-the-road Hotshots without ELD</p>
+                <p className="text-xs text-slate-400">Explosives (Class 1), Over-the-road Hotshots without ELD</p>
               </div>
               <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono font-bold">
                 DECLINE
@@ -347,7 +347,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                 <div className="text-xs font-semibold text-white group-hover:text-blue-400">
                   Apex Logistics & Freight Corp
                 </div>
-                <div className="text-[11px] text-slate-400">DOT #2981044 • 4 Active Policies • 142 Units</div>
+                <div className="text-xs text-slate-400">DOT #2981044 • 4 Active Policies • 142 Units</div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-400" />
             </a>
@@ -366,7 +366,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                 <div className="text-xs font-semibold text-white group-hover:text-blue-400">
                   Policy Administration (Fleet Auto)
                 </div>
-                <div className="text-[11px] text-slate-400">POL-CA-2025-9921 • In-Force • $142,000/yr</div>
+                <div className="text-xs text-slate-400">POL-CA-2025-9921 • In-Force • $142,000/yr</div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-400" />
             </a>
@@ -385,7 +385,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                 <div className="text-xs font-semibold text-white group-hover:text-blue-400">
                   Active Claim File (Collision I-35)
                 </div>
-                <div className="text-[11px] text-slate-400">CLM-2026-0412 • $45,000 Incurred • Adjuster: R. Sterling</div>
+                <div className="text-xs text-slate-400">CLM-2026-0412 • $45,000 Incurred • Adjuster: R. Sterling</div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-400" />
             </a>
@@ -418,7 +418,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                 </span>
                 <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-mono">v2.2</span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Visual coverage hierarchy, rating matrix table, and automated rule test simulator.
               </p>
             </a>
@@ -441,7 +441,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                   2 In Queue
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Inspect CUO sign-off queues, underwriter authority tiers, and audit history.
               </p>
             </a>

@@ -68,7 +68,7 @@ export const JournalEntryApprovalModal: React.FC<JournalEntryApprovalModalProps>
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hz-panel overflow-hidden">
             <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
               Ledger Lines
             </div>
@@ -110,7 +110,7 @@ export const JournalEntryApprovalModal: React.FC<JournalEntryApprovalModalProps>
           </div>
 
           {confirmingReject && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700 flex items-center gap-2">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 flex items-center gap-2">
               <XCircle className="w-3.5 h-3.5 shrink-0" />
               <span>This will permanently stop {entry.voucherNumber} — it will not post to the ledger. Confirm rejection?</span>
             </div>

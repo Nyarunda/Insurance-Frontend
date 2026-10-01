@@ -61,7 +61,7 @@ export const PermissionMatrixEditor: React.FC<PermissionMatrixEditorProps> = ({ 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] text-[var(--hz-text-subtle)] max-w-2xl">
+        <p className="text-xs text-[var(--hz-text-subtle)] max-w-2xl">
           Effective rights for <strong className="text-[var(--hz-text-primary)]">{user?.name}</strong>, inheriting from the{' '}
           <strong className="text-[var(--hz-text-primary)]">{ROLE_LABELS[role]}</strong> default. Amber cells are personal
           overrides that no longer follow the Role Center default.

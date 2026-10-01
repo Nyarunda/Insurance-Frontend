@@ -130,7 +130,7 @@ export const MyProfilePage: React.FC<MyProfilePageProps> = ({ onNavigate, sessio
 
         <div className="p-5">
           {activeTab === 'overview' && (
-            <div className="max-w-2xl space-y-5">
+            <div className="max-w-2xl space-y-4">
               <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
                 <label className="space-y-1">
                   <span className="block font-medium text-[var(--hz-text-subtle)]">Full Name</span>
@@ -196,7 +196,7 @@ export const MyProfilePage: React.FC<MyProfilePageProps> = ({ onNavigate, sessio
           )}
 
           {activeTab === 'security' && (
-            <div className="max-w-md space-y-5">
+            <div className="max-w-md space-y-4">
               <div className="flex items-center gap-2 rounded-[var(--hz-radius-md)] border border-[var(--hz-border)] bg-[var(--hz-surface-subtle)] px-3 py-2 text-xs text-[var(--hz-text-secondary)]">
                 <KeyRound className="h-4 w-4 shrink-0 text-[var(--hz-text-subtle)]" />
                 <span>Update your password. You'll stay signed in on this device after changing it.</span>

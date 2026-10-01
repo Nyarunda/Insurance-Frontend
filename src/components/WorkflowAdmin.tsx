@@ -163,7 +163,7 @@ export const WorkflowAdmin: React.FC<WorkflowAdminProps> = ({ onNavigate }) => {
                   <span className="font-bold text-xs text-[var(--hz-text-primary)] truncate">{def.name}</span>
                   <StatusBadge label={def.enabled ? 'Enabled' : 'Disabled'} tone={def.enabled ? 'success' : 'neutral'} />
                 </div>
-                <div className="mt-1 text-[11px] text-[var(--hz-text-subtle)]">
+                <div className="mt-1 text-xs text-[var(--hz-text-subtle)]">
                   {DOCUMENT_TYPE_LABELS[def.documentType]} • {def.steps.length} step{def.steps.length === 1 ? '' : 's'}
                 </div>
               </button>
@@ -178,11 +178,11 @@ export const WorkflowAdmin: React.FC<WorkflowAdminProps> = ({ onNavigate }) => {
             {!selected ? (
               <div className="text-xs text-[var(--hz-text-subtle)]">Select or create a workflow to configure its approval steps.</div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div className="flex flex-wrap items-end gap-3">
                     <label className="space-y-1">
-                      <span className="block text-[11px] font-medium text-[var(--hz-text-subtle)]">Workflow Name</span>
+                      <span className="block text-xs font-medium text-[var(--hz-text-subtle)]">Workflow Name</span>
                       <input
                         value={nameDraft}
                         onChange={(e) => setNameDraft(e.target.value)}
@@ -192,7 +192,7 @@ export const WorkflowAdmin: React.FC<WorkflowAdminProps> = ({ onNavigate }) => {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="block text-[11px] font-medium text-[var(--hz-text-subtle)]">Applies To</span>
+                      <span className="block text-xs font-medium text-[var(--hz-text-subtle)]">Applies To</span>
                       <select
                         value={selected.documentType}
                         onChange={(e) => updateDefType(selected, e.target.value as WorkflowDocumentType)}
@@ -228,7 +228,7 @@ export const WorkflowAdmin: React.FC<WorkflowAdminProps> = ({ onNavigate }) => {
                 </div>
 
                 {!selected.enabled && (
-                  <p className="text-[11px] text-[var(--hz-warning)]">
+                  <p className="text-xs text-[var(--hz-warning)]">
                     This workflow is disabled — {DOCUMENT_TYPE_LABELS[selected.documentType].toLowerCase()} documents will not be
                     routed through it and will proceed without approval.
                   </p>
@@ -347,7 +347,7 @@ export const WorkflowAdmin: React.FC<WorkflowAdminProps> = ({ onNavigate }) => {
                   <span>Add Step</span>
                 </button>
 
-                <p className="text-[11px] text-[var(--hz-text-subtle)] max-w-2xl">
+                <p className="text-xs text-[var(--hz-text-subtle)] max-w-2xl">
                   A step only applies when the document's amount falls within its Min/Max range (leave blank for no limit) and,
                   if a branch is set, only for documents from that branch. Steps run in order — if a document matches no steps
                   at all, it proceeds without approval. If it's rejected at any step, it does not proceed.

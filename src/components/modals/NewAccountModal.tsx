@@ -117,7 +117,7 @@ export const NewAccountModal: React.FC<NewAccountModalProps> = ({ isOpen, onClos
             {attempted && <FieldError message={errors.name} />}
           </div>
 
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             Normal balance is set automatically from type: Assets and Expenses are Debit-normal; Liabilities, Equity, and Income
             are Credit-normal.
           </p>

@@ -98,7 +98,7 @@ export const BranchLandingPage: React.FC<BranchLandingPageProps> = ({ screenId, 
       />
 
       <HorizonPageContent>
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-4">
           <p className="text-xs text-[var(--hz-text-subtle)] max-w-3xl">{config.subtitle}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -106,7 +106,7 @@ export const BranchLandingPage: React.FC<BranchLandingPageProps> = ({ screenId, 
               <div key={kpi.label} className="border border-[var(--hz-border)] rounded-[var(--hz-radius-lg)] p-3.5 bg-[var(--hz-surface)]">
                 <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--hz-text-subtle)]">{kpi.label}</div>
                 <div className={`mt-1 font-mono text-lg font-bold ${kpiToneClass[kpi.tone ?? 'neutral']}`}>{kpi.value}</div>
-                {kpi.note && <div className="mt-0.5 text-[10px] text-[var(--hz-text-subtle)]">{kpi.note}</div>}
+                {kpi.note && <div className="mt-0.5 text-xs text-[var(--hz-text-subtle)]">{kpi.note}</div>}
               </div>
             ))}
           </div>
@@ -151,7 +151,7 @@ export const BranchLandingPage: React.FC<BranchLandingPageProps> = ({ screenId, 
             </table>
           </div>
 
-          <p className="text-[11px] text-[var(--hz-text-subtle)]">{config.footnote}</p>
+          <p className="text-xs text-[var(--hz-text-subtle)]">{config.footnote}</p>
         </div>
       </HorizonPageContent>
 

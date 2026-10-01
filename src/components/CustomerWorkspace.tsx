@@ -506,7 +506,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
       {/* ==================================================================== */}
       {/* 3. WORKSPACE: PERSISTENT LEFT PANEL + RIGHT DOMAIN TABS              */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT CUSTOMER SUMMARY (lg:col-span-3)             */}
         {/* Fields: IDENTITY, CONTACT, ORGANIZATION, COMPLIANCE, RELATIONSHIPS   */}
@@ -517,7 +517,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             {/* Header / Customer Tag */}
             <div className="flex items-center justify-between border-b border-[var(--hz-border-grid)] pb-2 text-[11px] font-bold uppercase tracking-wide text-teal-700">
               <span>CUSTOMER SUMMARY</span>
-              <span className="font-mono text-[10px] text-slate-500">{customer.id}</span>
+              <span className="font-mono text-xs text-slate-500">{customer.id}</span>
             </div>
 
             {/* IDENTITY */}
@@ -528,22 +528,22 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 </div>
                 <div className="truncate">
                   <div className="font-bold text-slate-900 text-sm truncate">{customer.name}</div>
-                  <div className="text-[11px] text-slate-500 font-medium">
+                  <div className="text-xs text-slate-500 font-medium">
                     {customer.customerType} • Key Account
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 border-t border-slate-100 pt-2 font-mono text-xs text-slate-600">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Customer No</span>
                   <span className="font-bold text-slate-800">{customer.id}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Status</span>
                   <span className="text-emerald-700 font-bold">● ACTIVE</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Client Since</span>
                   <span className="font-bold text-slate-800">{customer.relationshipSince}</span>
                 </div>
@@ -557,18 +557,18 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Registration / ID</span>
-                  <span className="font-mono font-bold text-slate-800 text-[11px]">
+                  <span className="text-slate-500 text-xs">Registration / ID</span>
+                  <span className="font-mono font-bold text-slate-800 text-xs">
                     {partyType === 'corporate' ? 'PVT-2018/98214' : customer.nationalId}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">KRA PIN</span>
-                  <span className="font-mono font-bold text-slate-800 text-[11px]">{customer.kraPin}</span>
+                  <span className="text-slate-500 text-xs">KRA PIN</span>
+                  <span className="font-mono font-bold text-slate-800 text-xs">{customer.kraPin}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">IPRS / BRS</span>
-                  <span className="font-semibold text-emerald-700 flex items-center gap-1 text-[11px]">
+                  <span className="text-slate-500 text-xs">IPRS / BRS</span>
+                  <span className="font-semibold text-emerald-700 flex items-center gap-1 text-xs">
                     <Check className="w-3 h-3" /> Verified
                   </span>
                 </div>
@@ -583,15 +583,15 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center gap-2">
                   <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="text-[11px] font-mono text-slate-800">{customer.phone}</span>
+                  <span className="text-xs font-mono text-slate-800">{customer.phone}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate text-[11px] font-mono text-slate-800">{customer.email}</span>
+                  <span className="truncate text-xs font-mono text-slate-800">{customer.email}</span>
                 </div>
                 <div className="flex items-start gap-2 pt-0.5">
                   <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                  <span className="text-[11px] text-slate-600">
+                  <span className="text-xs text-slate-600">
                     {customer.headquarters || customer.address || 'Upper Hill Chambers, Nairobi'}
                   </span>
                 </div>
@@ -605,15 +605,15 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Servicing Branch</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">Nairobi Commercial</span>
+                  <span className="text-slate-500 text-xs">Servicing Branch</span>
+                  <span className="font-semibold text-slate-800 text-xs">Nairobi Commercial</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Account UW</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">{customer.assignedUnderwriter.split('(')[0]}</span>
+                  <span className="text-slate-500 text-xs">Account UW</span>
+                  <span className="font-semibold text-slate-800 text-xs">{customer.assignedUnderwriter.split('(')[0]}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Risk Rating</span>
+                  <span className="text-slate-500 text-xs">Risk Rating</span>
                   <span className="font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px]">
                     {customer.riskProfile} (Score: 24/100)
                   </span>
@@ -628,26 +628,26 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">KYC Status</span>
-                  <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                  <span className="text-slate-500 text-xs">KYC Status</span>
+                  <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                     <Check className="w-3 h-3" /> Valid
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">KRA Tax Compliance</span>
-                  <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                  <span className="text-slate-500 text-xs">KRA Tax Compliance</span>
+                  <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                     <Check className="w-3 h-3" /> Certified 2026
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">UBO / CR12</span>
-                  <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                  <span className="text-slate-500 text-xs">UBO / CR12</span>
+                  <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                     <Check className="w-3 h-3" /> On File
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Sanctions / PEP</span>
-                  <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                  <span className="text-slate-500 text-xs">Sanctions / PEP</span>
+                  <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                     <Check className="w-3 h-3" /> Cleared
                   </span>
                 </div>
@@ -660,19 +660,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <span>RELATIONSHIP</span>
                 <button
                   onClick={() => setActiveTab('relationships')}
-                  className="text-[10px] text-teal-700 font-bold hover:underline"
+                  className="text-xs text-teal-700 font-bold hover:underline"
                 >
                   View All →
                 </button>
               </div>
               <div className="space-y-1.5 text-xs text-slate-600">
-                <div className="text-[11px]">
+                <div className="text-xs">
                   <span className="font-semibold text-slate-800">Parent:</span> Kamau Holdings Ltd
                 </div>
-                <div className="text-[11px]">
+                <div className="text-xs">
                   <span className="font-semibold text-slate-800">Subsidiaries:</span> 2 Active entities
                 </div>
-                <div className="text-[11px]">
+                <div className="text-xs">
                   <span className="font-semibold text-slate-800">Fleet Units:</span> 18 scheduled vehicles
                 </div>
               </div>
@@ -763,7 +763,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                     <div className="mt-1 text-xs font-medium text-slate-800">
                       Commercial Haulier Prime Mover (KDJ 123A) - collision with guardrail, Athi River
                     </div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
+                    <div className="mt-0.5 text-xs text-slate-500">
                       Assessor: Apex Loss Assessors | Reserve: KES 820,000 | SLA: 4h 21m remaining
                     </div>
                   </div>
@@ -787,19 +787,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               {/* Policies Metric Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">ACTIVE POLICIES</div>
+                  <div className="text-xs text-slate-500 font-mono">ACTIVE POLICIES</div>
                   <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">12</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">EXPIRING IN 30 DAYS</div>
+                  <div className="text-xs text-slate-500 font-mono">EXPIRING IN 30 DAYS</div>
                   <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">3</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">CANCELLED / LAPSED</div>
+                  <div className="text-xs text-slate-500 font-mono">CANCELLED / LAPSED</div>
                   <div className="text-lg font-bold font-mono text-slate-700 mt-0.5">1</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">TOTAL SUM INSURED</div>
+                  <div className="text-xs text-slate-500 font-mono">TOTAL SUM INSURED</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">KES 340,000,000</div>
                 </div>
               </div>
@@ -829,7 +829,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                       <th className="py-2.5 px-3">Policy No</th>
                       <th className="py-2.5 px-3">Product Name</th>
                       <th className="py-2.5 px-3">Insured Risk / Units</th>
@@ -854,7 +854,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                             </button>
                           </td>
                           <td className="py-2.5 px-3 font-semibold text-slate-900">{p.product}</td>
-                          <td className="py-2.5 px-3 text-slate-600 text-[11px]">{p.units}</td>
+                          <td className="py-2.5 px-3 text-slate-600 text-xs">{p.units}</td>
                           <td className="py-2.5 px-3 font-mono font-medium">{p.sumInsured}</td>
                           <td className="py-2.5 px-3 font-mono font-bold text-slate-900">{p.premium}</td>
                           <td className="py-2.5 px-3 font-mono text-slate-600">{p.expiry}</td>
@@ -867,13 +867,13 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => onNavigate('policy-workspace')}
-                                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
+                                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors"
                               >
                                 View Workspace
                               </button>
                               <button
                                 onClick={() => triggerToast(`Endorsement wizard initiated for ${p.no}`)}
-                                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors"
+                                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                               >
                                 Endorse
                               </button>
@@ -894,19 +894,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             <div className="space-y-4 border-t border-slate-200 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">OPEN QUOTES</div>
+                  <div className="text-xs text-slate-500 font-mono">OPEN QUOTES</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">4</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">TOTAL PROPOSAL VALUE</div>
+                  <div className="text-xs text-slate-500 font-mono">TOTAL PROPOSAL VALUE</div>
                   <div className="text-lg font-bold font-mono text-teal-700 mt-0.5">KES 3,420,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">AVG TURNAROUND</div>
+                  <div className="text-xs text-slate-500 font-mono">AVG TURNAROUND</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">2.4 hrs</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">REFERRED TO UW</div>
+                  <div className="text-xs text-slate-500 font-mono">REFERRED TO UW</div>
                   <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">1</div>
                 </div>
               </div>
@@ -956,16 +956,16 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                           {q.status}
                         </span>
                       </div>
-                      <div className="text-slate-600 text-[11px] mt-1">{q.desc}</div>
-                      <div className="text-slate-400 font-mono text-[10px] mt-0.5">{q.validity}</div>
+                      <div className="text-slate-600 text-xs mt-1">{q.desc}</div>
+                      <div className="text-slate-400 font-mono text-xs mt-0.5">{q.validity}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-mono font-bold text-sm text-slate-900">{q.premium}</div>
-                      <div className="text-[11px] text-slate-500">Sum: {q.sumInsured}</div>
+                      <div className="text-xs text-slate-500">Sum: {q.sumInsured}</div>
                       <div className="mt-1.5 flex items-center justify-end gap-2">
                         <button
                           onClick={() => onNavigate('quote-workspace')}
-                          className="px-2.5 py-1 rounded bg-teal-600 text-white font-semibold text-[11px] hover:bg-teal-700"
+                          className="px-2.5 py-1 rounded bg-teal-600 text-white font-semibold text-xs hover:bg-teal-700"
                         >
                           View Quote →
                         </button>
@@ -984,19 +984,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             <div className="space-y-4 border-t border-slate-200 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">OPEN CLAIMS</div>
+                  <div className="text-xs text-slate-500 font-mono">OPEN CLAIMS</div>
                   <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">3</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">HISTORICAL PAID CLAIMS</div>
+                  <div className="text-xs text-slate-500 font-mono">HISTORICAL PAID CLAIMS</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">18</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">OUTSTANDING RESERVE</div>
+                  <div className="text-xs text-slate-500 font-mono">OUTSTANDING RESERVE</div>
                   <div className="text-lg font-bold font-mono text-rose-700 mt-0.5">KES 4,200,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">LOSS RATIO (LIFETIME)</div>
+                  <div className="text-xs text-slate-500 font-mono">LOSS RATIO (LIFETIME)</div>
                   <div className="text-lg font-bold font-mono text-teal-700 mt-0.5">42.0%</div>
                 </div>
               </div>
@@ -1024,7 +1024,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                       <th className="py-2.5 px-3">Claim Ref</th>
                       <th className="py-2.5 px-3">Policy No</th>
                       <th className="py-2.5 px-3">Loss Description</th>
@@ -1085,7 +1085,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 text-right">
                           <button
                             onClick={() => onNavigate('claim-workspace')}
-                            className="px-2.5 py-1 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold hover:bg-teal-100 text-[11px]"
+                            className="px-2.5 py-1 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold hover:bg-teal-100 text-xs"
                           >
                             Open Claim →
                           </button>
@@ -1105,19 +1105,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             <div className="space-y-4 border-t border-slate-200 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">TOTAL INVOICED</div>
+                  <div className="text-xs text-slate-500 font-mono">TOTAL INVOICED</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">KES 8,240,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">TOTAL PAID</div>
+                  <div className="text-xs text-slate-500 font-mono">TOTAL PAID</div>
                   <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">KES 7,320,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">OUTSTANDING BALANCE</div>
+                  <div className="text-xs text-slate-500 font-mono">OUTSTANDING BALANCE</div>
                   <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">KES 920,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">OVERDUE (30+ DAYS)</div>
+                  <div className="text-xs text-slate-500 font-mono">OVERDUE (30+ DAYS)</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">KES 0</div>
                 </div>
               </div>
@@ -1138,7 +1138,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                       <th className="py-2.5 px-3">Invoice / Debit Note</th>
                       <th className="py-2.5 px-3">Policy Number</th>
                       <th className="py-2.5 px-3">Description</th>
@@ -1174,7 +1174,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 text-right">
                           <button
                             onClick={() => triggerToast(`Payment prompt initiated for ${inv.no}`)}
-                            className="text-teal-700 hover:text-teal-900 font-semibold text-[11px]"
+                            className="text-teal-700 hover:text-teal-900 font-semibold text-xs"
                           >
                             Pay via M-Pesa →
                           </button>
@@ -1194,19 +1194,19 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             <div className="space-y-4 border-t border-slate-200 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">TOTAL RECEIPTS</div>
+                  <div className="text-xs text-slate-500 font-mono">TOTAL RECEIPTS</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">KES 7,320,000</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">M-PESA PAYBILL</div>
+                  <div className="text-xs text-slate-500 font-mono">M-PESA PAYBILL</div>
                   <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">42 Txns</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">BANK RTGS / KEPSS</div>
+                  <div className="text-xs text-slate-500 font-mono">BANK RTGS / KEPSS</div>
                   <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">14 Txns</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-[10px] text-slate-500 font-mono">UNALLOCATED CASH</div>
+                  <div className="text-xs text-slate-500 font-mono">UNALLOCATED CASH</div>
                   <div className="text-lg font-bold font-mono text-teal-700 mt-0.5">KES 0.00</div>
                 </div>
               </div>
@@ -1226,7 +1226,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                       <th className="py-2.5 px-3">Receipt No</th>
                       <th className="py-2.5 px-3">Channel Reference</th>
                       <th className="py-2.5 px-3">Payment Channel</th>
@@ -1243,9 +1243,9 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 font-mono font-bold text-slate-900">{p.ref}</td>
                         <td className="py-2.5 px-3 font-mono text-slate-600 font-semibold">{p.extRef}</td>
                         <td className="py-2.5 px-3 text-slate-700">{p.method}</td>
-                        <td className="py-2.5 px-3 font-mono text-slate-500 text-[11px]">{p.date}</td>
+                        <td className="py-2.5 px-3 font-mono text-slate-500 text-xs">{p.date}</td>
                         <td className="py-2.5 px-3 font-mono font-bold text-emerald-700">{p.amount}</td>
-                        <td className="py-2.5 px-3 font-mono text-[11px] text-slate-700">{p.allocatedTo}</td>
+                        <td className="py-2.5 px-3 font-mono text-xs text-slate-700">{p.allocatedTo}</td>
                         <td className="py-2.5 px-3">
                           <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             {p.status}
@@ -1315,7 +1315,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="px-3 py-2"><Status tone={doc.tone}>{doc.status}</Status></td>
                         <td className="py-2 pl-3 text-right">
                           {doc.restricted ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-500" title="Restricted to compliance roles">
+                            <span className="inline-flex items-center gap-1 text-xs text-slate-500" title="Restricted to compliance roles">
                               <LockKeyhole className="h-3.5 w-3.5" aria-hidden />
                               Restricted
                             </span>
@@ -1347,7 +1347,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <h3 className="font-bold text-xs uppercase tracking-wider font-mono text-slate-900">
                   Corporate Hierarchy & Named Parties
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Connected parent holdings, operating subsidiaries, directors, drivers, and insured collateral.
                 </p>
               </div>
@@ -1361,8 +1361,8 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         {rel.relationType}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-600 mt-1">{rel.detail}</div>
-                    <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                    <div className="text-xs text-slate-600 mt-1">{rel.detail}</div>
+                    <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-mono text-slate-500">
                       <span>Status: {rel.status}</span>
                       <button
                         onClick={() => triggerToast(`Opened relationship dossier for ${rel.name}`)}
@@ -1408,8 +1408,8 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         {comm.status}
                       </span>
                     </div>
-                    <div className="text-slate-600 text-[11px] mt-1">{comm.snippet}</div>
-                    <div className="text-[10px] font-mono text-slate-400 mt-1 flex items-center justify-between">
+                    <div className="text-slate-600 text-xs mt-1">{comm.snippet}</div>
+                    <div className="text-xs font-mono text-slate-400 mt-1 flex items-center justify-between">
                       <span>Recipient: {comm.recipient}</span>
                       <span>{comm.date}</span>
                     </div>
@@ -1426,17 +1426,17 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
             <div className="space-y-4 border-t border-slate-200 pt-4 text-xs">
               <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--hz-border-grid)] flex justify-between items-center">
                 <span>AUDIT TRAIL & EVENT SOURCING LOGS</span>
-                <span className="text-[10px] text-slate-400">Synchronized with Immutable Event Store</span>
+                <span className="text-xs text-slate-400">Synchronized with Immutable Event Store</span>
               </div>
 
               <div className="space-y-4 pl-3 border-l-2 border-slate-200">
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600" />
                   <div className="font-bold text-slate-900">Motor Fleet Policy Endorsement Bound</div>
-                  <div className="text-slate-600 text-[11px]">
+                  <div className="text-slate-600 text-xs">
                     2 Prime Movers added to POL/MTR/2026/00182; pro-rata premium of KES 240,000 debited.
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">
                     Today 14:15 EAT • Jane Mwangi (Senior Commercial Underwriter)
                   </div>
                 </div>
@@ -1444,10 +1444,10 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-amber-500" />
                   <div className="font-bold text-slate-900">Claim Registered (FNOL #CLM-00982)</div>
-                  <div className="text-slate-600 text-[11px]">
+                  <div className="text-slate-600 text-xs">
                     Accident on Athi River corridor; initial reserve posted at KES 820,000. Assessor Peter Githinji dispatched.
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">
                     28 Aug 2026 09:30 EAT • Claims Operations Desk
                   </div>
                 </div>
@@ -1455,10 +1455,10 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   <div className="font-bold text-slate-900">M-Pesa Paybill Collection Reconciled</div>
-                  <div className="text-slate-600 text-[11px]">
+                  <div className="text-slate-600 text-xs">
                     KES 182,450 confirmed via Safaricom API (Ref: RK89104JK2); allocated to INV-2026-10929.
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">
                     01 Sep 2026 09:22 EAT • Automated Core Reconciliation Engine
                   </div>
                 </div>
@@ -1466,10 +1466,10 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-blue-500" />
                   <div className="font-bold text-slate-900">Digital Motor Certificate Generated</div>
-                  <div className="text-slate-600 text-[11px]">
+                  <div className="text-slate-600 text-xs">
                     IRA DMVIC QR code authenticated; synced with National Police Traffic Enforcement Database.
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">
                     01 Sep 2026 09:24 EAT • Digital Integration Hub
                   </div>
                 </div>

@@ -67,7 +67,7 @@ export const LeadsList: React.FC<LeadsListProps> = ({ onNavigate, densityMode })
           </div>
           <div>
             <div className="font-bold text-slate-900">{l.name}</div>
-            <div className="text-[11px] text-slate-500">{l.contactPerson}</div>
+            <div className="text-xs text-slate-500">{l.contactPerson}</div>
           </div>
         </div>
       ),

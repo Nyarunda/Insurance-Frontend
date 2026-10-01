@@ -241,6 +241,8 @@
     --hz-radius-button: 3px;
     --hz-radius-badge: 3px;
     --hz-radius-panel: 6px;
+    /* Card padding follows density: compact keeps today's 16px, the others open up. */
+    --hz-card-pad: 16px;
     --hz-radius-drawer: 6px;
 
     /* Shell dimensions */
@@ -311,6 +313,7 @@
     --hz-control-hit-target: 36px;
     --hz-font-size-table: 13px;
     --hz-padding-cell: 6px 12px;
+    --hz-card-pad: 20px;
   }
 
   .density-spacious {
@@ -320,6 +323,7 @@
     --hz-font-size-table: 14px;
     --hz-font-size-body: 14px;
     --hz-padding-cell: 8px 16px;
+    --hz-card-pad: 24px;
   }
 
   html {
@@ -396,6 +400,14 @@
     background: var(--hz-surface-main);
     border: 1px solid var(--hz-border-grid);
     border-radius: var(--hz-radius-panel);
+  }
+
+  /* The one card: a panel with density-driven padding. Use .hz-panel alone for flush content (tables). */
+  .hz-card {
+    background: var(--hz-surface-main);
+    border: 1px solid var(--hz-border-grid);
+    border-radius: var(--hz-radius-panel);
+    padding: var(--hz-card-pad);
   }
 
   .hz-toolbar {

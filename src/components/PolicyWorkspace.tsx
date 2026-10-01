@@ -98,7 +98,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
       {/* ← Policy / POL-MTR-2026-001239                             ● ACTIVE  */}
       {/*   Motor Comprehensive • ABC Logistics Ltd                            */}
       {/* ==================================================================== */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -276,16 +276,16 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
       {/* Center Column (lg:col-span-6): Main Tabbed Workspace                */}
       {/* Right Column (lg:col-span-3): Reinsurance, Risk Controls & DMVIC     */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT POLICY IDENTITY (lg:col-span-3)              */}
         {/* Fields: POLICY, CUSTOMER, PRODUCT, TERM, PREMIUM, REINSURANCE        */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4">
+          <div className="hz-card space-y-4">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2 flex items-center justify-between">
               <span>POLICY IDENTITY</span>
-              <span className="font-mono text-[10px] text-teal-700 font-bold">{selectedVersion}</span>
+              <span className="font-mono text-xs text-teal-700 font-bold">{selectedVersion}</span>
             </div>
 
             {/* Core Snapshot */}
@@ -298,7 +298,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="font-bold text-slate-900 text-sm truncate">Toyota Prado (KDJ 123A)</div>
                   <button
                     onClick={() => onNavigate('product-workspace')}
-                    className="text-[11px] text-teal-700 hover:underline font-medium block text-left"
+                    className="text-xs text-teal-700 hover:underline font-medium block text-left"
                   >
                     PRD-MTR-COMP Comprehensive →
                   </button>
@@ -306,15 +306,15 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Policy No</span>
                   <span className="font-bold text-slate-800">POL/MTR/2026/001239</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Status</span>
                   <span className="text-emerald-700 font-bold">● ACTIVE</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Term</span>
                   <span className="font-bold text-slate-800">01 Sep 2026 – 31 Aug 2027</span>
                 </div>
@@ -328,30 +328,30 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Named Insured</span>
+                  <span className="text-slate-500 text-xs">Named Insured</span>
                   <button
                     onClick={() => onNavigate('customer-workspace')}
-                    className="font-bold text-teal-700 hover:underline text-[11px]"
+                    className="font-bold text-teal-700 hover:underline text-xs"
                   >
                     ABC Logistics Ltd →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">KRA PIN</span>
-                  <span className="font-mono font-bold text-slate-800 text-[11px]">P051289102X</span>
+                  <span className="text-slate-500 text-xs">KRA PIN</span>
+                  <span className="font-mono font-bold text-slate-800 text-xs">P051289102X</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Broker / Intermediary</span>
+                  <span className="text-slate-500 text-xs">Broker / Intermediary</span>
                   <button
                     onClick={() => onNavigate('broker-workspace')}
-                    className="font-semibold text-teal-700 hover:underline text-[11px] text-right"
+                    className="font-semibold text-teal-700 hover:underline text-xs text-right"
                   >
                     Marsh McLennan →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Servicing Branch</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">Nairobi Commercial</span>
+                  <span className="text-slate-500 text-xs">Servicing Branch</span>
+                  <span className="font-semibold text-slate-800 text-xs">Nairobi Commercial</span>
                 </div>
               </div>
             </div>
@@ -363,24 +363,24 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Sum Insured</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">
+                  <span className="text-slate-500 text-xs">Sum Insured</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">
                     KES {currentVersionRecord.sumInsuredAtVersion.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Gross Annual Premium</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">
+                  <span className="text-slate-500 text-xs">Gross Annual Premium</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">
                     KES {currentVersionRecord.premiumAtVersion.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Loss Ratio</span>
-                  <span className="font-mono font-bold text-emerald-700 text-[11px]">12.4% (Profitable)</span>
+                  <span className="text-slate-500 text-xs">Loss Ratio</span>
+                  <span className="font-mono font-bold text-emerald-700 text-xs">12.4% (Profitable)</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Ledger Balance</span>
-                  <span className="font-mono font-bold text-slate-800 text-[11px]">KES 0.00 (Fully Settled)</span>
+                  <span className="text-slate-500 text-xs">Ledger Balance</span>
+                  <span className="font-mono font-bold text-slate-800 text-xs">KES 0.00 (Fully Settled)</span>
                 </div>
               </div>
             </div>
@@ -392,16 +392,16 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Treaty Program</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">Motor Surplus 2026</span>
+                  <span className="text-slate-500 text-xs">Treaty Program</span>
+                  <span className="font-semibold text-slate-800 text-xs">Motor Surplus 2026</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Kenya Re Quota Share</span>
-                  <span className="font-mono font-bold text-teal-700 text-[11px]">25% Mandatory</span>
+                  <span className="text-slate-500 text-xs">Kenya Re Quota Share</span>
+                  <span className="font-mono font-bold text-teal-700 text-xs">25% Mandatory</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Net Retention</span>
-                  <span className="font-mono font-bold text-slate-800 text-[11px]">75% (KES 3,375,000)</span>
+                  <span className="text-slate-500 text-xs">Net Retention</span>
+                  <span className="font-mono font-bold text-slate-800 text-xs">75% (KES 3,375,000)</span>
                 </div>
               </div>
             </div>
@@ -464,7 +464,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
           {activeTab === 'overview' && (
             <div className="space-y-4">
               {/* Scheduled Asset Summary */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--hz-border-grid)]">
                   Insured Asset Profile
                 </h2>
@@ -472,25 +472,25 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Vehicle Reg</div>
                     <div className="text-slate-900 font-bold font-mono text-sm mt-0.5">KDJ 123A</div>
-                    <div className="text-slate-500 text-[11px]">Chassis: JTEBU29J00K091823</div>
+                    <div className="text-slate-500 text-xs">Chassis: JTEBU29J00K091823</div>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Make & Model</div>
                     <div className="text-slate-900 font-bold text-sm mt-0.5">Toyota Prado TX</div>
-                    <div className="text-slate-500 text-[11px]">2022 • 2,755 cc Turbo Diesel</div>
+                    <div className="text-slate-500 text-xs">2022 • 2,755 cc Turbo Diesel</div>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Sum Insured ({selectedVersion})</div>
                     <div className="text-slate-900 font-bold font-mono text-sm mt-0.5">
                       KES {currentVersionRecord.sumInsuredAtVersion.toLocaleString()}
                     </div>
-                    <div className="text-emerald-700 text-[11px] font-medium">AA Kenya Certified</div>
+                    <div className="text-emerald-700 text-xs font-medium">AA Kenya Certified</div>
                   </div>
                 </div>
               </div>
 
               {/* Coverage Highlight */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)] mb-3">
                   <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                     Coverage Schedule Highlights ({selectedVersion})
@@ -507,7 +507,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="py-2 flex items-center justify-between">
                     <div>
                       <span className="font-bold text-slate-800">Accidental Damage, Fire & Theft</span>
-                      <p className="text-[11px] text-slate-500">Comprehensive market value indemnity with authorized garage repair</p>
+                      <p className="text-xs text-slate-500">Comprehensive market value indemnity with authorized garage repair</p>
                     </div>
                     <span className="font-mono font-semibold text-slate-800">
                       KES {currentVersionRecord.sumInsuredAtVersion.toLocaleString()}
@@ -516,14 +516,14 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="py-2 flex items-center justify-between">
                     <div>
                       <span className="font-bold text-slate-800">Third Party Property Damage</span>
-                      <p className="text-[11px] text-slate-500">Statutory unlimited injury + KES 20M property damage indemnity</p>
+                      <p className="text-xs text-slate-500">Statutory unlimited injury + KES 20M property damage indemnity</p>
                     </div>
                     <span className="font-mono font-semibold text-slate-800">KES 20,000,000</span>
                   </div>
                   <div className="py-2 flex items-center justify-between">
                     <div>
                       <span className="font-bold text-slate-800">Windscreen & Glass Damage</span>
-                      <p className="text-[11px] text-slate-500">Zero excess replacement via Impala Glass / AutoXpress</p>
+                      <p className="text-xs text-slate-500">Zero excess replacement via Impala Glass / AutoXpress</p>
                     </div>
                     <span className="font-mono font-semibold text-slate-800">
                       {selectedVersion === 'V1' ? 'Not included' : 'KES 100,000'}
@@ -533,7 +533,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               </div>
 
               {/* Recent Claim Alert */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-2 border-b-2 border-amber-500/30 mb-3">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
@@ -557,13 +557,13 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                         Assessment in Progress
                       </span>
                     </div>
-                    <div className="text-slate-500 text-[11px] mt-0.5">
+                    <div className="text-slate-500 text-xs mt-0.5">
                       Loss Date: 28 Aug 2026 • Outstanding Reserve: KES 820,000 • Assessor: Apex
                     </div>
                   </div>
                   <button
                     onClick={() => onNavigate('claim-workspace')}
-                    className="px-2.5 py-1 rounded bg-teal-600 text-white font-semibold text-[11px] hover:bg-teal-700"
+                    className="shrink-0 whitespace-nowrap px-2.5 py-1 rounded bg-teal-600 text-white font-semibold text-xs hover:bg-teal-700"
                   >
                     View Claim
                   </button>
@@ -574,31 +574,31 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 2: RISK SCHEDULE */}
           {activeTab === 'risks' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Detailed Motor Asset Specifications
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-1">
-                  <div className="text-slate-400 font-mono text-[10px]">ENGINE & TRANSMISSION</div>
+                  <div className="text-slate-400 font-mono text-xs">ENGINE & TRANSMISSION</div>
                   <div className="font-bold text-slate-900">2,755 cc 1GD-FTV Inline-4 Turbo Diesel</div>
-                  <div className="text-slate-500 text-[11px]">6-speed automatic 4WD with locking center differential</div>
+                  <div className="text-slate-500 text-xs">6-speed automatic 4WD with locking center differential</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-1">
-                  <div className="text-slate-400 font-mono text-[10px]">SECURITY & TELEMATICS</div>
+                  <div className="text-slate-400 font-mono text-xs">SECURITY & TELEMATICS</div>
                   <div className="font-bold text-emerald-700">Cartrack Real-Time GPS Installed</div>
-                  <div className="text-slate-500 text-[11px]">Active subscription • Immobilizer bypass alert enabled</div>
+                  <div className="text-slate-500 text-xs">Active subscription • Immobilizer bypass alert enabled</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-1">
-                  <div className="text-slate-400 font-mono text-[10px]">PARKING & USAGE</div>
+                  <div className="text-slate-400 font-mono text-xs">PARKING & USAGE</div>
                   <div className="font-bold text-slate-900">Commercial Carriage / Private Fleet</div>
-                  <div className="text-slate-500 text-[11px]">Garaged at Upper Hill secure premises at night</div>
+                  <div className="text-slate-500 text-xs">Garaged at Upper Hill secure premises at night</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-1">
-                  <div className="text-slate-400 font-mono text-[10px]">VALUATION REPORT</div>
+                  <div className="text-slate-400 font-mono text-xs">VALUATION REPORT</div>
                   <div className="font-bold text-slate-900">AA Kenya Certified Valuation</div>
-                  <div className="text-slate-500 text-[11px]">Certificate #AAK-VAL-2026-991 • Done 18 Jan 2026</div>
+                  <div className="text-slate-500 text-xs">Certificate #AAK-VAL-2026-991 • Done 18 Jan 2026</div>
                 </div>
               </div>
             </div>
@@ -606,14 +606,14 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 3: COVERAGE */}
           {activeTab === 'coverage' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Endorsed Coverage Schedule & Excess Table
               </h3>
 
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                     <th className="py-2 px-3">Cover Section</th>
                     <th className="py-2 px-3">Limit of Liability</th>
                     <th className="py-2 px-3">Applicable Excess</th>
@@ -664,7 +664,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 4: PREMIUM & LEVIES */}
           {activeTab === 'premium' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Statutory Rating & Premium Breakdown ({selectedVersion})
               </h3>
@@ -714,7 +714,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 5: BILLING */}
           {activeTab === 'billing' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Invoices & Collections Schedule
               </h3>
@@ -722,7 +722,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between">
                 <div>
                   <div className="font-mono font-bold text-slate-900">INV-2026-9901 • Annual Premium Invoice</div>
-                  <div className="text-slate-500 text-[11px] mt-0.5">
+                  <div className="text-slate-500 text-xs mt-0.5">
                     Due: 01 Sep 2026 • Paid via M-Pesa (Ref: RK89104JK2) on 01 Sep 2026
                   </div>
                 </div>
@@ -740,14 +740,14 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 6: CLAIMS */}
           {activeTab === 'claims' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                 <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900">
                   Claims Incurred Under This Policy (1)
                 </h3>
                 <button
                   onClick={() => onNavigate('claims-landing')}
-                  className="px-2.5 py-1 rounded bg-rose-600 text-white font-semibold text-[11px] hover:bg-rose-700"
+                  className="px-2.5 py-1 rounded bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700"
                 >
                   + New Claim FNOL
                 </button>
@@ -762,7 +762,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                       Assessment
                     </span>
                   </div>
-                  <div className="text-slate-600 text-[11px] mt-1">
+                  <div className="text-slate-600 text-xs mt-1">
                     Loss Date: 28 Aug 2026 • Driver: Peter Mutua • Assessor: Apex Loss Assessors
                   </div>
                 </div>
@@ -781,7 +781,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 7: ENDORSEMENTS */}
           {activeTab === 'endorsements' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Policy Endorsement Revisions History (3)
               </h3>
@@ -798,7 +798,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-slate-900">{ver.version}</span>
                         {ver.isCurrent && (
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
                             CURRENT
                           </span>
                         )}
@@ -811,7 +811,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                         Reconstruct Snapshot →
                       </button>
                     </div>
-                    <div className="text-slate-500 text-[11px] mt-1 flex justify-between font-mono">
+                    <div className="text-slate-500 text-xs mt-1 flex justify-between font-mono">
                       <span>Sum: KES {ver.sumInsuredAtVersion.toLocaleString()} • Premium: KES {ver.premiumAtVersion.toLocaleString()}</span>
                       <span>By: {ver.author} ({ver.date})</span>
                     </div>
@@ -823,7 +823,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 8: DOCUMENTS */}
           {activeTab === 'documents' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Policy Documents & Official Schedules
               </h3>
@@ -841,7 +841,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                       <FileText className="w-4 h-4 text-teal-700" />
                       <div>
                         <div className="font-semibold text-slate-900">{doc.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">{doc.type} • {doc.date} • {doc.size}</div>
+                        <div className="text-xs text-slate-500 font-mono">{doc.type} • {doc.date} • {doc.size}</div>
                       </div>
                     </div>
                     <button
@@ -858,7 +858,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 9: ACCOUNTING */}
           {activeTab === 'accounting' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Sub-Ledger Postings & Journal Vouchers
               </h3>
@@ -866,7 +866,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                       <th className="py-2 px-3">JV Number</th>
                       <th className="py-2 px-3">Date</th>
                       <th className="py-2 px-3">Debit Account</th>
@@ -874,7 +874,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                       <th className="py-2 px-3 text-right">Amount (KES)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                  <tbody className="divide-y divide-slate-100 font-mono text-xs">
                     <tr>
                       <td className="py-2 px-3 text-teal-700 font-bold">JV-2026-08129</td>
                       <td className="py-2 px-3 text-slate-500">01 Sep 2026</td>
@@ -904,7 +904,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 10: AUDIT TIMELINE */}
           {activeTab === 'audit' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Immutable Lifecycle Audit Log
               </h3>
@@ -914,8 +914,8 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div key={idx} className="relative pl-4">
                     <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600 ring-4 ring-teal-50" />
                     <div className="font-bold text-slate-900">{evt.title}</div>
-                    <p className="text-slate-600 text-[11px] mt-0.5">{evt.desc}</p>
-                    <div className="text-[10px] font-mono text-slate-400 mt-0.5">{evt.date}</div>
+                    <p className="text-slate-600 text-xs mt-0.5">{evt.desc}</p>
+                    <div className="text-xs font-mono text-slate-400 mt-0.5">{evt.date}</div>
                   </div>
                 ))}
               </div>
@@ -928,7 +928,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
           {/* Version Switcher Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+          <div className="hz-card">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)] mb-3">
               <div className="flex items-center gap-1.5">
                 <History className="w-4 h-4 text-teal-600" />
@@ -958,14 +958,14 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                       <span className="font-mono font-bold text-slate-900 flex items-center gap-1">
                         <span>{ver.version}</span>
                         {ver.isCurrent && (
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
                             CURR
                           </span>
                         )}
                       </span>
-                      <span className="font-mono text-slate-400 text-[10px]">{ver.date}</span>
+                      <span className="font-mono text-slate-400 text-xs">{ver.date}</span>
                     </div>
-                    <div className="text-[11px] font-medium text-slate-700 mt-1 truncate">{ver.changeDescription}</div>
+                    <div className="text-xs font-medium text-slate-700 mt-1 truncate">{ver.changeDescription}</div>
                   </button>
                 );
               })}
@@ -980,7 +980,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                 AUTHENTICATED
               </span>
             </div>
-            <p className="text-slate-300 text-[11px] leading-relaxed">
+            <p className="text-slate-300 text-xs leading-relaxed">
               Certificate No: <strong>IRA/MTR/2026/990142</strong>. Official QR verification seal authenticated.
             </p>
             <button
@@ -993,26 +993,26 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
           </div>
 
           {/* Underwriting & Risk Controls Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3 text-xs">
+          <div className="hz-card space-y-3 text-xs">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2">
               RISK CONTROLS & AUDIT
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Underwriting DOA</span>
-                <span className="font-semibold text-slate-800 text-[11px]">Level 2 (Authorized)</span>
+                <span className="text-slate-500 text-xs">Underwriting DOA</span>
+                <span className="font-semibold text-slate-800 text-xs">Level 2 (Authorized)</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Telematics Score</span>
-                <span className="font-mono font-bold text-emerald-700 text-[11px]">88/100 (Safe Driver)</span>
+                <span className="text-slate-500 text-xs">Telematics Score</span>
+                <span className="font-mono font-bold text-emerald-700 text-xs">88/100 (Safe Driver)</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Renewal Propensity</span>
-                <span className="font-mono font-bold text-teal-700 text-[11px]">94% (High)</span>
+                <span className="text-slate-500 text-xs">Renewal Propensity</span>
+                <span className="font-mono font-bold text-teal-700 text-xs">94% (High)</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Police DB Sync</span>
-                <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                <span className="text-slate-500 text-xs">Police DB Sync</span>
+                <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                   <Check className="w-3 h-3" /> Live
                 </span>
               </div>

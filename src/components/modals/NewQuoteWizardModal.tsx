@@ -134,13 +134,13 @@ export const NewQuoteWizardModal: React.FC<NewQuoteWizardModalProps> = ({
             return (
               <div key={label} className="flex items-center gap-2">
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono ${
-                    isCompleted
-                      ? 'bg-teal-600 text-white'
-                      : isCurrent
-                      ? 'bg-slate-900 text-white font-bold'
-                      : 'bg-slate-200 text-slate-500'
-                  }`}
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-mono ${
+ isCompleted
+ ? 'bg-teal-600 text-white'
+ : isCurrent
+ ? 'bg-slate-900 text-white font-bold'
+ : 'bg-slate-200 text-slate-500'
+ }`}
                 >
                   {isCompleted ? <Check className="w-3 h-3" /> : stepNum}
                 </span>
@@ -245,7 +245,7 @@ export const NewQuoteWizardModal: React.FC<NewQuoteWizardModalProps> = ({
                       }`}
                     >
                       <div>{tier}</div>
-                      <div className="text-[11px] font-normal text-slate-500 mt-0.5">
+                      <div className="text-xs font-normal text-slate-500 mt-0.5">
                         {tier.includes('Premier') ? 'Includes 0% depreciation on glass' : 'Baseline tariff coverage'}
                       </div>
                     </button>
@@ -290,7 +290,7 @@ export const NewQuoteWizardModal: React.FC<NewQuoteWizardModalProps> = ({
                   step={100000}
                   className="w-full text-sm font-mono p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-teal-500"
                 />
-                <span className="text-[11px] text-slate-500 mt-1 block">
+                <span className="text-xs text-slate-500 mt-1 block">
                   Current: KES {sumInsured.toLocaleString()}
                 </span>
                 {attempted && <FieldError message={currentStepErrors.sumInsured} />}

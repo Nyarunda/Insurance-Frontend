@@ -231,7 +231,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
               <div
                 key={tile.id}
                 onClick={tile.onClick}
-                className="bg-white rounded-xl border border-slate-200 hover:border-teal-500/50 hover:shadow-xs transition-all p-4 cursor-pointer flex flex-col justify-between"
+                className="hz-card hover:border-teal-500/50 transition-colors cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -248,7 +248,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                     )}
                   </div>
                   <div className="font-bold text-slate-900 text-xs mt-1">{tile.title}</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">{tile.subtitle}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{tile.subtitle}</div>
                 </div>
               </div>
             );
@@ -256,7 +256,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
         </div>
 
         {/* Dense Operational Grid Pattern */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="hz-panel overflow-hidden">
           {/* Contextual State Tabs */}
           <div className="border-b border-slate-200 px-4 pt-3 flex space-x-2 overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
@@ -285,7 +285,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
           <div className="p-3 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 gap-1.5">
-                <span className="text-[11px] text-slate-400 font-mono">Filter column:</span>
+                <span className="text-xs text-slate-400 font-mono">Filter column:</span>
                 <select
                   value={filterColumn}
                   onChange={(e) => setFilterColumn(e.target.value)}
@@ -352,7 +352,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                     <td className="py-2.5 px-4 font-semibold text-slate-900">{row.col2}</td>
                     <td className="py-2.5 px-4 text-slate-600">{row.col3}</td>
                     <td className="py-2.5 px-4 font-mono font-bold text-slate-900">{row.col4}</td>
-                    <td className="py-2.5 px-4 font-mono text-[11px] text-rose-600 font-semibold">
+                    <td className="py-2.5 px-4 font-mono text-xs text-rose-600 font-semibold">
                       {row.col5}
                     </td>
                     <td className="py-2.5 px-4">
@@ -365,7 +365,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                     <td className="py-2.5 px-4 text-right">
                       <button
                         onClick={row.onAction}
-                        className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-[11px]"
+                        className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-xs"
                       >
                         {row.actionText} →
                       </button>
@@ -380,7 +380,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
           <div className="p-3 bg-slate-50/70 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-mono">
             <div>1–5 of 1,482 records</div>
             <div className="flex items-center gap-3">
-              <span className="text-[11px]">50 / page</span>
+              <span className="text-xs">50 / page</span>
               <div className="flex items-center gap-1">
                 <button className="p-1 rounded hover:bg-slate-200 disabled:opacity-50">
                   <ChevronLeft className="w-3.5 h-3.5" />
@@ -565,7 +565,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
             <div
               key={tile.id}
               onClick={tile.onClick}
-              className="bg-white rounded-xl border border-slate-200 hover:border-teal-500/50 hover:shadow-xs transition-all p-4 cursor-pointer flex flex-col justify-between"
+              className="hz-card hover:border-teal-500/50 transition-colors cursor-pointer flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -582,7 +582,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                   )}
                 </div>
                 <div className="font-bold text-slate-900 text-xs mt-1">{tile.title}</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{tile.subtitle}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{tile.subtitle}</div>
               </div>
             </div>
           );
@@ -590,7 +590,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
       </div>
 
       {/* Dense Operational Grid Pattern */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="hz-panel overflow-hidden">
         {/* Contextual State Tabs */}
         <div className="border-b border-slate-200 px-4 pt-3 flex space-x-2 overflow-x-auto no-scrollbar">
           {uwTabs.map((tab) => (
@@ -619,7 +619,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
         <div className="p-3 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 gap-1.5">
-              <span className="text-[11px] text-slate-400 font-mono">Filter column:</span>
+              <span className="text-xs text-slate-400 font-mono">Filter column:</span>
               <select
                 value={filterColumn}
                 onChange={(e) => setFilterColumn(e.target.value)}
@@ -686,7 +686,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                   <td className="py-2.5 px-4 font-semibold text-slate-900">{row.col2}</td>
                   <td className="py-2.5 px-4 text-slate-600">{row.col3}</td>
                   <td className="py-2.5 px-4 font-mono font-bold text-slate-900">{row.col4}</td>
-                  <td className="py-2.5 px-4 font-mono text-[11px] text-amber-700 font-semibold">
+                  <td className="py-2.5 px-4 font-mono text-xs text-amber-700 font-semibold">
                     {row.col5}
                   </td>
                   <td className="py-2.5 px-4">
@@ -699,7 +699,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                   <td className="py-2.5 px-4 text-right">
                     <button
                       onClick={row.onAction}
-                      className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-[11px]"
+                      className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-xs"
                     >
                       {row.actionText} →
                     </button>
@@ -714,7 +714,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
         <div className="p-3 bg-slate-50/70 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-mono">
           <div>1–50 of 1,284</div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px]">50 / page</span>
+            <span className="text-xs">50 / page</span>
             <div className="flex items-center gap-1">
               <button className="p-1 rounded hover:bg-slate-200 disabled:opacity-50">
                 <ChevronLeft className="w-3.5 h-3.5" />

@@ -237,7 +237,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                 <h2 className="text-sm font-bold text-[var(--hz-text-primary)] uppercase tracking-wider font-mono">
                   Users
                 </h2>
-                <span className="text-[11px] text-[var(--hz-text-subtle)]">{filteredUsers.length} records</span>
+                <span className="text-xs text-[var(--hz-text-subtle)]">{filteredUsers.length} records</span>
               </div>
               <button className="hz-button hz-button-primary" onClick={() => newUserModal.open()}>
                 <Users className="w-3.5 h-3.5" />
@@ -305,7 +305,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                         <td className="px-5 py-2 font-mono font-bold text-[var(--hz-primary)]">{user.id}</td>
                         <td className="px-5 py-2">
                           <div className="font-bold text-[var(--hz-text-primary)]">{user.name}</div>
-                          <div className="text-[11px] text-[var(--hz-text-subtle)]">{user.email}</div>
+                          <div className="text-xs text-[var(--hz-text-subtle)]">{user.email}</div>
                         </td>
                         <td className="px-5 py-2 font-semibold text-[var(--hz-text-primary)]">{user.department}</td>
                         <td className="px-5 py-2 text-[var(--hz-text-secondary)]">{user.jobTitle}</td>
@@ -395,7 +395,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
 
             <div className="p-5">
               {activeUserTab === 'overview' && (
-                <div className="max-w-3xl space-y-5">
+                <div className="max-w-3xl space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <label className="space-y-1">
                       <span className="block font-medium text-[var(--hz-text-subtle)]">Full Name</span>
@@ -453,7 +453,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                   </div>
 
                   <div className="border-t border-[var(--hz-divider)] pt-3">
-                    <div className="text-[11px] font-medium text-[var(--hz-text-subtle)] mb-2">Assigned Role Centers</div>
+                    <div className="text-xs font-medium text-[var(--hz-text-subtle)] mb-2">Assigned Role Centers</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {ALL_ROLES.map((roleCenter) => {
                         const enabled = editDraft.assignedRoleCenters.includes(roleCenter);
@@ -477,14 +477,14 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                       })}
                     </div>
                     {editDraft.assignedRoleCenters.length === 0 && (
-                      <p className="mt-1.5 text-[11px] text-[var(--hz-danger)]">
+                      <p className="mt-1.5 text-xs text-[var(--hz-danger)]">
                         This user will not be able to log in until assigned at least one Role Center.
                       </p>
                     )}
                   </div>
 
                   <div className="border-t border-[var(--hz-divider)] pt-3">
-                    <div className="text-[11px] font-medium text-[var(--hz-text-subtle)]">Enabled Modules</div>
+                    <div className="text-xs font-medium text-[var(--hz-text-subtle)]">Enabled Modules</div>
                     <div className="mt-1 font-semibold text-[var(--hz-text-primary)]">
                       {visibleModules.length}/{permissionModules.length}
                     </div>
@@ -493,7 +493,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
               )}
 
               {activeUserTab === 'permissions' && (
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <PermissionMatrixEditor
                     userId={selectedUserId}
                     role={primaryRole}
@@ -518,7 +518,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                         >
                           <span>
                             <span className="block text-xs font-bold text-[var(--hz-text-primary)]">{module.label}</span>
-                            <span className="block text-[10px] text-[var(--hz-text-subtle)]">{module.group}</span>
+                            <span className="block text-xs text-[var(--hz-text-subtle)]">{module.group}</span>
                           </span>
                           <ArrowRight className="w-3.5 h-3.5 text-[var(--hz-text-subtle)]" />
                         </button>
@@ -556,12 +556,12 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                     <div key={idx} className="p-3 rounded-[var(--hz-radius-md)] bg-[var(--hz-surface-subtle)] border border-[var(--hz-border)] text-xs space-y-1">
                       <div className="flex justify-between items-baseline">
                         <span className="font-bold text-[var(--hz-text-primary)]">{entry.action}</span>
-                        <span className="font-mono text-[var(--hz-text-subtle)] text-[10px]">{entry.time}</span>
+                        <span className="font-mono text-[var(--hz-text-subtle)] text-xs">{entry.time}</span>
                       </div>
-                      <div className="text-[11px] text-[var(--hz-primary)] font-medium font-mono">
+                      <div className="text-xs text-[var(--hz-primary)] font-medium font-mono">
                         {entry.actor} • Ref: {entry.caseId}
                       </div>
-                      <p className="text-[11px] text-[var(--hz-text-secondary)] mt-1">{entry.details}</p>
+                      <p className="text-xs text-[var(--hz-text-secondary)] mt-1">{entry.details}</p>
                     </div>
                   ))}
                 </div>

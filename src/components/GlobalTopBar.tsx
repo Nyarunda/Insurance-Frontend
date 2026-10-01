@@ -160,7 +160,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         </button>
 
         <button type="button" onClick={() => go('dashboard')} className="mr-2 flex items-center gap-2 px-1" title="Dashboard">
-          <span className="flex h-6 w-6 items-center justify-center rounded-[3px] bg-white text-[11px] font-bold text-[var(--hz-primary-700)]">
+          <span className="flex h-6 w-6 items-center justify-center rounded-[3px] bg-white text-xs font-bold text-[var(--hz-primary-700)]">
             IC
           </span>
           <span className="hidden text-[13px] font-semibold tracking-[0.04em] text-white md:inline">INSURANCE CLOUD</span>
@@ -239,7 +239,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1 truncate">Search customer, policy, claim…</span>
-          <kbd className="rounded-[3px] border border-white/20 px-1 font-sans text-[11px] text-[var(--hz-sidebar-muted)]">Ctrl K</kbd>
+          <kbd className="rounded-[3px] border border-white/20 px-1 font-sans text-xs text-[var(--hz-sidebar-muted)]">Ctrl K</kbd>
         </button>
         <button type="button" onClick={onOpenCommandPalette} className={`${barButton} w-8 justify-center lg:hidden`} title="Search (Ctrl+K)">
           <Search className="h-4 w-4" />
@@ -274,13 +274,13 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         <div className="relative">
           <button type="button" onClick={() => toggle('alerts')} className={barButton} title="Notifications" aria-haspopup="menu">
             <Bell className="h-4 w-4" />
-            <span className="rounded-[3px] bg-white/15 px-1 text-[11px] font-semibold tabular-nums text-white">{NAV_COUNTERS.unread_notifs}</span>
+            <span className="rounded-[3px] bg-white/15 px-1 text-xs font-semibold tabular-nums text-white">{NAV_COUNTERS.unread_notifs}</span>
           </button>
           {openMenu === 'alerts' && (
             <MenuPanel width="w-80">
               <div className="flex items-center justify-between border-b border-[var(--hz-border-grid)] px-3 py-1.5">
                 <span className="hz-section-label">Notifications</span>
-                <span className="rounded-[3px] border border-[var(--hz-danger-border)] bg-[var(--hz-danger-bg)] px-1.5 text-[11px] font-semibold text-[var(--hz-danger-text)]">
+                <span className="rounded-[3px] border border-[var(--hz-danger-border)] bg-[var(--hz-danger-bg)] px-1.5 text-xs font-semibold text-[var(--hz-danger-text)]">
                   1 SLA warning
                 </span>
               </div>
@@ -294,7 +294,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                   >
                     <span className="flex items-baseline justify-between gap-2">
                       <span className={`font-semibold ${notification.urgent ? 'text-[var(--hz-danger-text)]' : ''}`}>{notification.title}</span>
-                      <span className="shrink-0 text-[11px] text-[var(--hz-text-muted)]">{notification.time}</span>
+                      <span className="shrink-0 text-xs text-[var(--hz-text-muted)]">{notification.time}</span>
                     </span>
                     <span className="mt-0.5 block text-[12px] leading-snug text-[var(--hz-text-secondary)]">{notification.desc}</span>
                   </button>
@@ -320,7 +320,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                 {SHORTCUTS.map((shortcut) => (
                   <div key={shortcut.keys} className="flex items-center justify-between gap-3 py-1">
                     <dt>
-                      <kbd className="rounded-[3px] border border-[var(--hz-border-default)] bg-[var(--hz-surface-subtle)] px-1.5 font-sans text-[11px] font-semibold">
+                      <kbd className="rounded-[3px] border border-[var(--hz-border-default)] bg-[var(--hz-surface-subtle)] px-1.5 font-sans text-xs font-semibold">
                         {shortcut.keys}
                       </kbd>
                     </dt>

@@ -77,7 +77,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
       {/* ← Quotation / Q/MTR/2026/008291                ● UNDER REVIEW        */}
       {/*   Commercial Heavy Prime Mover • ABC Logistics • Marsh McLennan      */}
       {/* ==================================================================== */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -242,16 +242,16 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
       {/* Center Column (lg:col-span-6): Main Tabbed Workspace                 */}
       {/* Right Column (lg:col-span-3): Recommended Insurer & UW Rule Triggers */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT QUOTATION IDENTITY (lg:col-span-3)           */}
         {/* Fields: QUOTATION, PROSPECT, RISK SUMMARY, DOA & REFERRAL            */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4">
+          <div className="hz-card space-y-4">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2 flex items-center justify-between">
               <span>QUOTATION SUMMARY</span>
-              <span className="font-mono text-[10px] text-amber-700 font-bold">REFERRAL</span>
+              <span className="font-mono text-xs text-amber-700 font-bold">REFERRAL</span>
             </div>
 
             {/* Core Snapshot */}
@@ -262,22 +262,22 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                 </div>
                 <div className="truncate">
                   <div className="font-bold text-slate-900 text-sm truncate">Mercedes Actros 3340</div>
-                  <div className="text-[11px] text-slate-500 font-medium">
+                  <div className="text-xs text-slate-500 font-medium">
                     Prime Mover (KDG 123Z)
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Quote No</span>
                   <span className="font-bold text-slate-800">{quoteRef}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Sum Insured</span>
                   <span className="font-bold text-slate-800">KES {quoteSumInsured.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Validity</span>
                   <span className="font-bold text-slate-800">Until 01 Oct 2026</span>
                 </div>
@@ -291,26 +291,26 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Prospect Name</span>
+                  <span className="text-slate-500 text-xs">Prospect Name</span>
                   <button
                     onClick={() => onNavigate('customer-workspace')}
-                    className="font-bold text-teal-700 hover:underline text-[11px]"
+                    className="font-bold text-teal-700 hover:underline text-xs"
                   >
                     {insuredName} →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Broker Firm</span>
+                  <span className="text-slate-500 text-xs">Broker Firm</span>
                   <button
                     onClick={() => onNavigate('broker-workspace')}
-                    className="font-semibold text-teal-700 hover:underline text-[11px] text-right"
+                    className="font-semibold text-teal-700 hover:underline text-xs text-right"
                   >
                     {brokerName} →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Commission</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">10.0% (KES {(quotePremium * 0.1).toLocaleString()})</span>
+                  <span className="text-slate-500 text-xs">Commission</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">10.0% (KES {(quotePremium * 0.1).toLocaleString()})</span>
                 </div>
               </div>
             </div>
@@ -322,20 +322,20 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Base Rate</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">4.50%</span>
+                  <span className="text-slate-500 text-xs">Base Rate</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">4.50%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Basic Premium</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">KES {quotePremium.toLocaleString()}</span>
+                  <span className="text-slate-500 text-xs">Basic Premium</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">KES {quotePremium.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Statutory Levies</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">KES 3,786.25</span>
+                  <span className="text-slate-500 text-xs">Statutory Levies</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">KES 3,786.25</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Total Quoted</span>
-                  <span className="font-mono font-bold text-teal-700 text-[11px]">KES 836,286.25</span>
+                  <span className="text-slate-500 text-xs">Total Quoted</span>
+                  <span className="font-mono font-bold text-teal-700 text-xs">KES 836,286.25</span>
                 </div>
               </div>
             </div>
@@ -347,10 +347,10 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Trigger Rule</span>
-                  <span className="font-mono font-bold text-amber-800 text-[11px]">UW-MTR-004</span>
+                  <span className="text-slate-500 text-xs">Trigger Rule</span>
+                  <span className="font-mono font-bold text-amber-800 text-xs">UW-MTR-004</span>
                 </div>
-                <div className="text-[11px] text-slate-600 leading-snug">
+                <div className="text-xs text-slate-600 leading-snug">
                   Sum insured (KES 18.5M) exceeds Underwriter Level 1 threshold (KES 15.0M). Escalated to Marcus Vance.
                 </div>
               </div>
@@ -387,7 +387,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
           {activeTab === 'overview' && (
             <div className="space-y-4">
               {/* Insured Risk Section */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--hz-border-grid)] mb-3">
                   <div className="flex items-center gap-2">
                     <Car className="w-4 h-4 text-teal-600" />
@@ -404,23 +404,23 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Vehicle Model</div>
                     <div className="text-slate-900 font-bold text-sm mt-0.5">2023 Mercedes Actros 3340</div>
-                    <div className="text-slate-500 text-[10px]">Commercial Prime Mover 6x4</div>
+                    <div className="text-slate-500 text-xs">Commercial Prime Mover 6x4</div>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Sum Insured Value</div>
                     <div className="text-slate-900 font-bold font-mono text-sm mt-0.5">KES 18,500,000</div>
-                    <div className="text-amber-700 text-[10px] font-semibold">Exceeds standard 15M DOA</div>
+                    <div className="text-amber-700 text-xs font-semibold">Exceeds standard 15M DOA</div>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Operating Usage</div>
                     <div className="text-slate-900 font-bold text-sm mt-0.5">Transit Haulage</div>
-                    <div className="text-slate-500 text-[10px]">Northern Transit Corridor</div>
+                    <div className="text-slate-500 text-xs">Northern Transit Corridor</div>
                   </div>
                 </div>
               </div>
 
               {/* Insurer Comparison Cards */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--hz-border-grid)] mb-3">
                   <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                     Underwriter Market Comparison (4 Options)
@@ -448,7 +448,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900 text-xs">{q.insurer}</span>
                           {q.decision === 'ACCEPT' && (
-                            <span className="px-1.5 py-0.2 rounded-[3px] text-[9px] font-bold bg-teal-100 text-teal-800">
+                            <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-teal-100 text-teal-800">
                               RECOMMENDED
                             </span>
                           )}
@@ -457,7 +457,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                           KES {q.premium.toLocaleString()}
                         </span>
                       </div>
-                      <div className="text-slate-500 text-[11px] mt-1 flex justify-between">
+                      <div className="text-slate-500 text-xs mt-1 flex justify-between">
                         <span>Excess: {q.excess} • Rating Score: {q.ratingScore}/100</span>
                         <span className="text-teal-700 font-semibold">{q.benefits[0] || 'Comprehensive'}</span>
                       </div>
@@ -470,30 +470,30 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 2: INSURED RISK */}
           {activeTab === 'risk' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Detailed Prime Mover Asset Profile
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">CHASSIS & ENGINE NO</div>
+                  <div className="text-slate-400 font-mono text-xs">CHASSIS & ENGINE NO</div>
                   <div className="font-bold text-slate-900 mt-0.5">WDB9340321K912048</div>
-                  <div className="text-slate-500 text-[10px]">OM501LA 12.0L V6 Turbo Intercooled</div>
+                  <div className="text-slate-500 text-xs">OM501LA 12.0L V6 Turbo Intercooled</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">CORRIDOR & ROUTE HAZARD</div>
+                  <div className="text-slate-400 font-mono text-xs">CORRIDOR & ROUTE HAZARD</div>
                   <div className="font-bold text-slate-900 mt-0.5">Mombasa – Nairobi – Malaba Transit</div>
-                  <div className="text-slate-500 text-[10px]">Salgaa / Mau Summit blackspot avoidance protocol active</div>
+                  <div className="text-slate-500 text-xs">Salgaa / Mau Summit blackspot avoidance protocol active</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">TELEMATICS SPEED LIMITER</div>
+                  <div className="text-slate-400 font-mono text-xs">TELEMATICS SPEED LIMITER</div>
                   <div className="font-bold text-emerald-700 mt-0.5">Cartrack Fleet IQ Active</div>
-                  <div className="text-slate-500 text-[10px]">Hard speed cutoff capped at 80 km/h (NTSA compliant)</div>
+                  <div className="text-slate-500 text-xs">Hard speed cutoff capped at 80 km/h (NTSA compliant)</div>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">FLEET LOSS EXPERIENCE</div>
+                  <div className="text-slate-400 font-mono text-xs">FLEET LOSS EXPERIENCE</div>
                   <div className="font-bold text-slate-900 mt-0.5">3-Year Loss Ratio: 41.2%</div>
-                  <div className="text-slate-500 text-[10px]">2 minor fender claims settled; no fatal incidents</div>
+                  <div className="text-slate-500 text-xs">2 minor fender claims settled; no fatal incidents</div>
                 </div>
               </div>
             </div>
@@ -501,13 +501,13 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 3: INSURER COMPARISON */}
           {activeTab === 'insurers' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Comparative Underwriting Grid
               </h3>
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                     <th className="py-2 px-3">Underwriter</th>
                     <th className="py-2 px-3">Annual Premium</th>
                     <th className="py-2 px-3">Excess Level</th>
@@ -521,7 +521,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                       <td className="py-2.5 px-3 font-semibold text-slate-900">
                         {q.insurer}
                         {q.decision === 'ACCEPT' && (
-                          <span className="ml-2 px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-100 text-teal-800">
+                          <span className="ml-2 px-1.5 py-0.2 rounded text-[10px] font-bold bg-teal-100 text-teal-800">
                             REC
                           </span>
                         )}
@@ -539,7 +539,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                             setSelectedInsurer(q.insurer);
                             triggerToast(`Selected ${q.insurer} proposal`);
                           }}
-                          className="px-2 py-1 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold hover:bg-teal-100 text-[11px]"
+                          className="px-2 py-1 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold hover:bg-teal-100 text-xs"
                         >
                           Select
                         </button>
@@ -553,7 +553,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 4: PREMIUM BREAKDOWN */}
           {activeTab === 'premium' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Actuarial Rating & Statutory Breakdown
               </h3>
@@ -588,7 +588,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 5: UNDERWRITING RULES */}
           {activeTab === 'underwriting' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Automated Underwriting Engine Findings
               </h3>
@@ -596,7 +596,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-amber-950">Rule UW-MTR-004: Sum Insured &gt; KES 15,000,000</div>
-                    <div className="text-amber-800 text-[11px]">
+                    <div className="text-amber-800 text-xs">
                       Triggered referral to Underwriter Level 2. Authorizer: Marcus Vance.
                     </div>
                   </div>
@@ -607,7 +607,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Rule UW-FLT-002: Fleet Loss Ratio &lt; 45%</div>
-                    <div className="text-emerald-800 text-[11px]">
+                    <div className="text-emerald-800 text-xs">
                       Historical 3-year loss ratio is 41.2%. Standard discount rate preserved.
                     </div>
                   </div>
@@ -618,7 +618,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Rule UW-TEL-001: Telematics & Anti-Theft Installed</div>
-                    <div className="text-emerald-800 text-[11px]">
+                    <div className="text-emerald-800 text-xs">
                       Cartrack certificate #CT-2026-991 verified live with Safaricom IoT SIM.
                     </div>
                   </div>
@@ -632,7 +632,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 6: DOCUMENTS */}
           {activeTab === 'documents' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Quotation Documents & Proposal Slips
               </h3>
@@ -662,7 +662,7 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 7: AUDIT */}
           {activeTab === 'audit' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Quotation Lifecycle History
               </h3>
@@ -670,14 +670,14 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-amber-500" />
                   <div className="font-bold text-slate-900">Underwriting Referral Triggered</div>
-                  <div className="text-slate-500 text-[11px]">Sum insured exceeds Level 1 threshold. Assigned to Marcus Vance.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">03 Sep 2026 10:45 EAT</div>
+                  <div className="text-slate-500 text-xs">Sum insured exceeds Level 1 threshold. Assigned to Marcus Vance.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">03 Sep 2026 10:45 EAT</div>
                 </div>
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600" />
                   <div className="font-bold text-slate-900">Quotation Created & Rated</div>
-                  <div className="text-slate-500 text-[11px]">Jane Mwangi generated comparative rate across 4 panel underwriters.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">03 Sep 2026 10:42 EAT</div>
+                  <div className="text-slate-500 text-xs">Jane Mwangi generated comparative rate across 4 panel underwriters.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">03 Sep 2026 10:42 EAT</div>
                 </div>
               </div>
             </div>
@@ -689,12 +689,12 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
           {/* Recommended Option Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3 text-xs">
+          <div className="hz-card space-y-3 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)]">
               <span className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                 SELECTED PROPOSAL
               </span>
-              <span className="px-1.5 py-0.2 rounded-[3px] text-[9px] font-bold bg-teal-100 text-teal-800">
+              <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-teal-100 text-teal-800">
                 BEST FIT
               </span>
             </div>
@@ -704,10 +704,10 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
               <div className="text-2xl font-bold font-mono text-teal-700 mt-1">
                 KES 832,500
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Annual Gross Written Premium</div>
+              <div className="text-xs text-slate-500 mt-0.5">Annual Gross Written Premium</div>
             </div>
 
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-[11px] text-slate-700">
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-700">
               <div className="flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5 text-teal-600" />
                 <span>Zero excess on windscreen replacement</span>
@@ -740,28 +740,28 @@ export const QuoteWorkspace: React.FC<QuoteWorkspaceProps> = ({ onNavigate, dens
               Underwriting SLA Timer
             </div>
             <div className="text-white font-mono font-bold text-lg">1h 18m remaining</div>
-            <p className="text-slate-300 text-[11px] leading-relaxed">
+            <p className="text-slate-300 text-xs leading-relaxed">
               Target turnaround: 2 hours. Senior Underwriter Marcus Vance is actively reviewing telematics speed data.
             </p>
           </div>
 
           {/* Intermediary Commission Split */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-2 text-xs">
+          <div className="hz-card space-y-2 text-xs">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-1.5">
               BROKER COMMISSION
             </div>
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Broker</span>
-                <span className="font-semibold text-slate-800 text-[11px]">Marsh McLennan</span>
+                <span className="text-slate-500 text-xs">Broker</span>
+                <span className="font-semibold text-slate-800 text-xs">Marsh McLennan</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Commission Rate</span>
-                <span className="font-mono font-bold text-slate-900 text-[11px]">10.0%</span>
+                <span className="text-slate-500 text-xs">Commission Rate</span>
+                <span className="font-mono font-bold text-slate-900 text-xs">10.0%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Payable Amount</span>
-                <span className="font-mono font-bold text-teal-700 text-[11px]">KES 83,250.00</span>
+                <span className="text-slate-500 text-xs">Payable Amount</span>
+                <span className="font-mono font-bold text-teal-700 text-xs">KES 83,250.00</span>
               </div>
             </div>
           </div>

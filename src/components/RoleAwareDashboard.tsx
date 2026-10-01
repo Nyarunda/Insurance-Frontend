@@ -43,7 +43,7 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
       {/* Top Welcome & Operational Context Banner */}
-      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="hz-card flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-teal-700 uppercase tracking-wider font-mono mb-1">
             <span>Portfolio Operations</span>
@@ -93,41 +93,41 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
       {/* Dynamic KPI Cards Based on Role */}
       {currentRole === 'executive' && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium flex items-center justify-between">
               <span>Gross Written Premium</span>
-              <span className="text-emerald-700 font-semibold text-[11px] flex items-center">
+              <span className="text-emerald-700 font-semibold text-xs flex items-center">
                 +14.2% <ArrowUpRight className="w-3 h-3 ml-0.5" />
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 124.0M</div>
-            <div className="text-[11px] text-slate-500 mt-1">Target: KES 150M Q3 Run Rate</div>
+            <div className="text-xs text-slate-500 mt-1">Target: KES 150M Q3 Run Rate</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium flex items-center justify-between">
               <span>Combined Loss Ratio</span>
-              <span className="text-teal-700 font-semibold text-[11px] flex items-center">
+              <span className="text-teal-700 font-semibold text-xs flex items-center">
                 -3.1% <ArrowDownRight className="w-3 h-3 ml-0.5" />
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">62.4%</div>
-            <div className="text-[11px] text-slate-500 mt-1">Net loss ratio 41.8% + expense 20.6%</div>
+            <div className="text-xs text-slate-500 mt-1">Net loss ratio 41.8% + expense 20.6%</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium flex items-center justify-between">
               <span>Cash Collected</span>
-              <span className="text-emerald-700 font-semibold text-[11px]">94.1% rate</span>
+              <span className="text-emerald-700 font-semibold text-xs">94.1% rate</span>
             </div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 81.2M</div>
-            <div className="text-[11px] text-slate-500 mt-1">M-Pesa & Pesalink bank clearing</div>
+            <div className="text-xs text-slate-500 mt-1">M-Pesa & Pesalink bank clearing</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium flex items-center justify-between">
               <span>Policy Retention</span>
-              <span className="text-teal-700 font-semibold text-[11px]">Commercial focus</span>
+              <span className="text-teal-700 font-semibold text-xs">Commercial focus</span>
             </div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">91.8%</div>
-            <div className="text-[11px] text-slate-500 mt-1">1,432 Active In-Force policies</div>
+            <div className="text-xs text-slate-500 mt-1">1,432 Active In-Force policies</div>
           </div>
         </div>
       )}
@@ -142,17 +142,17 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
               </span>
             </div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">14 Cases</div>
-            <div className="text-[11px] text-amber-700 font-medium mt-1">ABC Logistics KES 18.5M Actros</div>
+            <div className="text-xs text-amber-700 font-medium mt-1">ABC Logistics KES 18.5M Actros</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Portfolio Total Exposure</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 648.5M</div>
-            <div className="text-[11px] text-slate-500 mt-1">Treaty retention capacity 82%</div>
+            <div className="text-xs text-slate-500 mt-1">Treaty retention capacity 82%</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Commercial Auto Loss Ratio</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">41.2%</div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">Well within 50.0% statutory band</div>
+            <div className="text-xs text-emerald-700 font-medium mt-1">Well within 50.0% statutory band</div>
           </div>
           <div className="bg-white rounded-xl p-4 border border-rose-200 bg-rose-50/20 shadow-2xs">
             <div className="text-slate-600 text-xs font-semibold flex items-center justify-between">
@@ -160,52 +160,52 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
               <LiveDot tone="danger" size="md" />
             </div>
             <div className="text-2xl font-bold font-mono text-rose-700 mt-1">15m Remaining</div>
-            <div className="text-[11px] text-rose-600 font-medium mt-1">Escalated to Chief Underwriter</div>
+            <div className="text-xs text-rose-600 font-medium mt-1">Escalated to Chief Underwriter</div>
           </div>
         </div>
       )}
 
       {currentRole === 'claims' && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Open Claim Files</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">23 Active</div>
-            <div className="text-[11px] text-slate-500 mt-1">3 FNOL reports taken today</div>
+            <div className="text-xs text-slate-500 mt-1">3 FNOL reports taken today</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Outstanding Reserves</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 16.4M</div>
-            <div className="text-[11px] text-slate-500 mt-1">Incurred but not reported (IBNR) covered</div>
+            <div className="text-xs text-slate-500 mt-1">Incurred but not reported (IBNR) covered</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Average Resolution Speed</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">4.2 Days</div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">M-Pesa B2C instant settlement</div>
+            <div className="text-xs text-emerald-700 font-medium mt-1">M-Pesa B2C instant settlement</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Subrogation Recovery Identified</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 290,000</div>
-            <div className="text-[11px] text-slate-500 mt-1">Third-party insurer admission received</div>
+            <div className="text-xs text-slate-500 mt-1">Third-party insurer admission received</div>
           </div>
         </div>
       )}
 
       {currentRole === 'finance' && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Gross Premium Receivables</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 42.8M</div>
-            <div className="text-[11px] text-slate-500 mt-1">30-day corporate credit accounts</div>
+            <div className="text-xs text-slate-500 mt-1">30-day corporate credit accounts</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Liquid Bank & M-Pesa Float</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 81.2M</div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">Standard Chartered & Safaricom</div>
+            <div className="text-xs text-emerald-700 font-medium mt-1">Standard Chartered & Safaricom</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Claims Payable Accrual</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 16.4M</div>
-            <div className="text-[11px] text-slate-500 mt-1">Approved discharge vouchers awaiting pay</div>
+            <div className="text-xs text-slate-500 mt-1">Approved discharge vouchers awaiting pay</div>
           </div>
           <div className="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-2xs">
             <div className="text-slate-600 text-xs font-semibold flex items-center justify-between">
@@ -213,40 +213,40 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-2xl font-bold font-mono text-emerald-700 mt-1">Balanced ✓</div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">Total Debits = Total Credits (KES 194.6M)</div>
+            <div className="text-xs text-emerald-700 font-medium mt-1">Total Debits = Total Credits (KES 194.6M)</div>
           </div>
         </div>
       )}
 
       {currentRole === 'agent' && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Today&apos;s New Quotations</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">12 Quotes</div>
-            <div className="text-[11px] text-teal-700 font-medium mt-1">Average turnaround: 3 minutes</div>
+            <div className="text-xs text-teal-700 font-medium mt-1">Average turnaround: 3 minutes</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Policies Bound (Today)</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">7 Bound</div>
-            <div className="text-[11px] text-emerald-700 font-medium mt-1">58.3% immediate conversion</div>
+            <div className="text-xs text-emerald-700 font-medium mt-1">58.3% immediate conversion</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Premium Collected</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 420,000</div>
-            <div className="text-[11px] text-slate-500 mt-1">M-Pesa STK push & Paybill</div>
+            <div className="text-xs text-slate-500 mt-1">M-Pesa STK push & Paybill</div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs">
+          <div className="hz-card">
             <div className="text-slate-500 text-xs font-medium">Earned Commission Accrual</div>
             <div className="text-2xl font-bold font-mono text-slate-900 mt-1">KES 32,500</div>
-            <div className="text-[11px] text-slate-500 mt-1">Paid on weekly Friday cycle</div>
+            <div className="text-xs text-slate-500 mt-1">Paid on weekly Friday cycle</div>
           </div>
         </div>
       )}
 
       {/* Main Grid: My Work Queue Widget & Portfolio Highlights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left 2 Cols: My Work Highlights with Direct Action */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+        <div className="hz-card lg:col-span-2">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900">Immediate Action Required (My Work)</h2>
@@ -282,7 +282,7 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
                         {t.referenceId}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-xs text-slate-500 mt-0.5">
                       {t.insuredName} • Assigned to {t.assignedTo} • Age: {t.age}
                     </div>
                   </div>
@@ -322,33 +322,33 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
               className="p-2.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-left transition-colors"
             >
               <div className="font-bold text-slate-800">Customer</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Party intelligence & relationships</div>
+              <div className="text-xs text-slate-500 mt-0.5">Party intelligence & relationships</div>
             </button>
             <button
               onClick={() => onNavigate('quote-workspace')}
               className="p-2.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-left transition-colors"
             >
               <div className="font-bold text-slate-800">Quote</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Commercial fleet & multi-insurer</div>
+              <div className="text-xs text-slate-500 mt-0.5">Commercial fleet & multi-insurer</div>
             </button>
             <button
               onClick={() => onNavigate('policy-workspace')}
               className="p-2.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/30 text-left transition-colors"
             >
               <div className="font-bold text-slate-800">Policy</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Version history V1-V4 & timeline</div>
+              <div className="text-xs text-slate-500 mt-0.5">Version history V1-V4 & timeline</div>
             </button>
           </div>
         </div>
 
         {/* Right 1 Col: Operational Pulse & Integration Gateway Health */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+          <div className="hz-card">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-sm font-bold text-slate-900">Integration Gateway Health</h2>
               <button
                 onClick={() => onNavigate('integration-hub')}
-                className="text-[11px] text-teal-700 hover:text-teal-900 font-semibold"
+                className="text-xs text-teal-700 hover:text-teal-900 font-semibold"
               >
                 Full Hub →
               </button>
@@ -356,25 +356,25 @@ export const RoleAwareDashboard: React.FC<RoleAwareDashboardProps> = ({
             <div className="space-y-2.5 mt-3 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600 font-medium">Safaricom M-Pesa B2C/C2B</span>
-                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
+                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> 128ms • 142 TPS
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-600 font-medium">Oracle Flexcube Banking</span>
-                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
+                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> 42ms
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-600 font-medium">Insurance Regulatory Authority (IRA)</span>
-                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
+                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> Connected
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-600 font-medium">KRA iTax PIN Verification</span>
-                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
+                <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> Connected
                 </span>
               </div>

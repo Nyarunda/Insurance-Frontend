@@ -68,7 +68,7 @@ export const WorkflowReviewModal: React.FC<WorkflowReviewModalProps> = ({ instan
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hz-panel overflow-hidden">
             <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
               Approval Chain
             </div>
@@ -88,7 +88,7 @@ export const WorkflowReviewModal: React.FC<WorkflowReviewModalProps> = ({ instan
                     <span className={`font-semibold ${isCurrent ? 'text-teal-700' : isDone ? 'text-slate-500 line-through' : 'text-slate-500'}`}>
                       {step.name}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">({ROLE_LABELS[step.approverRole]})</span>
+                    <span className="text-xs text-slate-400 font-mono">({ROLE_LABELS[step.approverRole]})</span>
                     {isCurrent && (
                       <span className="ml-auto text-[10px] font-bold uppercase text-teal-700 bg-teal-50 border border-teal-200 rounded px-1.5 py-0.5">
                         Awaiting You
@@ -101,13 +101,13 @@ export const WorkflowReviewModal: React.FC<WorkflowReviewModalProps> = ({ instan
           </div>
 
           {instance.history.length > 0 && (
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="hz-panel overflow-hidden">
               <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
                 History
               </div>
               <div className="divide-y divide-slate-100 max-h-32 overflow-y-auto">
                 {instance.history.map((entry, i) => (
-                  <div key={i} className="px-3 py-2 text-[11px]">
+                  <div key={i} className="px-3 py-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className={`font-bold ${entry.action === 'APPROVE' ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {entry.action === 'APPROVE' ? 'Approved' : 'Rejected'} — {entry.stepName}
@@ -133,7 +133,7 @@ export const WorkflowReviewModal: React.FC<WorkflowReviewModalProps> = ({ instan
           </div>
 
           {confirmingReject && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700 flex items-center gap-2">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 flex items-center gap-2">
               <XCircle className="w-3.5 h-3.5 shrink-0" />
               <span>This stops {instance.documentLabel} for good — it will not proceed. Confirm rejection?</span>
             </div>

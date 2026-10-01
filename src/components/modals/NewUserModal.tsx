@@ -200,7 +200,7 @@ export const NewUserModal: React.FC<NewUserModalProps> = ({
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hz-panel overflow-hidden">
             <div className="px-4 py-2.5 text-[11px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
               Module Access
             </div>
@@ -222,7 +222,7 @@ export const NewUserModal: React.FC<NewUserModalProps> = ({
                     />
                     <span>
                       <span className="block font-bold text-slate-900 text-xs">{module.label}</span>
-                      <span className="block text-[11px] text-slate-500 mt-0.5">{module.functionality}</span>
+                      <span className="block text-xs text-slate-500 mt-0.5">{module.functionality}</span>
                     </span>
                     <span className="hidden md:inline-flex rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500">
                       {module.group}
@@ -234,7 +234,7 @@ export const NewUserModal: React.FC<NewUserModalProps> = ({
           </div>
           {attempted && <FieldError message={errors.permissions} />}
 
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hz-panel overflow-hidden">
             <div className="px-4 py-2.5 text-[11px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
               Assigned Role Centers
             </div>

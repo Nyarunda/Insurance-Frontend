@@ -54,7 +54,7 @@ export const PoliciesList: React.FC<PoliciesListProps> = ({ onNavigate, densityM
             <span>{p.policyNumber}</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </div>
-          <div className="text-[11px] text-slate-500 font-sans">{p.productName}</div>
+          <div className="text-xs text-slate-500 font-sans">{p.productName}</div>
         </div>
       ),
     },
@@ -72,7 +72,7 @@ export const PoliciesList: React.FC<PoliciesListProps> = ({ onNavigate, densityM
           >
             {p.customerName}
           </div>
-          <div className="text-[11px] text-slate-400 font-mono">{p.branch}</div>
+          <div className="text-xs text-slate-400 font-mono">{p.branch}</div>
         </div>
       ),
     },

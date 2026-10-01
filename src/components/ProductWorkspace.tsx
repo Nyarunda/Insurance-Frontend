@@ -83,7 +83,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
       {/* ← Product / PRD-MTR-COMP                       ● ACTIVE / PUBLISHED  */}
       {/*   Commercial Motor Comprehensive • IRA/PRD/2025/11 • Jane Mwangi     */}
       {/* ==================================================================== */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -228,15 +228,15 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
       {/* Center Column (lg:col-span-6): Main Tabbed Workspace                 */}
       {/* Right Column (lg:col-span-3): Profitability, Channels & IRA Approval */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT PRODUCT IDENTITY (lg:col-span-3)             */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4">
+          <div className="hz-card space-y-4">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2 flex items-center justify-between">
               <span>PRODUCT METADATA</span>
-              <span className="font-mono text-[10px] text-emerald-700 font-bold">PRODUCTION</span>
+              <span className="font-mono text-xs text-emerald-700 font-bold">PRODUCTION</span>
             </div>
 
             {/* Core Snapshot */}
@@ -247,22 +247,22 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 </div>
                 <div className="truncate">
                   <div className="font-bold text-slate-900 text-sm truncate">{product.name}</div>
-                  <div className="text-[11px] text-slate-500 font-medium truncate">
+                  <div className="text-xs text-slate-500 font-medium truncate">
                     Class: {product.category}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Code</span>
                   <span className="font-bold text-slate-800">{product.code}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Base Rate</span>
                   <span className="font-bold text-slate-800">{product.baseRatePct}%</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Min Premium</span>
                   <span className="font-bold text-slate-800">KES {product.minPremiumKes.toLocaleString()}</span>
                 </div>
@@ -276,16 +276,16 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Product Manager</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">{product.productOwner}</span>
+                  <span className="text-slate-500 text-xs">Product Manager</span>
+                  <span className="font-semibold text-slate-800 text-xs">{product.productOwner}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Actuarial Lead</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">{product.actuary}</span>
+                  <span className="text-slate-500 text-xs">Actuarial Lead</span>
+                  <span className="font-semibold text-slate-800 text-xs">{product.actuary}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">IRA Filing</span>
-                  <span className="font-mono font-bold text-emerald-700 text-[11px]">{product.iraApproval}</span>
+                  <span className="text-slate-500 text-xs">IRA Filing</span>
+                  <span className="font-mono font-bold text-emerald-700 text-xs">{product.iraApproval}</span>
                 </div>
               </div>
             </div>
@@ -297,18 +297,18 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Auto STP Max SI</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">
+                  <span className="text-slate-500 text-xs">Auto STP Max SI</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">
                     KES {(product.maxStpSumInsuredKes / 1000000).toFixed(0)}M
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Treaty Cession</span>
-                  <span className="font-mono font-bold text-teal-700 text-[11px]">{product.treatyCode}</span>
+                  <span className="text-slate-500 text-xs">Treaty Cession</span>
+                  <span className="font-mono font-bold text-teal-700 text-xs">{product.treatyCode}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Statutory Commission</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">10.0% Max</span>
+                  <span className="text-slate-500 text-xs">Statutory Commission</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">10.0% Max</span>
                 </div>
               </div>
             </div>
@@ -344,38 +344,38 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
             <div className="space-y-4">
               {/* Performance KPI Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Total In-Force GWP</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     KES 384.2M
                   </div>
-                  <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">+14.2% YoY</div>
+                  <div className="text-emerald-700 text-xs font-semibold mt-0.5">+14.2% YoY</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">In-Force Policies</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     1,482
                   </div>
-                  <div className="text-slate-500 text-[11px] mt-0.5">88.4% Retention</div>
+                  <div className="text-slate-500 text-xs mt-0.5">88.4% Retention</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Loss Ratio</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     46.8%
                   </div>
-                  <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">Under budget (52%)</div>
+                  <div className="text-emerald-700 text-xs font-semibold mt-0.5">Under budget (52%)</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Combined Ratio</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     82.4%
                   </div>
-                  <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">Profitable margin</div>
+                  <div className="text-emerald-700 text-xs font-semibold mt-0.5">Profitable margin</div>
                 </div>
               </div>
 
               {/* Product Target & Specification */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 text-xs space-y-3">
+              <div className="hz-card text-xs space-y-3">
                 <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--hz-border-grid)]">
                   Target Market & Product Archetype
                 </h2>
@@ -387,11 +387,11 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="font-bold text-slate-900">Eligibility Scope</div>
-                    <div className="text-slate-500 text-[11px] mt-0.5">Commercial trucks, prime movers, trailers & tankers</div>
+                    <div className="text-slate-500 text-xs mt-0.5">Commercial trucks, prime movers, trailers & tankers</div>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <div className="font-bold text-slate-900">Geographic Coverage</div>
-                    <div className="text-slate-500 text-[11px] mt-0.5">Kenya, Uganda, Tanzania, Rwanda (Northern & Central Corridors)</div>
+                    <div className="text-slate-500 text-xs mt-0.5">Kenya, Uganda, Tanzania, Rwanda (Northern & Central Corridors)</div>
                   </div>
                 </div>
               </div>
@@ -400,7 +400,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 2: COVERAGE */}
           {activeTab === 'coverage' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Insured Perils & Standard Sub-Limits
               </h3>
@@ -416,7 +416,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                   <div key={idx} className="p-3 rounded-lg border border-slate-200 flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-slate-900">{c.peril}</div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">{c.limit}</div>
+                      <div className="text-xs text-slate-500 font-mono mt-0.5">{c.limit}</div>
                     </div>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       c.type === 'Core' ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-700'
@@ -431,11 +431,11 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 3: RATING MATRIX */}
           {activeTab === 'rating' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Actuarial Rating Algorithm & Loadings
               </h3>
-              <div className="space-y-2 font-mono text-[11px]">
+              <div className="space-y-2 font-mono text-xs">
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-1.5">
                   <div className="text-slate-400 uppercase font-bold text-[10px]">Formula</div>
                   <div className="text-slate-900 font-bold">
@@ -445,7 +445,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div className="p-2.5 rounded-lg border border-slate-200">
                     <div className="font-bold text-slate-900 font-sans">Age Loading Factors</div>
-                    <div className="text-slate-600 text-[11px] mt-1 space-y-0.5">
+                    <div className="text-slate-600 text-xs mt-1 space-y-0.5">
                       <div>0 - 5 Years: 1.00x</div>
                       <div>6 - 10 Years: 1.15x</div>
                       <div>11 - 15 Years: 1.30x</div>
@@ -453,7 +453,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                   </div>
                   <div className="p-2.5 rounded-lg border border-slate-200">
                     <div className="font-bold text-slate-900 font-sans">Telematics Discounts</div>
-                    <div className="text-slate-600 text-[11px] mt-1 space-y-0.5">
+                    <div className="text-slate-600 text-xs mt-1 space-y-0.5">
                       <div>Cartrack / Tramigo Level 1: -10%</div>
                       <div>NTSA Limiter Verified: -5%</div>
                       <div>Fleet &gt; 20 units: -7.5%</div>
@@ -466,7 +466,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 4: RULES */}
           {activeTab === 'rules' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Straight-Through Processing (STP) & Referral Rules
               </h3>
@@ -474,7 +474,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">STP Rule: Sum Insured &lt;= KES 15,000,000</div>
-                    <div className="text-emerald-800 text-[11px]">Instant automated quotation and policy bind eligible.</div>
+                    <div className="text-emerald-800 text-xs">Instant automated quotation and policy bind eligible.</div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                     AUTO STP ✓
@@ -483,7 +483,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-amber-950">Referral Rule: Sum Insured &gt; KES 15,000,000</div>
-                    <div className="text-amber-800 text-[11px]">Requires Level 2 Senior Underwriter sign-off.</div>
+                    <div className="text-amber-800 text-xs">Requires Level 2 Senior Underwriter sign-off.</div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[10px]">
                     UW REFERRAL
@@ -495,13 +495,13 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 5: REINSURANCE */}
           {activeTab === 'reinsurance' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Automatic Treaty Cession Structure
               </h3>
               <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                 <div className="font-bold text-slate-900">Treaty Code: T-2026-MTR-QS (Commercial Motor Quota Share)</div>
-                <div className="text-slate-600 text-[11px] leading-relaxed">
+                <div className="text-slate-600 text-xs leading-relaxed">
                   40% Quota Share treaty automatically applied. Reinsurers: Kenya Re (20%), East Africa Re (15%), Zep-Re (5%).
                   Net company retention capped at KES 10,000,000 per single risk.
                 </div>
@@ -511,7 +511,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 6: DOCUMENTS */}
           {activeTab === 'documents' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Approved Policy Wording & Schedule Templates
               </h3>
@@ -540,7 +540,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
 
           {/* TAB 7: AUDIT */}
           {activeTab === 'audit' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Product Version Timeline
               </h3>
@@ -548,14 +548,14 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   <div className="font-bold text-slate-900">Version 2.4 Published to Production</div>
-                  <div className="text-slate-500 text-[11px]">Telematics discount logic updated to include NTSA calibrated speed limiters.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">01 Jan 2026 00:01 EAT</div>
+                  <div className="text-slate-500 text-xs">Telematics discount logic updated to include NTSA calibrated speed limiters.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">01 Jan 2026 00:01 EAT</div>
                 </div>
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600" />
                   <div className="font-bold text-slate-900">IRA Approval Granted</div>
-                  <div className="text-slate-500 text-[11px]">Insurance Regulatory Authority endorsed tariff revision IRA/PRD/2025/11.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">18 Dec 2025 11:30 EAT</div>
+                  <div className="text-slate-500 text-xs">Insurance Regulatory Authority endorsed tariff revision IRA/PRD/2025/11.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">18 Dec 2025 11:30 EAT</div>
                 </div>
               </div>
             </div>
@@ -567,25 +567,25 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
           {/* Profitability Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3 text-xs">
+          <div className="hz-card space-y-3 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)]">
               <span className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                 PORTFOLIO HEALTH
               </span>
-              <span className="px-1.5 py-0.2 rounded-[3px] text-[9px] font-bold bg-emerald-100 text-emerald-800">
+              <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
                 PROFITABLE
               </span>
             </div>
 
             <div>
-              <div className="text-slate-500 text-[11px]">Combined Ratio</div>
+              <div className="text-slate-500 text-xs">Combined Ratio</div>
               <div className="text-2xl font-bold font-mono text-emerald-700 mt-0.5">
                 82.4%
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Technical underwriting margin: +17.6%</div>
+              <div className="text-xs text-slate-500 mt-0.5">Technical underwriting margin: +17.6%</div>
             </div>
 
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-[11px]">
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-500">Loss Ratio</span>
                 <span className="font-mono font-bold text-slate-800">46.8%</span>
@@ -606,7 +606,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
             <div className="font-mono text-teal-400 font-bold uppercase text-[10px]">
               Distribution Mix
             </div>
-            <div className="space-y-1 pt-1 text-[11px]">
+            <div className="space-y-1 pt-1 text-xs">
               <div className="flex justify-between">
                 <span>Brokers (e.g. Marsh)</span>
                 <span className="font-mono font-bold text-white">64%</span>
@@ -623,18 +623,18 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
           </div>
 
           {/* IRA Regulatory Compliance */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-2 text-xs">
+          <div className="hz-card space-y-2 text-xs">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-1.5">
               STATUTORY STATUS
             </div>
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">IRA Tariff Code</span>
-                <span className="font-mono font-bold text-slate-800 text-[11px]">TAR-MTR-2026</span>
+                <span className="text-slate-500 text-xs">IRA Tariff Code</span>
+                <span className="font-mono font-bold text-slate-800 text-xs">TAR-MTR-2026</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Next Review</span>
-                <span className="font-mono text-slate-700 text-[11px]">31 Dec 2026</span>
+                <span className="text-slate-500 text-xs">Next Review</span>
+                <span className="font-mono text-slate-700 text-xs">31 Dec 2026</span>
               </div>
             </div>
           </div>

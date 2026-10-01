@@ -112,7 +112,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
   return (
     <div id="regulatory-admin-view" className="space-y-6 animate-in fade-in duration-150">
       {/* Top Banner */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -138,39 +138,39 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
 
         {/* Regulatory Ratios Strip */}
         <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-emerald-600">
+          <div className="hz-panel p-3 border-t-2 border-t-emerald-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">
               Solvency Margin Ratio
             </div>
             <div className="text-emerald-700 font-bold font-mono text-base mt-1">184.2%</div>
-            <div className="text-slate-500 text-[11px] mt-0.5">Statutory min: 100.0%</div>
+            <div className="text-slate-500 text-xs mt-0.5">Statutory min: 100.0%</div>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">
               Admitted Capital Base
             </div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">KES 1.42B</div>
-            <div className="text-slate-500 text-[11px] mt-0.5">Govt securities & bank deposits</div>
+            <div className="text-slate-500 text-xs mt-0.5">Govt securities & bank deposits</div>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">
               Insurance Training Levy
             </div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">KES 248,000</div>
-            <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">Remitted on 20th</div>
+            <div className="text-emerald-700 text-xs font-semibold mt-0.5">Remitted on 20th</div>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">
               Policyholders Fund Levy
             </div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">KES 310,000</div>
-            <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">Paid via KRA Paybill</div>
+            <div className="text-emerald-700 text-xs font-semibold mt-0.5">Paid via KRA Paybill</div>
           </div>
         </div>
       </div>
 
       {/* Statutory Filing Packs Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="hz-panel overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">
             Mandatory Statutory Return Schedules
@@ -188,7 +188,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
           <div className="p-4 border-b border-slate-100 bg-slate-50/60 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Regulatory Body</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Regulatory Body</label>
                 <select
                   value={authority}
                   onChange={(e) => {
@@ -203,7 +203,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Return Type</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Return Type</label>
                 <select
                   value={returnName}
                   onChange={(e) => setReturnName(e.target.value)}
@@ -218,7 +218,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
                 {generateAttempted && <FieldError message={generateErrors.returnName} />}
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Filing Period</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Filing Period</label>
                 <input
                   type="text"
                   value={period}
@@ -262,7 +262,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
                 <tr key={pack.id} className="hover:bg-slate-50">
                   <td className="p-3">
                     <div className="font-bold text-slate-900">{pack.name}</div>
-                    <div className="text-[11px] font-mono text-teal-700">{pack.id}</div>
+                    <div className="text-xs font-mono text-teal-700">{pack.id}</div>
                   </td>
                   <td className="p-3 font-semibold text-slate-800">{pack.authority}</td>
                   <td className="p-3 font-mono text-slate-600">{pack.period}</td>
@@ -279,7 +279,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
                       {pack.status}
                     </span>
                   </td>
-                  <td className="p-3 font-mono text-slate-500 text-[11px]">{pack.deadline}</td>
+                  <td className="p-3 font-mono text-slate-500 text-xs">{pack.deadline}</td>
                   <td className="p-3 text-right">
                     {downloadProgress[pack.id] !== undefined ? (
                       <div className="w-32 ml-auto">

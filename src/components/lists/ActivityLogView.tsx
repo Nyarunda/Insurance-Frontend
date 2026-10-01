@@ -35,7 +35,7 @@ export const ActivityLogView: React.FC<ActivityLogViewProps> = ({ densityMode })
       header: 'When',
       sortable: true,
       hideable: false,
-      render: (e) => <span className="font-mono text-[11px] text-slate-600 whitespace-nowrap">{formatTimestamp(e.timestamp)}</span>,
+      render: (e) => <span className="font-mono text-xs text-slate-600 whitespace-nowrap">{formatTimestamp(e.timestamp)}</span>,
     },
     {
       key: 'entity',
@@ -43,7 +43,7 @@ export const ActivityLogView: React.FC<ActivityLogViewProps> = ({ densityMode })
       render: (e) => (
         <div>
           <div className="font-bold text-slate-900">{e.entityType}</div>
-          <div className="text-[11px] text-slate-500 font-mono">{e.entityId}</div>
+          <div className="text-xs text-slate-500 font-mono">{e.entityId}</div>
         </div>
       ),
     },

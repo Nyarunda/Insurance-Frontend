@@ -83,7 +83,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
       {/* ← Broker / BRK-00291                           ● ACTIVE / ACCREDITED */}
       {/*   Marsh McLennan Wholesale • IRA/BRK/2026/041 • Upper Hill, Nairobi  */}
       {/* ==================================================================== */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -225,15 +225,15 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
       {/* Center Column (lg:col-span-6): Main Tabbed Workspace                 */}
       {/* Right Column (lg:col-span-3): Quality Score, Next Payout & Reg Status*/}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT BROKER IDENTITY (lg:col-span-3)              */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4">
+          <div className="hz-card space-y-4">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2 flex items-center justify-between">
               <span>BROKER PROFILE</span>
-              <span className="font-mono text-[10px] text-emerald-700 font-bold">TIER 1</span>
+              <span className="font-mono text-xs text-emerald-700 font-bold">TIER 1</span>
             </div>
 
             {/* Core Snapshot */}
@@ -244,22 +244,22 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 </div>
                 <div className="truncate">
                   <div className="font-bold text-slate-900 text-sm truncate">{broker.name}</div>
-                  <div className="text-[11px] text-slate-500 font-medium truncate">
+                  <div className="text-xs text-slate-500 font-medium truncate">
                     Code: {broker.code}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">IRA License</span>
                   <span className="font-bold text-slate-800">{broker.iraLicense}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">KRA PIN</span>
                   <span className="font-bold text-slate-800">{broker.kraPin}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">PI Coverage</span>
                   <span className="font-bold text-slate-800">KES 100M</span>
                 </div>
@@ -298,16 +298,16 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Bank</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">{broker.bankName}</span>
+                  <span className="text-slate-500 text-xs">Bank</span>
+                  <span className="font-semibold text-slate-800 text-xs">{broker.bankName}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Account</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">{broker.bankAccount}</span>
+                  <span className="text-slate-500 text-xs">Account</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">{broker.bankAccount}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Payment Mode</span>
-                  <span className="font-mono text-emerald-700 font-bold text-[11px]">Direct EFT / RTGS</span>
+                  <span className="text-slate-500 text-xs">Payment Mode</span>
+                  <span className="font-mono text-emerald-700 font-bold text-xs">Direct EFT / RTGS</span>
                 </div>
               </div>
             </div>
@@ -344,38 +344,38 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
             <div className="space-y-4">
               {/* Production KPI Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Total In-Force GWP</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     KES 148.5M
                   </div>
-                  <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">+18.4% YoY</div>
+                  <div className="text-emerald-700 text-xs font-semibold mt-0.5">+18.4% YoY</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Active Policies</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     428
                   </div>
-                  <div className="text-slate-500 text-[11px] mt-0.5">85% Commercial</div>
+                  <div className="text-slate-500 text-xs mt-0.5">85% Commercial</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Book Loss Ratio</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     44.2%
                   </div>
-                  <div className="text-emerald-700 text-[11px] font-semibold mt-0.5">Target &lt; 55%</div>
+                  <div className="text-emerald-700 text-xs font-semibold mt-0.5">Target &lt; 55%</div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <div className="hz-panel p-3">
                   <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">YTD Commission</div>
                   <div className="text-slate-900 font-bold font-mono text-base mt-1">
                     KES 14.8M
                   </div>
-                  <div className="text-slate-500 text-[11px] mt-0.5">Avg rate: 10.0%</div>
+                  <div className="text-slate-500 text-xs mt-0.5">Avg rate: 10.0%</div>
                 </div>
               </div>
 
               {/* Major Corporate Accounts Under Management */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--hz-border-grid)] mb-3">
                   <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                     Top Insured Accounts Brokered
@@ -397,11 +397,11 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                     <div key={idx} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex items-center justify-between">
                       <div>
                         <div className="font-bold text-slate-900 text-xs">{acc.name}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{acc.line}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{acc.line}</div>
                       </div>
                       <div className="text-right">
                         <div className="font-mono font-bold text-slate-900 text-xs">{acc.gwp}</div>
-                        <div className="text-[11px] text-slate-500 font-mono">Loss Ratio: {acc.ratio}</div>
+                        <div className="text-xs text-slate-500 font-mono">Loss Ratio: {acc.ratio}</div>
                       </div>
                     </div>
                   ))}
@@ -412,13 +412,13 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 2: POLICIES */}
           {activeTab === 'policies' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Active Brokered Policies Ledger
               </h3>
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                     <th className="py-2 px-3">Policy No</th>
                     <th className="py-2 px-3">Insured Name</th>
                     <th className="py-2 px-3">Class</th>
@@ -426,7 +426,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                     <th className="py-2 px-3 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                <tbody className="divide-y divide-slate-100 font-mono text-xs">
                   <tr>
                     <td className="py-2 px-3 font-bold text-teal-700 cursor-pointer" onClick={() => onNavigate('policy-workspace')}>
                       POL/MTR/2026/001239
@@ -452,7 +452,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 3: COMMISSIONS */}
           {activeTab === 'commissions' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Standard Intermediary Commission Scales
               </h3>
@@ -466,11 +466,11 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                   <div key={idx} className="p-3 rounded-lg border border-slate-200 flex items-center justify-between">
                     <div>
                       <div className="font-bold text-slate-900">{row.class}</div>
-                      <div className="text-[11px] text-slate-500">Statutory IRA Cap: {row.statutoryCap}</div>
+                      <div className="text-xs text-slate-500">Statutory IRA Cap: {row.statutoryCap}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-mono font-bold text-teal-700">{row.brokerAgreed}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{row.wht}</div>
+                      <div className="text-xs text-slate-400 font-mono">{row.wht}</div>
                     </div>
                   </div>
                 ))}
@@ -480,7 +480,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 4: LOSS RATIO */}
           {activeTab === 'loss-ratio' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Portfolio Underwriting Quality & Loss Ratio
               </h3>
@@ -492,7 +492,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 <div className="w-full bg-emerald-200 h-2 rounded-full overflow-hidden">
                   <div className="bg-emerald-600 h-full w-[44%]" />
                 </div>
-                <p className="text-[11px] text-emerald-900 mt-1">
+                <p className="text-xs text-emerald-900 mt-1">
                   Exemplary loss ratio performance. Marsh McLennan qualifies for Preferred Intermediary Profit Commission bonus.
                 </p>
               </div>
@@ -501,7 +501,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 5: PIPELINE */}
           {activeTab === 'pipeline' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Active Submissions & Quotations in Pipeline
               </h3>
@@ -512,13 +512,13 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 >
                   <div>
                     <div className="font-bold text-slate-900">Q/MTR/2026/008291 — ABC Logistics Ltd</div>
-                    <div className="text-[11px] text-slate-500">Mercedes Actros Prime Mover (Sum Insured KES 18.5M)</div>
+                    <div className="text-xs text-slate-500">Mercedes Actros Prime Mover (Sum Insured KES 18.5M)</div>
                   </div>
                   <div className="text-right">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 font-mono">
                       REFERRAL
                     </span>
-                    <div className="font-mono text-[11px] text-slate-600 mt-0.5">KES 832,500</div>
+                    <div className="font-mono text-xs text-slate-600 mt-0.5">KES 832,500</div>
                   </div>
                 </div>
               </div>
@@ -527,7 +527,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 6: COMPLIANCE */}
           {activeTab === 'compliance' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Statutory Licensing & KYC Status
               </h3>
@@ -535,7 +535,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">IRA Annual Intermediary License</div>
-                    <div className="text-emerald-800 text-[11px]">License #IRA/BRK/2026/041 valid through 31 Dec 2026.</div>
+                    <div className="text-emerald-800 text-xs">License #IRA/BRK/2026/041 valid through 31 Dec 2026.</div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                     CURRENT ✓
@@ -544,7 +544,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Professional Indemnity Policy (KES 100M)</div>
-                    <div className="text-emerald-800 text-[11px]">Heritage Insurance policy #PI-2026-8191 on file.</div>
+                    <div className="text-emerald-800 text-xs">Heritage Insurance policy #PI-2026-8191 on file.</div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                     VERIFIED ✓
@@ -553,7 +553,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">KRA Tax Compliance Certificate</div>
-                    <div className="text-emerald-800 text-[11px]">TCC #KRA-2026-09184 valid. 5% WHT automated.</div>
+                    <div className="text-emerald-800 text-xs">TCC #KRA-2026-09184 valid. 5% WHT automated.</div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                     VALID ✓
@@ -565,7 +565,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
 
           {/* TAB 7: AUDIT */}
           {activeTab === 'audit' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Intermediary Activity Trace
               </h3>
@@ -573,14 +573,14 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600" />
                   <div className="font-bold text-slate-900">Quotation Submitted via API</div>
-                  <div className="text-slate-500 text-[11px]">Broker system generated quotation Q/MTR/2026/008291.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">03 Sep 2026 10:42 EAT</div>
+                  <div className="text-slate-500 text-xs">Broker system generated quotation Q/MTR/2026/008291.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">03 Sep 2026 10:42 EAT</div>
                 </div>
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   <div className="font-bold text-slate-900">Annual IRA License Renewal Uploaded</div>
-                  <div className="text-slate-500 text-[11px]">Sarah Jenkins uploaded IRA 2026 compliance certificate.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">15 Jan 2026 14:15 EAT</div>
+                  <div className="text-slate-500 text-xs">Sarah Jenkins uploaded IRA 2026 compliance certificate.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">15 Jan 2026 14:15 EAT</div>
                 </div>
               </div>
             </div>
@@ -592,22 +592,22 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
           {/* Next Payout Card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3 text-xs">
+          <div className="hz-card space-y-3 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)]">
               <span className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                 NEXT COMMISSION BATCH
               </span>
-              <span className="px-1.5 py-0.2 rounded-[3px] text-[9px] font-bold bg-emerald-100 text-emerald-800">
+              <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
                 SCHEDULED
               </span>
             </div>
 
             <div>
-              <div className="text-slate-500 text-[11px]">Pending Remittance</div>
+              <div className="text-slate-500 text-xs">Pending Remittance</div>
               <div className="text-2xl font-bold font-mono text-teal-700 mt-0.5">
                 KES 1,245,000
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Settlement Date: 05 Sep 2026</div>
+              <div className="text-xs text-slate-500 mt-0.5">Settlement Date: 05 Sep 2026</div>
             </div>
 
             <button
@@ -625,28 +625,28 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
               Quality Classification
             </div>
             <div className="text-white font-bold text-sm">Tier 1 Platinum Partner</div>
-            <p className="text-slate-300 text-[11px] leading-relaxed">
+            <p className="text-slate-300 text-xs leading-relaxed">
               Consistently under 50% loss ratio. Authorized for instant STP binding up to KES 25M sum insured.
             </p>
           </div>
 
           {/* IRA Regulatory Compliance */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-2 text-xs">
+          <div className="hz-card space-y-2 text-xs">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-1.5">
               REGULATORY COMPLIANCE
             </div>
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Ombudsman Complaints</span>
-                <span className="font-bold text-emerald-700 text-[11px]">0 Active</span>
+                <span className="text-slate-500 text-xs">Ombudsman Complaints</span>
+                <span className="font-bold text-emerald-700 text-xs">0 Active</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Section 156 (Cash & Carry)</span>
-                <span className="font-bold text-emerald-700 text-[11px]">99.4% Compliant</span>
+                <span className="text-slate-500 text-xs">Section 156 (Cash & Carry)</span>
+                <span className="font-bold text-emerald-700 text-xs">99.4% Compliant</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">IRA Returns Audited</span>
-                <span className="font-mono font-bold text-slate-900 text-[11px]">Q2 2026 Clean</span>
+                <span className="text-slate-500 text-xs">IRA Returns Audited</span>
+                <span className="font-mono font-bold text-slate-900 text-xs">Q2 2026 Clean</span>
               </div>
             </div>
           </div>

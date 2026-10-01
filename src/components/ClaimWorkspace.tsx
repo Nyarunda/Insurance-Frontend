@@ -130,7 +130,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
       {/* ← Claim / CLM/MTR/2026/0081                      ● ASSESSMENT        */}
       {/*   Accidental Collision • Waiyaki Way • John Kamau                   */}
       {/* ==================================================================== */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -301,16 +301,16 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
       {/* Center Column (lg:col-span-6): Main Tabbed Workspace                 */}
       {/* Right Column (lg:col-span-3): SIU Fraud Score, Salvage & SLA Clock   */}
       {/* ==================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ==================================================================== */}
         {/* LEFT COLUMN: PERSISTENT CLAIM IDENTITY (lg:col-span-3)               */}
         {/* Fields: CLAIM, POLICY, LOSS DETAILS, FINANCIALS, SERVICE PROVIDERS   */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4">
+          <div className="hz-card space-y-4">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-2 flex items-center justify-between">
               <span>CLAIM SUMMARY</span>
-              <span className="font-mono text-[10px] text-amber-700 font-bold">FNOL-2026</span>
+              <span className="font-mono text-xs text-amber-700 font-bold">FNOL-2026</span>
             </div>
 
             {/* Core Snapshot */}
@@ -321,22 +321,22 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                 </div>
                 <div className="truncate">
                   <div className="font-bold text-slate-900 text-sm truncate">{claim.lossType}</div>
-                  <div className="text-[11px] text-slate-500 font-medium truncate">
+                  <div className="text-xs text-slate-500 font-medium truncate">
                     {claim.location}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Claim No</span>
                   <span className="font-bold text-slate-800">{claim.claimNumber}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Loss Date</span>
                   <span className="font-bold text-slate-800">{claim.lossDate}</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400 uppercase font-medium">Reported</span>
                   <span className="font-bold text-slate-800">{claim.reportDate}</span>
                 </div>
@@ -350,26 +350,26 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Policy Number</span>
+                  <span className="text-slate-500 text-xs">Policy Number</span>
                   <button
                     onClick={() => onNavigate('policy-workspace')}
-                    className="font-mono font-bold text-teal-700 hover:underline text-[11px]"
+                    className="font-mono font-bold text-teal-700 hover:underline text-xs"
                   >
                     {claim.policyNumber} →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Insured Party</span>
+                  <span className="text-slate-500 text-xs">Insured Party</span>
                   <button
                     onClick={() => onNavigate('customer-workspace')}
-                    className="font-bold text-slate-800 hover:underline text-[11px]"
+                    className="font-bold text-slate-800 hover:underline text-xs"
                   >
                     {claim.claimant}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Scheduled Asset</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">Toyota Prado (KDJ 123A)</span>
+                  <span className="text-slate-500 text-xs">Scheduled Asset</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">Toyota Prado (KDJ 123A)</span>
                 </div>
               </div>
             </div>
@@ -381,26 +381,26 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Initial Reserve</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">
+                  <span className="text-slate-500 text-xs">Initial Reserve</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">
                     KES {claim.initialReserveKes.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Estimated Repair</span>
-                  <span className="font-mono font-bold text-slate-900 text-[11px]">
+                  <span className="text-slate-500 text-xs">Estimated Repair</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">
                     KES {claim.estimatedRepairKes.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Betterment Deduction</span>
-                  <span className="font-mono font-bold text-rose-700 text-[11px]">
+                  <span className="text-slate-500 text-xs">Betterment Deduction</span>
+                  <span className="font-mono font-bold text-rose-700 text-xs">
                     - KES {claim.bettermentDeductionKes.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Net Liability</span>
-                  <span className="font-mono font-bold text-teal-700 text-[11px]">
+                  <span className="text-slate-500 text-xs">Net Liability</span>
+                  <span className="font-mono font-bold text-teal-700 text-xs">
                     KES {claim.netLiabilityKes.toLocaleString()}
                   </span>
                 </div>
@@ -414,21 +414,21 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               </div>
               <div className="space-y-1.5 text-xs text-slate-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Assessor</span>
+                  <span className="text-slate-500 text-xs">Assessor</span>
                   <button
                     onClick={() => onNavigate('provider-workspace')}
-                    className="font-semibold text-teal-700 hover:underline text-[11px] text-right"
+                    className="font-semibold text-teal-700 hover:underline text-xs text-right"
                   >
                     Peter Githinji (Auto Eng) →
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Authorized Garage</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">{claim.garage}</span>
+                  <span className="text-slate-500 text-xs">Authorized Garage</span>
+                  <span className="font-semibold text-slate-800 text-xs">{claim.garage}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-[11px]">Police Station</span>
-                  <span className="font-semibold text-slate-800 text-[11px]">Kabete Police Post</span>
+                  <span className="text-slate-500 text-xs">Police Station</span>
+                  <span className="font-semibold text-slate-800 text-xs">Kabete Police Post</span>
                 </div>
               </div>
             </div>
@@ -464,7 +464,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
           {activeTab === 'overview' && (
             <div className="space-y-4">
               {/* Assessor Detailed Sheet */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+              <div className="hz-card">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--hz-border-grid)] mb-3">
                   <div className="flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-teal-600" />
@@ -472,7 +472,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                       Assessor Engineering Assessment
                     </h2>
                   </div>
-                  <span className="text-[11px] font-mono text-slate-500">
+                  <span className="text-xs font-mono text-slate-500">
                     Assessor: <strong>Peter Githinji</strong>
                   </span>
                 </div>
@@ -481,28 +481,28 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Authorized Garage</div>
                     <div className="font-bold text-slate-900 mt-0.5">{claim.garage}</div>
-                    <div className="text-slate-500 text-[10px]">Dealer Partner</div>
+                    <div className="text-slate-500 text-xs">Dealer Partner</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Estimated Repair</div>
                     <div className="font-bold font-mono text-slate-900 mt-0.5">
                       KES {claim.estimatedRepairKes.toLocaleString()}
                     </div>
-                    <div className="text-slate-500 text-[10px]">OEM Parts & Labour</div>
+                    <div className="text-slate-500 text-xs">OEM Parts & Labour</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Betterment</div>
                     <div className="font-bold font-mono text-rose-700 mt-0.5">
                       - KES {claim.bettermentDeductionKes.toLocaleString()}
                     </div>
-                    <div className="text-slate-500 text-[10px]">Wear on tyres/shocks</div>
+                    <div className="text-slate-500 text-xs">Wear on tyres/shocks</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Assessor Fee</div>
                     <div className="font-bold font-mono text-slate-900 mt-0.5">
                       KES {claim.assessorFeeKes.toLocaleString()}
                     </div>
-                    <div className="text-slate-500 text-[10px]">Statutory Tariff</div>
+                    <div className="text-slate-500 text-xs">Statutory Tariff</div>
                   </div>
                 </div>
 
@@ -520,13 +520,13 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                     <div className="text-xl font-bold font-mono text-teal-900">
                       KES {claim.netLiabilityKes.toLocaleString()}
                     </div>
-                    <div className="text-[11px] text-teal-700 font-medium">Discharge Voucher Prepared</div>
+                    <div className="text-xs text-teal-700 font-medium">Discharge Voucher Prepared</div>
                   </div>
                 </div>
               </div>
 
               {/* Circumstances of Loss */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 text-xs space-y-3">
+              <div className="hz-card text-xs space-y-3">
                 <h2 className="text-xs font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--hz-border-grid)]">
                   Circumstances of Loss & Police Abstract
                 </h2>
@@ -535,7 +535,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                     Insured vehicle Toyota Prado KDJ 123A was traveling outbound on Waiyaki Way near Mountain View
                     junction when sudden traffic stoppage caused collision with the roadside safety barrier.
                   </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 text-[11px] font-mono text-slate-600">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 text-xs font-mono text-slate-600">
                     <div>Police Station: <strong>Kabete Police Post</strong></div>
                     <div>Abstract No: <strong>OB/44/02/09/2026</strong></div>
                     <div>Third-Party Damage: <strong>None</strong></div>
@@ -547,28 +547,28 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 2: INCIDENT & FNOL */}
           {activeTab === 'incident' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 First Notice of Loss (FNOL) Registration
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">INCIDENT DATE & TIME</div>
+                  <div className="text-slate-400 font-mono text-xs">INCIDENT DATE & TIME</div>
                   <div className="font-bold text-slate-900 mt-0.5">28 Aug 2026 08:30 EAT</div>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">INCIDENT LOCATION</div>
+                  <div className="text-slate-400 font-mono text-xs">INCIDENT LOCATION</div>
                   <div className="font-bold text-slate-900 mt-0.5">Waiyaki Way (Mountain View Junction), Nairobi</div>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">AUTHORIZED DRIVER</div>
+                  <div className="text-slate-400 font-mono text-xs">AUTHORIZED DRIVER</div>
                   <div className="font-bold text-slate-900 mt-0.5">Peter Mutua (DL #B291048)</div>
-                  <div className="text-slate-500 text-[10px]">Licensed Class B • Over 5 years driving experience</div>
+                  <div className="text-slate-500 text-xs">Licensed Class B • Over 5 years driving experience</div>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="text-slate-400 font-mono text-[10px]">POLICE ABSTRACT DETAILS</div>
+                  <div className="text-slate-400 font-mono text-xs">POLICE ABSTRACT DETAILS</div>
                   <div className="font-bold text-slate-900 mt-0.5">OB/44/02/09/2026 (Kabete)</div>
-                  <div className="text-slate-500 text-[10px]">Verified authentic by Claims Desk</div>
+                  <div className="text-slate-500 text-xs">Verified authentic by Claims Desk</div>
                 </div>
               </div>
             </div>
@@ -576,7 +576,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 3: COVERAGE CHECK */}
           {activeTab === 'coverage' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Policy Coverage Validation & Excess Verification
               </h3>
@@ -584,7 +584,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Policy In Force at Date of Loss</div>
-                    <div className="text-emerald-800 text-[11px]">
+                    <div className="text-emerald-800 text-xs">
                       Policy active from 01 Sep 2025 to 31 Aug 2026; loss occurred 28 Aug 2026.
                     </div>
                   </div>
@@ -595,7 +595,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Premium Fully Paid (Cash and Carry Rule)</div>
-                    <div className="text-emerald-800 text-[11px]">
+                    <div className="text-emerald-800 text-xs">
                       Section 156 Insurance Act compliant. Receipt #REC-2026-8812 verified.
                     </div>
                   </div>
@@ -606,7 +606,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                 <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                   <div>
                     <div className="font-bold text-emerald-950">Applicable Policy Excess</div>
-                    <div className="text-emerald-800 text-[11px]">
+                    <div className="text-emerald-800 text-xs">
                       Standard Own Damage excess: 2.5% of claim (KES 9,500) payable by insured to garage.
                     </div>
                   </div>
@@ -620,13 +620,13 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 4: RESERVES */}
           {activeTab === 'reserves' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Reserve Movements & Adjustments
               </h3>
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-[11px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-mono text-xs">
                     <th className="py-2 px-3">Date</th>
                     <th className="py-2 px-3">Transaction</th>
                     <th className="py-2 px-3">Reason / Author</th>
@@ -634,7 +634,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                     <th className="py-2 px-3 text-right">Balance (KES)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                <tbody className="divide-y divide-slate-100 font-mono text-xs">
                   <tr>
                     <td className="py-2 px-3 text-slate-500">28 Aug 2026</td>
                     <td className="py-2 px-3 font-bold text-slate-900">Initial Reserve</td>
@@ -656,14 +656,14 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 5: ASSESSOR REPORT */}
           {activeTab === 'assessments' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                 <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900">
                   Itemized Repair & Parts Schedule
                 </h3>
                 <button
                   onClick={() => triggerToast('Assessor report PDF downloaded')}
-                  className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] flex items-center gap-1"
+                  className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1"
                 >
                   <Download className="w-3 h-3" />
                   <span>Report PDF</span>
@@ -682,7 +682,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                   <div key={idx} className="flex justify-between items-center p-2 rounded bg-slate-50 border border-slate-100">
                     <div>
                       <span className="font-semibold text-slate-900">{row.item}</span>
-                      <span className="text-[10px] font-mono text-slate-400 ml-2">({row.cat})</span>
+                      <span className="text-xs font-mono text-slate-400 ml-2">({row.cat})</span>
                     </div>
                     <span className={`font-mono font-bold ${row.cost.startsWith('-') ? 'text-rose-700' : 'text-slate-900'}`}>
                       {row.cost}
@@ -695,7 +695,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 6: PAYMENTS */}
           {activeTab === 'payments' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Discharge Voucher & M-Pesa Settlement
               </h3>
@@ -727,7 +727,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
 
           {/* TAB 7: SALVAGE */}
           {activeTab === 'salvage' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Salvage Recovery & Subrogation Rights
               </h3>
@@ -736,14 +736,14 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               </p>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
                 <div className="font-bold text-slate-900">Lot #AKI-SALV-2026-0914: Front Radiator & Bumper Shell</div>
-                <div className="text-slate-500 font-mono text-[11px]">Minimum Reserve Price: KES 35,000 • Bidding Closes: 15 Sep 2026</div>
+                <div className="text-slate-500 font-mono text-xs">Minimum Reserve Price: KES 35,000 • Bidding Closes: 15 Sep 2026</div>
               </div>
             </div>
           )}
 
           {/* TAB 8: AUDIT */}
           {activeTab === 'audit' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-4 text-xs">
+            <div className="hz-card space-y-4 text-xs">
               <h3 className="font-bold uppercase tracking-wider font-mono text-slate-900 border-b border-slate-100 pb-2">
                 Chronological Claim Event Trace
               </h3>
@@ -751,20 +751,20 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-teal-600" />
                   <div className="font-bold text-slate-900">Assessor Report Uploaded</div>
-                  <div className="text-slate-500 text-[11px]">Automotive Engineers Ltd posted full itemized assessment of KES 380,000.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">01 Sep 2026 14:00 EAT</div>
+                  <div className="text-slate-500 text-xs">Automotive Engineers Ltd posted full itemized assessment of KES 380,000.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">01 Sep 2026 14:00 EAT</div>
                 </div>
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-amber-500" />
                   <div className="font-bold text-slate-900">Assessor Dispatched</div>
-                  <div className="text-slate-500 text-[11px]">Peter Githinji appointed to inspect vehicle at Toyota Kenya Westlands.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">29 Aug 2026 10:30 EAT</div>
+                  <div className="text-slate-500 text-xs">Peter Githinji appointed to inspect vehicle at Toyota Kenya Westlands.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">29 Aug 2026 10:30 EAT</div>
                 </div>
                 <div className="relative pl-4">
                   <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   <div className="font-bold text-slate-900">Claim Registered (FNOL)</div>
-                  <div className="text-slate-500 text-[11px]">Customer reported incident via portal; police abstract attached.</div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">28 Aug 2026 09:30 EAT</div>
+                  <div className="text-slate-500 text-xs">Customer reported incident via portal; police abstract attached.</div>
+                  <div className="text-xs font-mono text-slate-400 mt-0.5">28 Aug 2026 09:30 EAT</div>
                 </div>
               </div>
             </div>
@@ -803,7 +803,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
           />
 
           {/* SIU Fraud Scorecard */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+          <div className="hz-card">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)] mb-3">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -824,7 +824,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               <div className="w-full bg-emerald-200 h-1.5 rounded-full overflow-hidden">
                 <div className="bg-emerald-600 h-full w-[8%]" />
               </div>
-              <p className="text-[10px] text-emerald-800 mt-1.5">
+              <p className="text-xs text-emerald-800 mt-1.5">
                 All high-risk triggers cleared. Fast-track automated settlement eligible.
               </p>
             </div>
@@ -834,7 +834,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
               <div className="font-bold text-slate-800 text-[10px] uppercase tracking-wider font-mono">
                 Verified Risk Checks
               </div>
-              <div className="space-y-1 text-slate-700 text-[11px]">
+              <div className="space-y-1 text-slate-700 text-xs">
                 {claim.fraudIndicators.map((indicator, idx) => (
                   <div key={idx} className="flex items-center gap-1.5">
                     <Check className="w-3 h-3 text-emerald-600 shrink-0" />
@@ -850,28 +850,28 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
             <div className="font-mono text-teal-400 font-bold uppercase text-[10px]">
               Subrogation & Salvage Recovery
             </div>
-            <p className="text-slate-300 text-[11px] leading-relaxed">
+            <p className="text-slate-300 text-xs leading-relaxed">
               Damaged radiator and bumper registered with AKI salvage auction portal. Estimated recovery: <strong>KES 35,000</strong>.
             </p>
           </div>
 
           {/* SLA Clock & Adjudication Controls */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-2 text-xs">
+          <div className="hz-card space-y-2 text-xs">
             <div className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider border-b border-[var(--hz-border-grid)] pb-1.5">
               ADJUDICATION CONTROLS
             </div>
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">DOA Clearance</span>
-                <span className="font-semibold text-slate-800 text-[11px]">Level 1 Claims Mgr</span>
+                <span className="text-slate-500 text-xs">DOA Clearance</span>
+                <span className="font-semibold text-slate-800 text-xs">Level 1 Claims Mgr</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">TAT to Date</span>
-                <span className="font-mono font-bold text-emerald-700 text-[11px]">19h 39m / 24h</span>
+                <span className="text-slate-500 text-xs">TAT to Date</span>
+                <span className="font-mono font-bold text-emerald-700 text-xs">19h 39m / 24h</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[11px]">Police Sync</span>
-                <span className="font-bold text-emerald-700 text-[11px] flex items-center gap-1">
+                <span className="text-slate-500 text-xs">Police Sync</span>
+                <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
                   <Check className="w-3 h-3" /> Verified
                 </span>
               </div>

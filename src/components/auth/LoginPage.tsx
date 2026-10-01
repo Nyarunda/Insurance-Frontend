@@ -317,7 +317,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onAuthenticated }) => {
                     <Building2 className="w-4 h-4 text-[var(--hz-text-subtle)] shrink-0" />
                     <span className="w-full text-sm text-[var(--hz-text-primary)] truncate">{tenant}</span>
                   </span>
-                  <p className="mt-1 text-[11px] text-[var(--hz-text-subtle)]">
+                  <p className="mt-1 text-xs text-[var(--hz-text-subtle)]">
                     {matchedTenant
                       ? 'Determined from your email domain.'
                       : 'No tenant matches this email domain — defaulting to primary tenant.'}
@@ -329,7 +329,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onAuthenticated }) => {
                   <span className="hz-field mt-1.5 flex items-center gap-2 px-3 bg-[var(--hz-surface-subtle)] cursor-not-allowed">
                     <span className="w-full text-sm text-[var(--hz-text-primary)] truncate">{ROLE_LABELS[role]}</span>
                   </span>
-                  <p className="mt-1 text-[11px] text-[var(--hz-text-subtle)]">
+                  <p className="mt-1 text-xs text-[var(--hz-text-subtle)]">
                     {matchedUser
                       ? 'Assigned in Users & Roles.'
                       : `No account found — defaulting to ${ROLE_LABELS[DEFAULT_ROLE_CENTER]} access.`}

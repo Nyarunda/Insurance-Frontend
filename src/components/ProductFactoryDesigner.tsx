@@ -63,7 +63,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
   return (
     <div id="product-factory-designer-view" className="space-y-6 animate-in fade-in duration-150">
       {/* Top Banner */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -129,7 +129,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
 
       {/* Layer 1: Base Product Definition */}
       {activeLayer === 'base' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6 space-y-6">
+        <div className="hz-card space-y-6">
           <div>
             <h2 className="text-base font-bold text-slate-900">Layer 1: Base Product Specification</h2>
             <p className="text-xs text-slate-500">Core regulatory taxonomy, territorial jurisdiction, and currency boundaries</p>
@@ -139,22 +139,22 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">Line of Business</span>
               <div className="font-bold text-slate-900 text-sm">General Insurance • Motor</div>
-              <div className="text-slate-500 text-[11px]">Class Code: MTR-GEN-01</div>
+              <div className="text-slate-500 text-xs">Class Code: MTR-GEN-01</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">Territorial Jurisdiction</span>
               <div className="font-bold text-slate-900 text-sm">Republic of Kenya</div>
-              <div className="text-slate-500 text-[11px]">COMESA Yellow Card Extension</div>
+              <div className="text-slate-500 text-xs">COMESA Yellow Card Extension</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">Settlement Currency</span>
               <div className="font-bold text-slate-900 font-mono text-sm">KES (Kenyan Shilling)</div>
-              <div className="text-slate-500 text-[11px]">Sub-units: Cents (2 decimals)</div>
+              <div className="text-slate-500 text-xs">Sub-units: Cents (2 decimals)</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
               <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">Regulatory Authority</span>
               <div className="font-bold text-slate-900 text-sm">IRA Kenya Section 72</div>
-              <div className="text-slate-500 text-[11px]">Tariff Band 4.5% - 7.5%</div>
+              <div className="text-slate-500 text-xs">Tariff Band 4.5% - 7.5%</div>
             </div>
           </div>
         </div>
@@ -162,55 +162,55 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
 
       {/* Layer 2: Coverage Library */}
       {activeLayer === 'coverages' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6 space-y-6">
+        <div className="hz-card space-y-6">
           <div>
             <h2 className="text-base font-bold text-slate-900">Layer 2: Modular Coverage Library</h2>
             <p className="text-xs text-slate-500">Atomic coverage modules assembled dynamically into the comprehensive policy schedule</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+            <div className="hz-card space-y-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-900">Accidental Damage, Fire & Theft</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700">MANDATORY CORE</span>
               </div>
-              <p className="text-slate-600 text-[11px] leading-relaxed">
+              <p className="text-slate-600 text-xs leading-relaxed">
                 Full indemnity for physical damage, overturn, collision, lightning, and total vehicle theft.
               </p>
-              <div className="font-mono text-[11px] text-slate-500">Rating Basis: 100% of Stated Market Value</div>
+              <div className="font-mono text-xs text-slate-500">Rating Basis: 100% of Stated Market Value</div>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+            <div className="hz-card space-y-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-900">Third-Party Bodily Injury & Property Damage</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700">STATUTORY MANDATORY</span>
               </div>
-              <p className="text-slate-600 text-[11px] leading-relaxed">
+              <p className="text-slate-600 text-xs leading-relaxed">
                 Unlimited bodily injury indemnity for third parties and passenger liability up to KES 20M limit.
               </p>
-              <div className="font-mono text-[11px] text-slate-500">Rating Basis: Fixed statutory tariff rate</div>
+              <div className="font-mono text-xs text-slate-500">Rating Basis: Fixed statutory tariff rate</div>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+            <div className="hz-card space-y-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-900">Political Violence & Terrorism (PVT)</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">OPTIONAL RIDER</span>
               </div>
-              <p className="text-slate-600 text-[11px] leading-relaxed">
+              <p className="text-slate-600 text-xs leading-relaxed">
                 Loss or damage caused by riot, strike, civil commotion, malicious damage, or acts of terrorism.
               </p>
-              <div className="font-mono text-[11px] text-slate-500">Rating Basis: +0.25% on Sum Insured</div>
+              <div className="font-mono text-xs text-slate-500">Rating Basis: +0.25% on Sum Insured</div>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+            <div className="hz-card space-y-2">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-900">Windscreen & Window Glass</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700">ZERO EXCESS</span>
               </div>
-              <p className="text-slate-600 text-[11px] leading-relaxed">
+              <p className="text-slate-600 text-xs leading-relaxed">
                 Direct replacement without deductible excess through authorized national glass networks.
               </p>
-              <div className="font-mono text-[11px] text-slate-500">Limit: Up to KES 100,000 free with Comprehensive</div>
+              <div className="font-mono text-xs text-slate-500">Limit: Up to KES 100,000 free with Comprehensive</div>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
 
       {/* Layer 3: Rating Engine Formula */}
       {activeLayer === 'rating' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6 space-y-6">
+        <div className="hz-card space-y-6">
           <div>
             <h2 className="text-base font-bold text-slate-900">Layer 3: Rating Engine Visual Expression</h2>
             <p className="text-xs text-slate-500">Executable mathematical formula tree parsed at quote calculation runtime</p>
@@ -242,9 +242,9 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
 
       {/* Layer 4: Product Test Lab Sandbox (Signature Feature) */}
       {activeLayer === 'testlab' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Left Column: Interactive Controls */}
-          <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
+          <div className="hz-card lg:col-span-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <FlaskConical className="w-4 h-4 text-teal-600" />
@@ -310,7 +310,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
                   onChange={(e) => setTestAge(parseInt(e.target.value))}
                   className="w-full accent-teal-600"
                 />
-                <div className="text-[11px] text-slate-400 mt-0.5">
+                <div className="text-xs text-slate-400 mt-0.5">
                   {testAge > 10 ? 'Age > 10 applies 1.25x loading factor' : 'Standard age factor (1.0x)'}
                 </div>
               </div>
@@ -353,7 +353,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
           {/* Right Column: Live Output & Rule Trace Breakdown */}
           <div className="lg:col-span-7 space-y-4">
             {/* Live Output Banner */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
+            <div className="hz-card">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
                 <div>
                   <span className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
@@ -365,7 +365,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
                   <div className="text-2xl font-bold font-mono text-teal-700">
                     KES {finalNetPremium.toLocaleString()}
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-xs text-slate-500">
                     Total with Levies: <strong>KES {totalPayable.toLocaleString()}</strong>
                   </div>
                 </div>

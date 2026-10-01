@@ -154,11 +154,11 @@ export const NewJournalEntryModal: React.FC<NewJournalEntryModalProps> = ({ isOp
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="hz-panel overflow-hidden">
             <div className="px-4 py-2.5 text-[11px] font-bold uppercase text-slate-500 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <span>Ledger Lines</span>
               <span
-                className={`font-mono text-[11px] ${isBalanced ? 'text-emerald-700' : 'text-amber-700'}`}
+                className={`font-mono text-xs ${isBalanced ? 'text-emerald-700' : 'text-amber-700'}`}
               >
                 Dr {totalDebit.toLocaleString()} / Cr {totalCredit.toLocaleString()}
               </span>
@@ -204,7 +204,7 @@ export const NewJournalEntryModal: React.FC<NewJournalEntryModalProps> = ({ isOp
               ))}
             </div>
             <div className="px-4 py-2 border-t border-slate-100">
-              <button onClick={addLine} className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1">
+              <button onClick={addLine} className="text-xs font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1">
                 <Plus className="w-3 h-3" />
                 <span>Add Line</span>
               </button>

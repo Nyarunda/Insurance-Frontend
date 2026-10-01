@@ -49,7 +49,7 @@ export const OrganizationAdmin: React.FC<OrganizationAdminProps> = ({ densityMod
       render: (t) => (
         <div>
           <div className="font-bold text-slate-900">{t.name}</div>
-          <div className="text-[11px] text-slate-500 font-mono">{t.code}</div>
+          <div className="text-xs text-slate-500 font-mono">{t.code}</div>
         </div>
       ),
     },

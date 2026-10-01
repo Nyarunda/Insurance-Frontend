@@ -84,6 +84,41 @@ export function Section({
   );
 }
 
+/** The one card: a 6px panel whose padding follows density (`.hz-card`). `flush` drops padding for tables. */
+export function Card({
+  flush = false,
+  className = '',
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { flush?: boolean }) {
+  return (
+    <div className={`${flush ? 'hz-panel overflow-hidden' : 'hz-card'} ${className}`} {...props}>
+      {children}
+    </div>
+  );
+}
+
+/** Title and description on the left, an optional action on the right; 12px body floor. */
+export function CardHeader({
+  title,
+  description,
+  action,
+}: {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-3 flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h3 className="text-[13px] font-semibold text-[var(--hz-text-primary)]">{title}</h3>
+        {description && <p className="mt-0.5 text-xs text-[var(--hz-text-secondary)]">{description}</p>}
+      </div>
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+    </div>
+  );
+}
+
 export type StatusTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 export interface StatusMeta {

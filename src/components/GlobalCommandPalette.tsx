@@ -267,11 +267,11 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
                       <div>
                         <div className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
                           {qa.title}
-                          <span className="text-[9px] font-medium px-1 rounded bg-slate-100 text-slate-600">
+                          <span className="text-[10px] font-medium px-1 rounded bg-slate-100 text-slate-600">
                             {qa.badge}
                           </span>
                         </div>
-                        <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{qa.subtitle}</div>
+                        <div className="text-xs text-slate-500 line-clamp-1 mt-0.5">{qa.subtitle}</div>
                       </div>
                     </button>
                   );
@@ -315,7 +315,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
                               {item.type}
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-500 truncate">{item.subtitle}</div>
+                          <div className="text-xs text-slate-500 truncate">{item.subtitle}</div>
                         </div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
@@ -328,7 +328,7 @@ export const GlobalCommandPalette: React.FC<GlobalCommandPaletteProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-3">
             <span>
               <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-700 font-mono shadow-2xs">↑</kbd>

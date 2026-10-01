@@ -100,7 +100,7 @@ export const AdjustReserveModal: React.FC<AdjustReserveModalProps> = ({
               onChange={(e) => setNewReserve(Number(e.target.value))}
               className="w-full text-base font-mono font-bold p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
-            <div className="flex justify-between text-[11px] mt-1">
+            <div className="flex justify-between text-xs mt-1">
               <span className="text-slate-500">Variance:</span>
               <span
                 className={`font-mono font-bold ${

@@ -183,9 +183,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate, col
                           <span className="truncate">{item.label}</span>
                           {count !== undefined && count > 0 && (
                             <span
-                              className={`ml-2 min-w-[22px] rounded-[3px] px-1.5 py-px text-center text-[11px] font-semibold tabular-nums ${
-                                active ? 'bg-white/20 text-white' : 'bg-white/10 text-[var(--hz-sidebar-text)]'
-                              }`}
+                              className={`ml-2 min-w-[22px] rounded-[3px] px-1.5 py-px text-center text-xs font-semibold tabular-nums ${
+ active ? 'bg-white/20 text-white' : 'bg-white/10 text-[var(--hz-sidebar-text)]'
+ }`}
                             >
                               {count}
                             </span>

@@ -50,7 +50,7 @@ export const TreatyList: React.FC<TreatyListProps> = ({ onNavigate, densityMode 
             <span>{t.title}</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </div>
-          <div className="text-[11px] text-slate-500 font-mono">
+          <div className="text-xs text-slate-500 font-mono">
             {t.treatyCode} • UW Year: {t.underwritingYear}
           </div>
         </div>

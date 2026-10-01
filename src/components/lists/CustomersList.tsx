@@ -91,7 +91,7 @@ export const CustomersList: React.FC<CustomersListProps> = ({ onNavigate, densit
               <span>{c.name}</span>
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-xs text-slate-500 font-mono">
               {c.id} • KRA: {c.kraPin}
             </div>
           </div>

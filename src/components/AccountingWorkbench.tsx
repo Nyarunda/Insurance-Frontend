@@ -113,7 +113,7 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
   return (
     <div id="accounting-workbench-view" className="space-y-6 animate-in fade-in duration-150">
       {/* Top Master Banner */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6">
+      <div className="hz-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -154,27 +154,27 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
 
         {/* Financial KPI Strip */}
         <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Posted Journal Entries</div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">{journalEntries.filter((e) => e.status === 'POSTED').length}</div>
-            <div className="text-slate-500 text-[11px] mt-0.5">{journalEntries.filter((e) => e.status === 'PENDING_APPROVAL').length} awaiting approval</div>
+            <div className="text-slate-500 text-xs mt-0.5">{journalEntries.filter((e) => e.status === 'PENDING_APPROVAL').length} awaiting approval</div>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Chart of Accounts</div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">{accounts.length}</div>
-            <div className="text-slate-500 text-[11px] mt-0.5">{accounts.filter((a) => a.status === 'ACTIVE').length} active accounts</div>
+            <div className="text-slate-500 text-xs mt-0.5">{accounts.filter((a) => a.status === 'ACTIVE').length} active accounts</div>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 border-t-teal-600">
+          <div className="hz-panel p-3 border-t-2 border-t-teal-600">
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Total Debits</div>
             <div className="text-slate-900 font-bold font-mono text-base mt-1">KES {totalDebit.toLocaleString()}</div>
-            <div className="text-slate-500 text-[11px] mt-0.5">Posted entries only</div>
+            <div className="text-slate-500 text-xs mt-0.5">Posted entries only</div>
           </div>
-          <div className={`p-3 bg-white rounded-xl border border-slate-200 shadow-2xs border-t-2 ${isBooksBalanced ? 'border-t-emerald-600' : 'border-t-amber-500'}`}>
+          <div className={`hz-panel p-3 border-t-2 ${isBooksBalanced ? 'border-t-emerald-600' : 'border-t-amber-500'}`}>
             <div className="text-slate-400 font-mono text-[10px] uppercase font-bold">Trial Balance Delta</div>
             <div className={`font-bold font-mono text-base mt-1 ${isBooksBalanced ? 'text-emerald-700' : 'text-amber-700'}`}>
               KES {Math.abs(totalDebit - totalCredit).toLocaleString()}
             </div>
-            <div className={`text-[11px] font-semibold mt-0.5 ${isBooksBalanced ? 'text-emerald-700' : 'text-amber-700'}`}>
+            <div className={`text-xs font-semibold mt-0.5 ${isBooksBalanced ? 'text-emerald-700' : 'text-amber-700'}`}>
               {isBooksBalanced ? `Debits = Credits (KES ${totalDebit.toLocaleString()})` : 'Investigate unbalanced postings'}
             </div>
           </div>
@@ -207,7 +207,7 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
 
       {/* Tab 1: General Journal */}
       {activeTab === 'journal' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="hz-panel overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">
@@ -258,15 +258,15 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
                     <tr key={entry.id} className="hover:bg-slate-50">
                       <td className={paddingClass}>
                         <div className="font-mono font-bold text-teal-700">{entry.voucherNumber}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{entry.date}</div>
+                        <div className="text-xs text-slate-400 font-mono">{entry.date}</div>
                       </td>
                       <td className={paddingClass}>
                         <div className="font-semibold text-slate-900">{entry.description}</div>
-                        {entry.reference && <div className="text-[11px] font-mono text-slate-500">{entry.reference}</div>}
+                        {entry.reference && <div className="text-xs font-mono text-slate-500">{entry.reference}</div>}
                       </td>
                       <td className={paddingClass}>
                         {entry.lines.map((line, i) => (
-                          <div key={i} className="font-mono text-[11px] text-slate-700">
+                          <div key={i} className="font-mono text-xs text-slate-700">
                             {line.debitKes > 0 ? `Dr ${line.accountCode}` : `Cr ${line.accountCode}`} — {line.accountName}
                           </div>
                         ))}
@@ -280,14 +280,14 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
                           tone={entry.status === 'POSTED' ? 'success' : entry.status === 'REJECTED' ? 'danger' : 'warning'}
                         />
                         {entry.status === 'PENDING_APPROVAL' && approverRole && (
-                          <div className="text-[10px] text-slate-400 mt-0.5">Awaiting {approverRole}</div>
+                          <div className="text-xs text-slate-400 mt-0.5">Awaiting {approverRole}</div>
                         )}
                       </td>
                       <td className={`${paddingClass} text-right`}>
                         {canActOnThis && (
                           <button
                             onClick={() => setReviewingEntryId(entry.id)}
-                            className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-[11px]"
+                            className="px-2.5 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold border border-teal-200 text-xs"
                           >
                             Review
                           </button>
@@ -311,7 +311,7 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
 
       {/* Tab 2: Trial Balance */}
       {activeTab === 'trial-balance' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="hz-panel overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono">
@@ -403,23 +403,23 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
 
       {/* Tab 3: M-Pesa & Bank Recon */}
       {activeTab === 'recon' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6 space-y-4">
+        <div className="hz-card space-y-4">
           <h2 className="text-base font-bold text-slate-900">Automated Clearing & Settlement Gateway</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
               <span className="text-[10px] uppercase font-mono text-slate-400 font-bold">Safaricom Paybill 881200</span>
               <div className="text-lg font-bold font-mono text-slate-900 mt-1">KES 2,450,800</div>
-              <div className="text-emerald-700 text-[11px] mt-1">100% matched to invoice numbers</div>
+              <div className="text-emerald-700 text-xs mt-1">100% matched to invoice numbers</div>
             </div>
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
               <span className="text-[10px] uppercase font-mono text-slate-400 font-bold">Pesalink Clearing</span>
               <div className="text-lg font-bold font-mono text-slate-900 mt-1">KES 14,200,000</div>
-              <div className="text-emerald-700 text-[11px] mt-1">Real-time interbank settlement</div>
+              <div className="text-emerald-700 text-xs mt-1">Real-time interbank settlement</div>
             </div>
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
               <span className="text-[10px] uppercase font-mono text-slate-400 font-bold">Unallocated Payments</span>
               <div className="text-lg font-bold font-mono text-emerald-700 mt-1">KES 0.00</div>
-              <div className="text-slate-500 text-[11px] mt-1">Zero unmapped client remittances</div>
+              <div className="text-slate-500 text-xs mt-1">Zero unmapped client remittances</div>
             </div>
           </div>
         </div>
@@ -427,7 +427,7 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
 
       {/* Tab 4: Reinsurance */}
       {activeTab === 'reinsurance' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-6 space-y-4">
+        <div className="hz-card space-y-4">
           <h2 className="text-base font-bold text-slate-900">Reinsurance Bordereaux Clearing (Kenya Re, Zep-Re, Africa Re)</h2>
           <p className="text-xs text-slate-500">
             Automated quota share and surplus treaty apportionments generated from quarterly underwriting closes.
