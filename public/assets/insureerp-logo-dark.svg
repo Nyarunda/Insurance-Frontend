@@ -1,0 +1,15 @@
+<svg width="260" height="80" viewBox="0 0 260 80" role="img" aria-label="InsureERP Horizon logo on dark background" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="260" height="80" fill="#0a1e3d"/>
+  <g transform="translate(20 8)">
+    <path d="M32 4L54 13V30C54 44 44.5 55.5 32 60C19.5 55.5 10 44 10 30V13L32 4Z" fill="#ffffff"/>
+    <path d="M32 10L48 16.5V29.5C48 39.7 41.4 48.3 32 52.4C22.6 48.3 16 39.7 16 29.5V16.5L32 10Z" fill="#0a1e3d" opacity="0.96"/>
+    <path d="M22 39C27.4 30.5 35.4 25.6 46 24.2" stroke="#00a7e1" stroke-width="4" stroke-linecap="round"/>
+    <path d="M22 22H29V43H22V22Z" fill="#dce7f5"/>
+    <path d="M33 21H45V27H33V21Z" fill="#dce7f5"/>
+    <path d="M33 31H43V37H33V31Z" fill="#dce7f5"/>
+    <path d="M33 41H46V47H33V41Z" fill="#dce7f5"/>
+    <path d="M48 16.5V29.5C48 39.7 41.4 48.3 32 52.4" stroke="#00a7e1" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  </g>
+  <text x="94" y="39" fill="#ffffff" font-family="Manrope, Inter, Arial, sans-serif" font-size="25" font-weight="800">Insure<tspan fill="#00a7e1">ERP</tspan></text>
+  <text x="96" y="56" fill="#dce7f5" font-family="JetBrains Mono, Consolas, monospace" font-size="10" font-weight="700" letter-spacing="2">HORIZON</text>
+</svg>

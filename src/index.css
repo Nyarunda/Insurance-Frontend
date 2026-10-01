@@ -1,0 +1,647 @@
+@import "tailwindcss";
+
+/* =========================================================
+   INSURANCE CLOUD — THEME-LEVEL OVERRIDES
+   Tailwind utilities used across screens resolve to the
+   institutional palette, so modules cannot invent colors:
+   - blue family  (teal, cyan, sky, blue, indigo, violet, purple) → navigation / action blue
+   - green family (emerald, green)                                → Active / Bound / Approved
+   - red family   (rose, red)                                     → Rejected / Repudiated / Danger
+   - amber stays amber                                            → Referral / Warning
+   Radii are restrained: 3px controls, 6px panels, no bubble UI.
+   ========================================================= */
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Inter is the only operational font; numeric "mono" styling means tabular figures, not a code face. */
+  --font-mono: Inter, ui-sans-serif, system-ui, sans-serif;
+
+  --radius: 3px;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
+  --radius-4xl: 6px;
+
+  /* Institutional blue scale (600 = main operational blue #153980) */
+  --color-teal-50: #f3f7fc;
+  --color-teal-100: #eaf1fa;
+  --color-teal-200: #c9daf0;
+  --color-teal-300: #9dbce3;
+  --color-teal-400: #5b8dc9;
+  --color-teal-500: #2563a8;
+  --color-teal-600: #153980;
+  --color-teal-700: #102f5e;
+  --color-teal-800: #0b2347;
+  --color-teal-900: #0a1f3d;
+  --color-teal-950: #071831;
+
+  --color-cyan-50: #f3f7fc;
+  --color-cyan-100: #eaf1fa;
+  --color-cyan-200: #c9daf0;
+  --color-cyan-300: #9dbce3;
+  --color-cyan-400: #5b8dc9;
+  --color-cyan-500: #2563a8;
+  --color-cyan-600: #153980;
+  --color-cyan-700: #102f5e;
+  --color-cyan-800: #0b2347;
+  --color-cyan-900: #0a1f3d;
+  --color-cyan-950: #071831;
+
+  --color-sky-50: #f3f7fc;
+  --color-sky-100: #eaf1fa;
+  --color-sky-200: #c9daf0;
+  --color-sky-300: #9dbce3;
+  --color-sky-400: #5b8dc9;
+  --color-sky-500: #2563a8;
+  --color-sky-600: #153980;
+  --color-sky-700: #102f5e;
+  --color-sky-800: #0b2347;
+  --color-sky-900: #0a1f3d;
+  --color-sky-950: #071831;
+
+  --color-blue-50: #f3f7fc;
+  --color-blue-100: #eaf1fa;
+  --color-blue-200: #c9daf0;
+  --color-blue-300: #9dbce3;
+  --color-blue-400: #5b8dc9;
+  --color-blue-500: #2563a8;
+  --color-blue-600: #1d4f91;
+  --color-blue-700: #153980;
+  --color-blue-800: #102f5e;
+  --color-blue-900: #0b2347;
+  --color-blue-950: #071831;
+
+  --color-indigo-50: #f3f7fc;
+  --color-indigo-100: #eaf1fa;
+  --color-indigo-200: #c9daf0;
+  --color-indigo-300: #9dbce3;
+  --color-indigo-400: #5b8dc9;
+  --color-indigo-500: #2563a8;
+  --color-indigo-600: #1d4f91;
+  --color-indigo-700: #153980;
+  --color-indigo-800: #102f5e;
+  --color-indigo-900: #0b2347;
+  --color-indigo-950: #071831;
+
+  --color-violet-50: #f3f7fc;
+  --color-violet-100: #eaf1fa;
+  --color-violet-200: #c9daf0;
+  --color-violet-300: #9dbce3;
+  --color-violet-400: #5b8dc9;
+  --color-violet-500: #2563a8;
+  --color-violet-600: #1d4f91;
+  --color-violet-700: #153980;
+  --color-violet-800: #102f5e;
+  --color-violet-900: #0b2347;
+  --color-violet-950: #071831;
+
+  --color-purple-50: #f3f7fc;
+  --color-purple-100: #eaf1fa;
+  --color-purple-200: #c9daf0;
+  --color-purple-300: #9dbce3;
+  --color-purple-400: #5b8dc9;
+  --color-purple-500: #2563a8;
+  --color-purple-600: #1d4f91;
+  --color-purple-700: #153980;
+  --color-purple-800: #102f5e;
+  --color-purple-900: #0b2347;
+  --color-purple-950: #071831;
+
+  /* Success scale (600 = #15803D Active / Bound) */
+  --color-emerald-50: #f0fdf4;
+  --color-emerald-100: #dcfce7;
+  --color-emerald-200: #bbf7d0;
+  --color-emerald-300: #86efac;
+  --color-emerald-400: #4ade80;
+  --color-emerald-500: #16a34a;
+  --color-emerald-600: #15803d;
+  --color-emerald-700: #166534;
+  --color-emerald-800: #14532d;
+  --color-emerald-900: #0f3f22;
+  --color-emerald-950: #052e16;
+
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #16a34a;
+  --color-green-600: #15803d;
+  --color-green-700: #166534;
+  --color-green-800: #14532d;
+  --color-green-900: #0f3f22;
+  --color-green-950: #052e16;
+
+  /* Danger scale (600 = #B91C1C Rejected / Repudiated) */
+  --color-rose-50: #fef2f2;
+  --color-rose-100: #fee2e2;
+  --color-rose-200: #fecaca;
+  --color-rose-300: #fca5a5;
+  --color-rose-400: #f87171;
+  --color-rose-500: #dc2626;
+  --color-rose-600: #b91c1c;
+  --color-rose-700: #991b1b;
+  --color-rose-800: #7f1d1d;
+  --color-rose-900: #651616;
+  --color-rose-950: #450a0a;
+
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #dc2626;
+  --color-red-600: #b91c1c;
+  --color-red-700: #991b1b;
+  --color-red-800: #7f1d1d;
+  --color-red-900: #651616;
+  --color-red-950: #450a0a;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* =========================================================
+       INSURANCE CLOUD — INSTITUTIONAL LIGHT THEME
+       Blue means navigation / action.
+       Green, amber and red mean business state.
+       ========================================================= */
+
+    /* Brand / Primary */
+    --hz-primary-900: #0b2347;
+    --hz-primary-800: #102f5e;
+    --hz-primary-700: #153980; /* Main operational blue */
+    --hz-primary-600: #1d4f91;
+    --hz-primary-500: #2563a8;
+    --hz-primary-100: #eaf1fa;
+    --hz-primary-50: #f3f7fc;
+
+    /* Application surfaces */
+    --hz-bg-app: #f4f7fb;
+    --hz-surface-main: #ffffff;
+    --hz-surface-subtle: #f8fafc;
+    --hz-surface-muted: #f1f5f9;
+    --hz-surface-selected: #edf4fc;
+
+    /* Typography */
+    --hz-text-primary: #172033;
+    --hz-text-secondary: #475569;
+    --hz-text-muted: #64748b;
+    --hz-text-disabled: #94a3b8;
+    --hz-text-inverse: #ffffff;
+
+    /* Borders */
+    --hz-border-grid: #dfe6ee;
+    --hz-border-default: #cbd5e1;
+    --hz-border-strong: #94a3b8;
+
+    /* Sidebar and top context bar */
+    --hz-sidebar-bg: #0f2747;
+    --hz-sidebar-bg-hover: #17375f;
+    --hz-sidebar-active: #1d4f91;
+    --hz-sidebar-text: #dce6f1;
+    --hz-sidebar-muted: #94a8bf;
+    --hz-sidebar-border: #294565;
+    --hz-topbar-bg: #0b2347;
+
+    /* Success / Bound / Active */
+    --hz-success-bg: #f0fdf4;
+    --hz-success-border: #bbf7d0;
+    --hz-success-text: #15803d;
+
+    /* Pending / Information */
+    --hz-info-bg: #eff6ff;
+    --hz-info-border: #bfdbfe;
+    --hz-info-text: #153980;
+
+    /* Referral / Warning */
+    --hz-warning-bg: #fffbeb;
+    --hz-warning-border: #fde68a;
+    --hz-warning-text: #b45309;
+
+    /* Danger / Repudiated / Cancelled */
+    --hz-danger-bg: #fef2f2;
+    --hz-danger-border: #fecaca;
+    --hz-danger-text: #b91c1c;
+
+    /* Reversed / Void / Inactive */
+    --hz-neutral-bg: #f1f5f9;
+    --hz-neutral-border: #cbd5e1;
+    --hz-neutral-text: #475569;
+
+    /* Focus */
+    --hz-focus: #2563eb;
+
+    /* Radius */
+    --hz-radius-input: 3px;
+    --hz-radius-button: 3px;
+    --hz-radius-badge: 3px;
+    --hz-radius-panel: 6px;
+    --hz-radius-drawer: 6px;
+
+    /* Shell dimensions */
+    --hz-topbar-height: 48px;
+    --hz-sidebar-width: 230px;
+    --hz-sidebar-collapsed: 64px;
+
+    /* Density — compact is the default for operational desks */
+    --hz-row-height: 32px;
+    --hz-control-height-visual: 28px;
+    --hz-control-hit-target: 34px;
+    --hz-font-size-table: 12px;
+    --hz-font-size-body: 13px;
+    --hz-padding-cell: 4px 8px;
+
+    --horizon-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+    /* ---------------------------------------------------------
+       Compatibility aliases. Existing screens reference these
+       names; they now resolve to the institutional palette.
+       --------------------------------------------------------- */
+    --hz-app-bg: var(--hz-bg-app);
+    --hz-surface: var(--hz-surface-main);
+    --hz-nav: var(--hz-sidebar-bg);
+    --hz-nav-hover: var(--hz-sidebar-bg-hover);
+    --hz-nav-selected: var(--hz-sidebar-active);
+    --hz-nav-text: var(--hz-sidebar-text);
+    --hz-nav-text-subtle: var(--hz-sidebar-muted);
+    --hz-text-subtle: var(--hz-text-muted);
+    --hz-border: var(--hz-border-grid);
+    --hz-divider: var(--hz-border-grid);
+    --hz-primary: var(--hz-primary-700);
+    --hz-primary-hover: var(--hz-primary-800);
+    --hz-primary-subtle: var(--hz-primary-100);
+    --hz-accent: #5b8dc9;
+    --hz-accent-hover: var(--hz-primary-500);
+    --hz-success: var(--hz-success-text);
+    --hz-warning: var(--hz-warning-text);
+    --hz-danger: var(--hz-danger-text);
+    --hz-info: var(--hz-info-text);
+    --hz-hover: rgba(15, 23, 42, 0.04);
+    --hz-pressed: rgba(15, 23, 42, 0.08);
+    --hz-selected: var(--hz-surface-selected);
+    --hz-focus-ring: var(--hz-focus);
+    --hz-disabled-bg: var(--hz-surface-muted);
+    --hz-disabled-text: var(--hz-text-disabled);
+    --hz-scrim: rgba(11, 35, 71, 0.5);
+    --hz-radius-xs: 2px;
+    --hz-radius-sm: 3px;
+    --hz-radius-md: 3px;
+    --hz-radius-lg: 6px;
+    --hz-control-compact: 28px;
+    --hz-control-default: 28px;
+    --hz-control-large: 32px;
+    --hz-table-row-compact: 32px;
+    --hz-table-row-default: 36px;
+    --primary-color: var(--hz-primary-700);
+    --primary-color-darker: var(--hz-primary-800);
+    --body-bg-color: var(--hz-bg-app);
+    --sidebar-bg-color: var(--hz-primary-100);
+    --table-header-row-bg-color: var(--hz-surface-subtle);
+  }
+
+  /* Density modes. Compact (in :root) is the default for all operational desks. */
+  .density-comfortable {
+    --hz-row-height: 36px;
+    --hz-control-height-visual: 32px;
+    --hz-control-hit-target: 36px;
+    --hz-font-size-table: 13px;
+    --hz-padding-cell: 6px 12px;
+  }
+
+  .density-spacious {
+    --hz-row-height: 42px;
+    --hz-control-height-visual: 36px;
+    --hz-control-hit-target: 40px;
+    --hz-font-size-table: 14px;
+    --hz-font-size-body: 14px;
+    --hz-padding-cell: 8px 16px;
+  }
+
+  html {
+    background: var(--hz-bg-app);
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    margin: 0;
+    height: 100%;
+    background: var(--hz-bg-app);
+    font-family: var(--horizon-font-family);
+    font-size: var(--hz-font-size-body);
+    letter-spacing: 0;
+    color: var(--hz-text-primary);
+    overscroll-behavior: none;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background: var(--hz-primary-700);
+    color: var(--hz-text-inverse);
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* Locally scrollable panes absorb their own scroll instead of chaining to the page. */
+  .overflow-y-auto,
+  .overflow-x-auto {
+    overscroll-behavior: contain;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  /* Form inputs never drop below 13px, for readability during long data entry. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(13px, 1em);
+  }
+
+  /* Money and identifiers line up in tables. */
+  .font-mono,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--hz-focus);
+    outline-offset: 2px;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  .hz-surface {
+    background: var(--hz-surface-main);
+    color: var(--hz-text-primary);
+  }
+
+  .hz-panel {
+    background: var(--hz-surface-main);
+    border: 1px solid var(--hz-border-grid);
+    border-radius: var(--hz-radius-panel);
+  }
+
+  .hz-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    border-bottom: 1px solid var(--hz-border-grid);
+  }
+
+  /* Hit-target expansion: 28px visual control, >= 34px effective pointer area. */
+  .hz-hit-target,
+  .hz-button,
+  .hz-icon-button {
+    position: relative;
+  }
+
+  .hz-hit-target::before,
+  .hz-button::before,
+  .hz-icon-button::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    min-width: var(--hz-control-hit-target);
+    min-height: var(--hz-control-hit-target);
+  }
+
+  @media (pointer: coarse) {
+    .hz-hit-target::before,
+    .hz-button::before,
+    .hz-icon-button::before {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+
+  /* Buttons: four visual levels only — primary, secondary, quiet, danger. */
+  .hz-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: var(--hz-control-height-visual);
+    border-radius: var(--hz-radius-button);
+    border: 1px solid transparent;
+    padding: 0 0.75rem;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+
+  .hz-button:disabled {
+    background: var(--hz-surface-muted);
+    border-color: var(--hz-border-grid);
+    color: var(--hz-text-disabled);
+  }
+
+  .hz-button-primary {
+    background: var(--hz-primary-700);
+    color: var(--hz-text-inverse);
+  }
+
+  .hz-button-primary:hover:not(:disabled) {
+    background: var(--hz-primary-800);
+  }
+
+  .hz-button-secondary {
+    background: var(--hz-surface-main);
+    border-color: var(--hz-border-default);
+    color: var(--hz-text-primary);
+  }
+
+  .hz-button-secondary:hover:not(:disabled) {
+    background: var(--hz-surface-subtle);
+    border-color: var(--hz-border-strong);
+  }
+
+  .hz-button-quiet {
+    background: transparent;
+    color: var(--hz-text-secondary);
+  }
+
+  .hz-button-quiet:hover:not(:disabled) {
+    background: var(--hz-surface-muted);
+    color: var(--hz-text-primary);
+  }
+
+  .hz-button-danger {
+    background: var(--hz-danger-text);
+    color: var(--hz-text-inverse);
+  }
+
+  .hz-button-danger:hover:not(:disabled) {
+    background: #991b1b;
+  }
+
+  .hz-icon-button {
+    display: inline-flex;
+    width: var(--hz-control-height-visual);
+    height: var(--hz-control-height-visual);
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--hz-radius-button);
+    border: 1px solid var(--hz-border-default);
+    background: var(--hz-surface-main);
+    color: var(--hz-text-secondary);
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+
+  .hz-icon-button:hover:not(:disabled) {
+    background: var(--hz-surface-subtle);
+    border-color: var(--hz-border-strong);
+    color: var(--hz-text-primary);
+  }
+
+  .hz-field {
+    min-height: var(--hz-control-height-visual);
+    border-radius: var(--hz-radius-input);
+    border: 1px solid var(--hz-border-default);
+    background: var(--hz-surface-main);
+    color: var(--hz-text-primary);
+    font-size: 13px;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+
+  .hz-field:hover:not(:focus-within) {
+    border-color: var(--hz-border-strong);
+  }
+
+  .hz-field:focus-within,
+  input.hz-field:focus,
+  select.hz-field:focus,
+  textarea.hz-field:focus {
+    outline: none;
+    border-color: var(--hz-primary-700);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hz-focus), transparent 80%);
+  }
+
+  .hz-field-invalid {
+    border-color: var(--hz-danger-text);
+  }
+
+  .hz-field-disabled,
+  .hz-field:disabled {
+    background: var(--hz-surface-muted);
+    color: var(--hz-text-disabled);
+  }
+
+  /* Enterprise data grid */
+  .hz-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--hz-font-size-table);
+  }
+
+  .hz-grid thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: var(--hz-row-height);
+    padding: var(--hz-padding-cell);
+    background: var(--hz-surface-subtle);
+    border-bottom: 1px solid var(--hz-border-grid);
+    color: var(--hz-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .hz-grid tbody td {
+    height: var(--hz-row-height);
+    padding: var(--hz-padding-cell);
+    border-bottom: 1px solid var(--hz-border-grid);
+    color: var(--hz-text-primary);
+    white-space: nowrap;
+  }
+
+  .hz-grid tbody tr:hover td {
+    background: var(--hz-surface-subtle);
+  }
+
+  .hz-grid tbody tr[aria-selected="true"] td {
+    background: var(--hz-surface-selected);
+  }
+
+  .hz-grid tfoot td {
+    height: var(--hz-row-height);
+    padding: var(--hz-padding-cell);
+    background: var(--hz-surface-subtle);
+    border-top: 1px solid var(--hz-border-default);
+    font-weight: 600;
+  }
+
+  /* First cell of a list row is the record reference and opens the workspace. */
+  .hz-grid td.hz-record-link {
+    cursor: pointer;
+  }
+  .hz-grid td.hz-record-link:hover > * {
+    text-decoration: underline;
+  }
+
+  .hz-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--hz-text-muted);
+  }
+
+  .hz-screen-enter {
+    animation: hz-screen-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes hz-screen-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scrollbars for data tables and panels */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.6);
+}
