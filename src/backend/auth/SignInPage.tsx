@@ -177,7 +177,7 @@ export const SignInPage: React.FC = () => {
         <SignInPanel title="Sign in" subtitle="Insurance Cloud">
           <form onSubmit={submitCredentials} className="p-7 space-y-4" noValidate>
             {notice && !error && (
-              <HorizonAlert tone="warning" title="Signed out">
+              <HorizonAlert tone="warning" title={notice === 'SIGN_OUT_UNCONFIRMED' ? 'Sign-out not confirmed' : 'Signed out'}>
                 {SESSION_NOTICE_TEXT[notice]}
               </HorizonAlert>
             )}

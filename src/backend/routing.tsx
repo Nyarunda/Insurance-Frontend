@@ -38,6 +38,17 @@ export interface FromState {
   from?: string;
 }
 
+/**
+ * Where to go after signing in: an internal path only. Scheme-relative (`//host`) and backslash
+ * forms, which a browser may treat as another origin, and the sign-in page itself fall back to `/`.
+ */
+export function safeReturnPath(from: unknown): string {
+  if (typeof from !== 'string' || !from.startsWith('/')) return '/';
+  if (from.startsWith('//') || from.includes('\\')) return '/';
+  if (from === '/sign-in' || from.startsWith('/sign-in/') || from.startsWith('/sign-in?')) return '/';
+  return from;
+}
+
 /** Only for a signed-in user; anyone else is sent to sign-in and returned here afterwards. */
 export const RequireSession: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const status = useSessionStore((state) => state.status);
@@ -56,8 +67,7 @@ export const SignedOutOnly: React.FC<{ children: React.ReactNode }> = ({ childre
   const location = useLocation();
   if (status === 'idle' || status === 'restoring') return <FullPageLoader tip="Restoring your session..." />;
   if (status === 'signed-in') {
-    const from = (location.state as FromState | null)?.from;
-    return <Navigate to={from && from.startsWith('/') && !from.startsWith('/sign-in') ? from : '/'} replace />;
+    return <Navigate to={safeReturnPath((location.state as FromState | null)?.from)} replace />;
   }
   return <>{children}</>;
 };

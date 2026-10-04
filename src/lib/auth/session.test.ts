@@ -4,8 +4,9 @@ import { api } from '../api/instance';
 import { getActiveBranchId, useBranchStore } from '../context/branchStore';
 import { queryClient } from '../query/queryClient';
 import { ME_QUERY_KEY, Me } from './me';
-import { completeSignIn, restoreSession, signOut } from './session';
-import { useSessionStore } from './sessionStore';
+import { AUTH_CHANNEL_NAME, authChannel } from './authChannel';
+import { completeSignIn, receiveAuthMessage, restoreSession, signOut } from './session';
+import { sessionExpired, useSessionStore } from './sessionStore';
 import { getAccessToken, setAccessToken } from './tokens';
 
 export const ME: Me = {
@@ -109,11 +110,77 @@ describe('a live session', () => {
     expect(queryClient.getQueryData(ME_QUERY_KEY)).toBeUndefined();
   });
 
-  it('still clears the local session when the logout request fails', async () => {
+  it('signs out with no notice and tells the other tabs "signed-out" when the server confirms', async () => {
+    await signIn();
+    backend(() => json(204, null));
+    const post = vi.spyOn(authChannel, 'post');
+    await signOut();
+    expect(post.mock.calls).toEqual([[{ type: 'signed-out' }]]);
+    expect(useSessionStore.getState().notice).toBeNull();
+  });
+
+  it('when the logout request fails, still clears everything locally but says the server did not confirm it', async () => {
     await signIn();
     backend(() => Promise.reject(new TypeError('offline')));
+    const post = vi.spyOn(authChannel, 'post');
     await signOut();
-    expect(useSessionStore.getState().status).toBe('signed-out');
+    expect(useSessionStore.getState()).toMatchObject({ status: 'signed-out', notice: 'SIGN_OUT_UNCONFIRMED' });
     expect(getAccessToken()).toBeNull();
+    expect(queryClient.getQueryData(ME_QUERY_KEY)).toBeUndefined();
+    expect(getActiveBranchId()).toBeNull();
+    expect(post.mock.calls).toEqual([[{ type: 'signed-out' }]]);
+  });
+
+  it('also treats a refused logout (server error) as unconfirmed', async () => {
+    await signIn();
+    backend(() => envelope(503, 'SERVICE_UNAVAILABLE', 'maintenance'));
+    await signOut();
+    expect(useSessionStore.getState().notice).toBe('SIGN_OUT_UNCONFIRMED');
+  });
+});
+
+describe('session events between tabs', () => {
+  async function signIn() {
+    backend((call) => (call.url.endsWith('/auth/me') ? json(200, ME) : json(204, null)));
+    await completeSignIn({ status: 'SIGNED_IN', access_token: 'access-1', token_type: 'Bearer', expires_in: 600 });
+  }
+
+  it('a session that ends in this tab is announced once as "session-ended"', async () => {
+    await signIn();
+    const post = vi.spyOn(authChannel, 'post');
+    sessionExpired();
+    sessionExpired(); // already signed out: nothing more to announce
+    expect(post.mock.calls).toEqual([[{ type: 'session-ended' }]]);
+  });
+
+  it('a tab told "session-ended" clears token, cache and branch, says why, and does not rebroadcast', async () => {
+    await signIn();
+    const post = vi.spyOn(authChannel, 'post');
+    receiveAuthMessage({ type: 'session-ended' });
+    expect(useSessionStore.getState()).toMatchObject({ status: 'signed-out', notice: 'SESSION_ENDED' });
+    expect(getAccessToken()).toBeNull();
+    expect(queryClient.getQueryData(ME_QUERY_KEY)).toBeUndefined();
+    expect(getActiveBranchId()).toBeNull();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('a tab told "signed-out" shows the separate "signed out in another tab" notice', async () => {
+    await signIn();
+    receiveAuthMessage({ type: 'signed-out' });
+    expect(useSessionStore.getState()).toMatchObject({ status: 'signed-out', notice: 'SIGNED_OUT_ELSEWHERE' });
+  });
+
+  it('a tab that is not signed in ignores both events', () => {
+    useSessionStore.setState({ status: 'signed-out', notice: null });
+    receiveAuthMessage({ type: 'session-ended' });
+    expect(useSessionStore.getState().notice).toBeNull();
+  });
+
+  it.runIf(typeof BroadcastChannel !== 'undefined')('receives the event through the real channel', async () => {
+    await signIn();
+    const otherTab = new BroadcastChannel(AUTH_CHANNEL_NAME);
+    otherTab.postMessage({ type: 'session-ended' });
+    await vi.waitFor(() => expect(useSessionStore.getState().notice).toBe('SESSION_ENDED'));
+    otherTab.close();
   });
 });

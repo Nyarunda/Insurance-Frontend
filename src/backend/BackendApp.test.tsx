@@ -12,7 +12,7 @@ import { useSessionStore } from '../lib/auth/sessionStore';
 import { getAccessToken, setAccessToken } from '../lib/auth/tokens';
 import { queryClient } from '../lib/query/queryClient';
 import { backendRoutes } from './BackendApp';
-import { RequirePermission } from './routing';
+import { RequirePermission, safeReturnPath } from './routing';
 
 const ME: Me = {
   user: { id: 'u1', email: 'maker@acme.test' },
@@ -91,6 +91,35 @@ describe('route protection', () => {
       { path: '/allowed', element: <RequirePermission permission="policies.policy.view">Policies screen</RequirePermission> },
     ]);
     expect(await screen.findByText('Policies screen')).toBeInTheDocument();
+  });
+});
+
+describe('the return path after sign-in', () => {
+  it.each([
+    ['/policies/abc?tab=versions', '/policies/abc?tab=versions'],
+    ['//example.com/steal', '/'],
+    ['//example.com', '/'],
+    ['/\\example.com', '/'],
+    ['https://example.com', '/'],
+    ['/sign-in', '/'],
+    ['/sign-in?x=1', '/'],
+    [undefined, '/'],
+  ])('%s -> %s', (from, expected) => {
+    expect(safeReturnPath(from)).toBe(expected);
+  });
+
+  it('never lands on a scheme-relative destination', async () => {
+    signedInAs(ME);
+    const router = createMemoryRouter(backendRoutes, {
+      initialEntries: [{ pathname: '/sign-in', state: { from: '//example.com/steal' } }],
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
   });
 });
 
@@ -243,6 +272,22 @@ describe('the shell in backend mode', () => {
 
     await queryClient.refetchQueries({ queryKey: ME_QUERY_KEY });
     expect(network.calls.at(-1)?.headers['x-branch-id']).toBe('b-msa');
+  });
+
+  it('shows that sign-out was not confirmed when the logout request fails', async () => {
+    const user = userEvent.setup();
+    signedInAs(ME);
+    backend(() => Promise.reject(new TypeError('offline')));
+    renderAt('/');
+    await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(await screen.findByText('Sign-out not confirmed')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You were signed out locally, but the server could not confirm sign-out. Try again when the connection is available.',
+      ),
+    ).toBeInTheDocument();
+    expect(getAccessToken()).toBeNull();
   });
 
   it('signs out through the account menu and returns to sign-in', async () => {

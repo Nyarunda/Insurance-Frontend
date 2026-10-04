@@ -1,5 +1,7 @@
 /**
- * The API client: the only place in backend mode that calls `fetch` (FI1-A).
+ * The API client (FI1-A). Every backend-mode request goes through it, except the token refresh
+ * itself, which `lib/auth/refresh.ts` sends directly: the refresh is what this client calls when a
+ * request gets a 401, so it cannot go through the client's own 401 handling.
  *
  * - Same origin, `/api/v1`. The tenant comes from the page's host; the client never sends one.
  * - The bearer token comes from memory. A 401 gets one refresh (shared by every caller) and one

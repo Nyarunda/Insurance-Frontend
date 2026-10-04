@@ -6,16 +6,19 @@
 import { create } from 'zustand';
 import { useBranchStore } from '../context/branchStore';
 import { queryClient } from '../query/queryClient';
+import { authChannel } from './authChannel';
 import { setAccessToken } from './tokens';
 
 export type SessionStatus = 'idle' | 'restoring' | 'signed-in' | 'signed-out' | 'unavailable';
 
 /** Why the user is looking at the sign-in page, when it is not a first visit. */
-export type SessionNotice = 'SESSION_ENDED' | 'SIGNED_OUT_ELSEWHERE' | null;
+export type SessionNotice = 'SESSION_ENDED' | 'SIGNED_OUT_ELSEWHERE' | 'SIGN_OUT_UNCONFIRMED' | null;
 
 export const SESSION_NOTICE_TEXT: Record<Exclude<SessionNotice, null>, string> = {
   SESSION_ENDED: 'Your session ended. Sign in again to continue.',
   SIGNED_OUT_ELSEWHERE: 'You signed out in another tab.',
+  SIGN_OUT_UNCONFIRMED:
+    'You were signed out locally, but the server could not confirm sign-out. Try again when the connection is available.',
 };
 
 interface SessionState {
@@ -50,9 +53,16 @@ export const useSessionStore = create<SessionState>((set) => ({
   clearNotice: () => set({ notice: null }),
 }));
 
-/** Called by the API client when a refresh fails: only a live session "ends"; a restore just finds none. */
+/**
+ * Called by the API client when a refresh fails: only a live session "ends" (and the other tabs are
+ * told, since they share it); a restore just finds none.
+ */
 export const sessionExpired = () => {
   const { status, ended } = useSessionStore.getState();
-  if (status === 'signed-in') ended('SESSION_ENDED');
-  else if (status !== 'signed-out') ended(null);
+  if (status === 'signed-in') {
+    ended('SESSION_ENDED');
+    authChannel.post({ type: 'session-ended' });
+  } else if (status !== 'signed-out') {
+    ended(null);
+  }
 };
