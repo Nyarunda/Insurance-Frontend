@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Plus } from 'lucide-react';
 import { HorizonLoader, StatusBadge } from '../../components/horizon';
 import { hasPermission, useMe } from '../../lib/auth/me';
@@ -21,17 +21,19 @@ export const NO_ENDORSEMENTS_TEXT = 'This policy has no endorsements.';
 
 export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ policy }) => {
   const navigate = useNavigate();
+  // The Policy Directory return location (FI1-C-R1) travels on to the endorsement screens (FI1-D-R1).
+  const { state } = useLocation();
   const me = useMe().data;
   const endorsements = usePolicyEndorsements(policy.id, true);
   const canCreate = hasPermission(me, ENDORSEMENT_CREATE) && policy.lifecycle_status === 'BOUND';
   const base = `/policies/${encodeURIComponent(policy.id)}/endorsements`;
-  const open = (id: string) => navigate(`${base}/${encodeURIComponent(id)}`);
+  const open = (id: string) => navigate(`${base}/${encodeURIComponent(id)}`, { state });
 
   return (
     <div className="space-y-3">
       {canCreate && (
         <div className="flex justify-end">
-          <button type="button" className="hz-button hz-button-primary" onClick={() => navigate(`${base}/new`)}>
+          <button type="button" className="hz-button hz-button-primary" onClick={() => navigate(`${base}/new`, { state })}>
             <Plus className="h-3.5 w-3.5" />
             New endorsement
           </button>

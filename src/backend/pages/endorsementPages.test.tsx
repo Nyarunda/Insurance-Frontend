@@ -8,7 +8,7 @@ import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { envelope, FakeCall, fakeFetch, json } from '../../test/fetchFake';
-import { detail, ENDORSEMENT_ID, MAKER, POLICY_ETAG, POLICY_ID, V1, version } from '../../test/policyFixtures';
+import { detail, ENDORSEMENT_ID, MAKER, POLICY_ETAG, POLICY_ID, summary, V1, version } from '../../test/policyFixtures';
 import { NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { describeError } from '../../lib/api/errorText';
 import { ApiError } from '../../lib/api/errors';
@@ -154,6 +154,7 @@ function endorsementBackend(options: {
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
     if (path === '/auth/me') return json(200, options.me ?? PREPARER);
+    if (path.startsWith('/policies?')) return json(200, { results: [summary()], count: 60, page: 2, page_size: 25 });
     if (path === `/policies/${POLICY_ID}`) {
       if (options.policy) return options.policy();
       return json(200, detail(), state.policyEtag ? { ETag: state.policyEtag } : {});
@@ -615,6 +616,81 @@ describe('the endorsement', () => {
     expect(await screen.findByText(NOT_FOUND_TEXT)).toBeInTheDocument();
     expect(mainText()).toContain('Reference corr-404');
     expect(mainText()).not.toContain('END0000001');
+  });
+});
+
+describe('the Policy Directory return context (FI1-D-R1)', () => {
+  const DIRECTORY = '/policies?coverage=ACTIVE&q=POL0000001&page=2';
+
+  /** From the filtered, paged directory into the policy's Endorsements tab. */
+  async function intoEndorsements(user: ReturnType<typeof userEvent.setup>) {
+    const router = renderAt(DIRECTORY);
+    await user.click(await screen.findByRole('row', { name: /POL0000001/ }));
+    await user.click(await screen.findByRole('tab', { name: 'Endorsements' }));
+    await screen.findByRole('row', { name: /END0000001/ });
+    return router;
+  }
+
+  async function expectDirectoryRestored(user: ReturnType<typeof userEvent.setup>, router: ReturnType<typeof renderAt>) {
+    await user.click(await screen.findByTitle('Back to Policy Directory'));
+    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.search).toBe('?coverage=ACTIVE&q=POL0000001&page=2');
+  }
+
+  it('policy → endorsement → back to the policy → back to the directory', async () => {
+    const user = userEvent.setup();
+    endorsementBackend();
+    const router = await intoEndorsements(user);
+    await user.click(screen.getByRole('row', { name: /END0000001/ }));
+    await screen.findByRole('heading', { name: 'END0000001' });
+
+    await user.click(screen.getByTitle('Back to the policy'));
+    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.search).toBe('?tab=endorsements');
+    await screen.findByRole('row', { name: /END0000001/ });
+    await expectDirectoryRestored(user, router);
+  });
+
+  it('policy → new endorsement → Cancel → the policy → back to the directory', async () => {
+    const user = userEvent.setup();
+    endorsementBackend();
+    const router = await intoEndorsements(user);
+    await user.click(screen.getByRole('button', { name: 'New endorsement' }));
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    await expectDirectoryRestored(user, router);
+  });
+
+  it("policy → new endorsement → the page's Back → the policy → back to the directory", async () => {
+    const user = userEvent.setup();
+    endorsementBackend();
+    const router = await intoEndorsements(user);
+    await user.click(screen.getByRole('button', { name: 'New endorsement' }));
+    await screen.findByLabelText(/Benefit/);
+    await user.click(screen.getByTitle('Back to the policy'));
+    await expectDirectoryRestored(user, router);
+  });
+
+  it('policy → new endorsement → created → back to the policy → back to the directory', async () => {
+    const user = userEvent.setup();
+    endorsementBackend({ create: (_call, state) => answer(state, endorsement(), 201) });
+    const router = await intoEndorsements(user);
+    await user.click(screen.getByRole('button', { name: 'New endorsement' }));
+    await fillChangeLimit(user);
+    await user.click(screen.getByRole('button', { name: 'Create endorsement' }));
+    await screen.findByRole('heading', { name: 'END0000001' });
+    await user.click(screen.getByTitle('Back to the policy'));
+    await expectDirectoryRestored(user, router);
+  });
+
+  it('an effective endorsement → View the policy → back to the directory', async () => {
+    const user = userEvent.setup();
+    endorsementBackend({ endorsement: pending({ status: 'EFFECTIVE', resulting_version_no: 4, workflow: null }) });
+    const router = await intoEndorsements(user);
+    await user.click(screen.getByRole('row', { name: /END0000001/ }));
+    await user.click(await screen.findByRole('link', { name: 'View the policy' }));
+    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    await expectDirectoryRestored(user, router);
   });
 });
 

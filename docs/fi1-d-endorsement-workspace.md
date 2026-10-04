@@ -69,3 +69,24 @@ The tests cover:
 - **Helpers:** `requiredActionText` and `fieldErrorsOf`.
 
 **Left for the FI1-E gate:** the real-backend Playwright journey. The maker creates and submits, the checker approves from My work, and the policy shows the new version and limit. That gate also covers the D4 state with withdraw, the maker unable to approve their own endorsement, and a stale ETag across two browser contexts.
+
+## FI1-D-R1: the endorsement screens keep the Policy Directory return context (independent review, 2026-10-04)
+
+The review found that FI1-D regressed the accepted FI1-C-R1 behaviour. The policy workspace carried the originating list location in router state, but every FI1-D navigation dropped it. After a visit to an endorsement, the policy's Back went to plain `/policies` instead of the filtered, paged list.
+
+Fixed in one frontend-only commit. The existing router state is carried **unchanged**; there is no new mechanism. The paths are:
+- policy → endorsement detail;
+- policy → new endorsement;
+- new endorsement → policy (Cancel and the page's Back);
+- new endorsement created → endorsement detail (still a replace);
+- endorsement detail → policy;
+- an effective endorsement's "View the policy".
+
+**Tests:** five journeys start on `/policies?coverage=ACTIVE&q=POL0000001&page=2`. In each, the final "Back to Policy Directory" restores that exact pathname and search:
+- policy → Endorsements → END0000001 → back to the policy → back to the directory;
+- policy → New endorsement → Cancel → back to the directory;
+- policy → New endorsement → the page's Back → back to the directory;
+- policy → New endorsement → created → back to the policy → back to the directory;
+- an effective endorsement → View the policy → back to the directory.
+
+All five fail on the unfixed screens. Dropping the state on the post-create navigation alone fails the created journey, and dropping it on "View the policy" alone fails the effective journey. With the fix, 189/189 pass on two runs. Lint and both builds pass.

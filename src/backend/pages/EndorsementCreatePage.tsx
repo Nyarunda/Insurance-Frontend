@@ -9,7 +9,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import {
   FieldError,
   HorizonAlert,
@@ -48,6 +48,8 @@ const field = (invalid: boolean) => `hz-field w-full px-2 text-[13px] ${invalid 
 export const EndorsementCreatePage: React.FC = () => {
   const { policyId = '' } = useParams();
   const navigate = useNavigate();
+  // Carried unchanged, so the policy's Back still returns to the originating list (FI1-D-R1).
+  const { state } = useLocation();
   const policy = usePolicy(policyId);
   const versions = usePolicyVersions(policyId, policy.isSuccess);
   const { create, pending } = useEndorsementCommands();
@@ -67,7 +69,7 @@ export const EndorsementCreatePage: React.FC = () => {
     return rows.reduce<(typeof rows)[number] | null>((top, row) => (!top || row.version_no > top.version_no ? row : top), null);
   }, [versions.data]);
 
-  const back = () => navigate(`/policies/${encodeURIComponent(policyId)}?tab=endorsements`);
+  const back = () => navigate(`/policies/${encodeURIComponent(policyId)}?tab=endorsements`, { state });
 
   if (policy.isPending || (policy.isSuccess && versions.isPending)) return <HorizonLoader tip="Loading the policy..." />;
   const loadError = policy.error ?? versions.error;
@@ -126,6 +128,7 @@ export const EndorsementCreatePage: React.FC = () => {
     if (outcome.ok) {
       navigate(`/policies/${encodeURIComponent(policyId)}/endorsements/${encodeURIComponent(outcome.view.id)}`, {
         replace: true,
+        state,
       });
       return;
     }

@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { RefreshCw, Send, Undo2 } from 'lucide-react';
 import {
   HorizonAlert,
@@ -73,6 +73,8 @@ const requiredActionOf = (error: unknown): string | null =>
 export const EndorsementPage: React.FC = () => {
   const { policyId = '', endorsementId = '' } = useParams();
   const navigate = useNavigate();
+  // Carried unchanged, so the policy's Back still returns to the originating list (FI1-D-R1).
+  const { state } = useLocation();
   const endorsement = useEndorsement(endorsementId);
   const me = useMe().data;
   const { submit, withdraw, pending } = useEndorsementCommands();
@@ -87,7 +89,7 @@ export const EndorsementPage: React.FC = () => {
   }, [toast]);
 
   const policyPath = (id: string) => `/policies/${encodeURIComponent(id)}`;
-  const back = () => navigate(`${policyPath(endorsement.data?.view.policy.id ?? policyId)}?tab=endorsements`);
+  const back = () => navigate(`${policyPath(endorsement.data?.view.policy.id ?? policyId)}?tab=endorsements`, { state });
 
   if (endorsement.isPending) return <HorizonLoader tip="Loading the endorsement..." />;
   if (endorsement.isError) {
@@ -235,7 +237,7 @@ export const EndorsementPage: React.FC = () => {
         </div>
       )}
 
-      <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyPath(view.policy.id)} />
+      <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyPath(view.policy.id)} returnState={state} />
 
       <HorizonPageContent className="p-5 space-y-2">
         <KeyValueGrid
@@ -274,11 +276,18 @@ export const EndorsementPage: React.FC = () => {
   );
 };
 
-const StatePanel: React.FC<{ view: EndorsementDetail; blocked: boolean; canWithdraw: boolean; policyPath: string }> = ({
+const StatePanel: React.FC<{
+  view: EndorsementDetail;
+  blocked: boolean;
+  canWithdraw: boolean;
+  policyPath: string;
+  returnState: unknown;
+}> = ({
   view,
   blocked,
   canWithdraw,
   policyPath,
+  returnState,
 }) => {
   if (blocked) {
     const action = view.blocker?.required_action;
@@ -319,7 +328,7 @@ const StatePanel: React.FC<{ view: EndorsementDetail; blocked: boolean; canWithd
           {benefit && benefit.limit_amount !== null
             ? `, with the ${benefit.name} limit at ${formatMoney(benefit.limit_amount, view.financial.currency)}`
             : ''}
-          . <Link to={policyPath} className="font-semibold underline">View the policy</Link>
+          . <Link to={policyPath} state={returnState} className="font-semibold underline">View the policy</Link>
         </HorizonAlert>
       );
     }
