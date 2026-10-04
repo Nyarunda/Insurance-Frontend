@@ -30,7 +30,8 @@ import {
 import { ScreenId, DensityMode } from '../types';
 import { mockClaims } from '../data/mockData';
 import { recordsStore } from '../data/recordsStore';
-import { ApprovalStage, ApprovalStatusPanel, HorizonToast, StatusBadge, StatusTone } from './horizon';
+import { ApprovalBar, ApprovalStage, HorizonToast, StatusBadge, StatusTone } from './horizon';
+import { ApprovalDecision, ApprovalDecisionModal } from './modals/ApprovalDecisionModal';
 
 /** Business state drives badge color: settled/approved green, repudiated red, referral amber, work in progress blue. */
 const claimStatusTone = (status: string): StatusTone => {
@@ -87,7 +88,9 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
     ...(claim.outstandingReserve > 1000000 ? ['Head of Insurance'] : []),
   ];
   const [approvalStep, setApprovalStep] = useState(Math.min(1, approvalPath.length - 1));
-  const [approvalOutcome, setApprovalOutcome] = useState<'PENDING' | 'REFERRED' | 'REJECTED'>('PENDING');
+  const [approvalOutcome, setApprovalOutcome] = useState<'PENDING' | 'REJECTED'>('PENDING');
+  const [pendingDecision, setPendingDecision] = useState<ApprovalDecision | null>(null);
+  const [delegatedTo, setDelegatedTo] = useState<string | null>(null);
   const approvalStages: ApprovalStage[] = approvalPath.map((label, index) => {
     if (index < approvalStep) {
       return { label, state: 'APPROVED', actor: index === 0 ? 'Jane Wanjiku' : 'Peter Otieno', timestamp: '30 Sep 2026 08:50' };
@@ -96,7 +99,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
       return {
         label,
         state: approvalOutcome,
-        assignee: index === 0 ? 'Jane Wanjiku' : 'Peter Otieno',
+        assignee: delegatedTo ?? (index === 0 ? 'Jane Wanjiku' : 'Peter Otieno'),
         dueAt: '30 Sep 2026 12:50',
         slaRemaining: '3h 47m',
       };
@@ -108,6 +111,26 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3200);
+  };
+
+  const handleDecision = (decision: ApprovalDecision, _comment: string, delegateTo?: string) => {
+    setPendingDecision(null);
+    if (decision === 'APPROVE') {
+      const nextStep = approvalStep + 1;
+      setApprovalStep(nextStep);
+      setDelegatedTo(null);
+      triggerToast(
+        nextStep >= approvalPath.length
+          ? `Claim payment approved for ${claim.claimNumber}`
+          : `Approved. Assigned to ${approvalPath[nextStep]}`
+      );
+    } else if (decision === 'REJECT') {
+      setApprovalOutcome('REJECTED');
+      triggerToast(`Claim payment rejected for ${claim.claimNumber}`);
+    } else {
+      setDelegatedTo(delegateTo ?? null);
+      triggerToast(`Delegated to ${delegateTo}`);
+    }
   };
 
   const tabs = [
@@ -294,6 +317,27 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
           </div>
         </div>
       </div>
+
+      <ApprovalBar
+        title="Payment Approval"
+        maker="Robert Mwangi"
+        submittedAt="30 Sep 2026 08:42"
+        stages={approvalStages}
+        canApprove={approvalOpen}
+        canReject={approvalOpen}
+        canDelegate={approvalOpen}
+        onApprove={() => setPendingDecision('APPROVE')}
+        onReject={() => setPendingDecision('REJECT')}
+        onDelegate={() => setPendingDecision('DELEGATE')}
+      />
+      <ApprovalDecisionModal
+        decision={pendingDecision}
+        subject={`Claim payment · ${claim.claimNumber}`}
+        stageLabel={approvalPath[approvalStep]}
+        delegates={['Jane Wanjiku', 'Peter Otieno', 'Mary Achieng', 'Daniel Kiprop'].filter((n) => n !== delegatedTo)}
+        onClose={() => setPendingDecision(null)}
+        onConfirm={handleDecision}
+      />
 
       {/* ==================================================================== */}
       {/* 3. WORKSPACE 3-COLUMN GRID PATTERN                                   */}
@@ -775,33 +819,6 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
         {/* RIGHT COLUMN: CONTEXTUAL FRAUD, SALVAGE & AUDIT (lg:col-span-3)       */}
         {/* ==================================================================== */}
         <div className="lg:col-span-3 space-y-4">
-          <ApprovalStatusPanel
-            title="Payment Approval"
-            maker="Robert Mwangi"
-            submittedAt="30 Sep 2026 08:42"
-            stages={approvalStages}
-            canApprove={approvalOpen && approvalOutcome === 'PENDING'}
-            canReject={approvalOpen}
-            canRefer={approvalOpen && approvalOutcome === 'PENDING'}
-            onApprove={() => {
-              const nextStep = approvalStep + 1;
-              setApprovalStep(nextStep);
-              triggerToast(
-                nextStep >= approvalPath.length
-                  ? `Claim payment approved for ${claim.claimNumber}`
-                  : `Approved. Assigned to ${approvalPath[nextStep]}`
-              );
-            }}
-            onReject={() => {
-              setApprovalOutcome('REJECTED');
-              triggerToast(`Claim payment rejected for ${claim.claimNumber}`);
-            }}
-            onRefer={() => {
-              setApprovalOutcome('REFERRED');
-              triggerToast('Referred to maker for additional information');
-            }}
-          />
-
           {/* SIU Fraud Scorecard */}
           <div className="hz-card">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)] mb-3">

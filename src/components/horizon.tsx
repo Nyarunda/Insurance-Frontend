@@ -693,3 +693,109 @@ export function ApprovalStatusPanel({
     </section>
   );
 }
+
+/**
+ * Full-width approval strip for the top of a workspace: where the request is, who holds it,
+ * and the decision buttons. The buttons only signal intent; the caller opens the decision
+ * modal (see ApprovalDecisionModal) so every decision carries a comment.
+ */
+export function ApprovalBar({
+  title = 'Approval',
+  maker,
+  submittedAt,
+  stages,
+  canApprove,
+  canReject,
+  canDelegate,
+  denialReason,
+  onApprove,
+  onReject,
+  onDelegate,
+}: {
+  title?: string;
+  maker: string;
+  submittedAt: string;
+  stages: ApprovalStage[];
+  canApprove?: boolean;
+  canReject?: boolean;
+  canDelegate?: boolean;
+  denialReason?: string;
+  onApprove: () => void;
+  onReject: () => void;
+  onDelegate: () => void;
+}) {
+  const currentIndex = stages.findIndex((stage) => stage.state === 'PENDING' || stage.state === 'REFERRED');
+  const current = currentIndex >= 0 ? stages[currentIndex] : undefined;
+  const rejected = stages.some((stage) => stage.state === 'REJECTED');
+  const allApproved = stages.length > 0 && stages.every((stage) => stage.state === 'APPROVED');
+  const tone: StatusTone = rejected ? 'danger' : allApproved ? 'success' : 'info';
+  const heading = rejected
+    ? 'Rejected'
+    : allApproved
+    ? 'Fully approved'
+    : current
+    ? `Stage ${currentIndex + 1} of ${stages.length} — ${current.label}`
+    : 'No pending stage';
+  const slaBreached = current?.slaBreached;
+
+  return (
+    <section
+      aria-label={title}
+      className={`hz-card ${rejected ? 'border-[var(--hz-danger-border)]' : allApproved ? 'border-[var(--hz-success-border)]' : 'border-[var(--hz-primary-500)]'}`}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="hz-section-label">{title}</span>
+            <StatusBadge label={rejected ? 'REJECTED' : allApproved ? 'APPROVED' : 'AWAITING DECISION'} tone={tone} />
+          </div>
+          <div className="text-[15px] font-semibold text-[var(--hz-text-primary)]">{heading}</div>
+          <div className="text-xs text-[var(--hz-text-secondary)]">
+            Submitted by {maker} · {submittedAt}
+            {current?.assignee && <> · Assigned to {current.assignee}</>}
+            {current?.slaRemaining && (
+              <span className={`ml-2 font-semibold tabular-nums ${slaBreached ? 'text-[var(--hz-danger-text)]' : 'text-[var(--hz-text-primary)]'}`}>
+                {slaBreached ? 'SLA BREACHED' : `SLA ${current.slaRemaining} left`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="Approval stages">
+          {stages.map((stage, index) => (
+            <li
+              key={stage.label}
+              title={[stage.actor, stage.assignee && `Assigned: ${stage.assignee}`, stage.timestamp, stage.dueAt && `Due: ${stage.dueAt}`]
+                .filter(Boolean)
+                .join(' · ') || undefined}
+              className="flex items-center gap-1.5"
+            >
+              <span className="text-[var(--hz-text-muted)]">{index + 1}.</span>
+              <span className="font-medium text-[var(--hz-text-primary)]">{stage.label}</span>
+              <StatusBadge label={stage.state} tone={approvalStageTone[stage.state]} />
+            </li>
+          ))}
+        </ol>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button type="button" onClick={onDelegate} disabled={!canDelegate} className="hz-button hz-button-secondary">
+            Delegate
+          </button>
+          <button type="button" onClick={onReject} disabled={!canReject} className="hz-button hz-button-danger">
+            Reject
+          </button>
+          <button
+            type="button"
+            onClick={onApprove}
+            disabled={!canApprove}
+            title={!canApprove ? denialReason : undefined}
+            className="hz-button hz-button-primary"
+          >
+            Approve
+          </button>
+        </div>
+      </div>
+      {denialReason && !canApprove && <div className="mt-3 text-xs text-[var(--hz-text-secondary)]">{denialReason}</div>}
+    </section>
+  );
+}
