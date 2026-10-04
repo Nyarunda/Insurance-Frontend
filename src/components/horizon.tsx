@@ -65,7 +65,7 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={`border-t border-[var(--hz-divider)] pt-4 ${className}`}>
+    <section className={`border-t border-[var(--hz-divider)] pt-6 ${className}`}>
       {(title || eyebrow || action) && (
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -358,7 +358,7 @@ export function HorizonPage({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`space-y-3 pb-8 ${className}`} {...props}>
+    <div className={`space-y-4 pb-8 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -450,7 +450,7 @@ export function KeyValueGrid({
   columns?: string;
 }) {
   return (
-    <dl className={`grid grid-cols-1 ${columns} gap-x-6 gap-y-2 text-xs`}>
+    <dl className={`grid grid-cols-1 ${columns} gap-x-6 gap-y-2 text-[13px]`}>
       {items.map((item) => (
         <div key={item.label} className="grid grid-cols-[minmax(8rem,0.9fr)_minmax(0,1.1fr)] items-baseline gap-3 border-b border-[var(--hz-divider)] py-1.5">
           <dt className="text-[var(--hz-text-subtle)]">{item.label}</dt>
@@ -466,9 +466,9 @@ export function Metric({ label, value, note, tone = 'neutral' }: { label: string
 
   return (
     <div className="border-b border-[var(--hz-divider)] pb-3">
-      <div className="text-[11px] font-medium text-[var(--hz-text-subtle)]">{label}</div>
+      <div className="text-[13px] font-medium text-[var(--hz-text-subtle)]">{label}</div>
       <div className={`mt-1 font-mono text-lg font-semibold ${toneClass}`}>{value}</div>
-      {note && <div className="mt-0.5 text-[10px] text-[var(--hz-text-subtle)]">{note}</div>}
+      {note && <div className="mt-0.5 text-[12px] text-[var(--hz-text-subtle)]">{note}</div>}
     </div>
   );
 }

@@ -250,7 +250,7 @@
     --hz-sidebar-width: 230px;
     --hz-sidebar-collapsed: 64px;
 
-    /* Density — compact is the default for operational desks */
+    /* Density: compact tokens (comfortable is the default preference; see below) */
     --hz-row-height: 32px;
     --hz-control-height-visual: 28px;
     --hz-control-hit-target: 34px;
@@ -306,7 +306,8 @@
     --table-header-row-bg-color: var(--hz-surface-subtle);
   }
 
-  /* Density modes. Compact (in :root) is the default for all operational desks. */
+  /* Density modes. The tokens in :root are compact; comfortable is the default preference
+     (src/store/preferences.ts), and a user's stored choice always wins. */
   .density-comfortable {
     --hz-row-height: 36px;
     --hz-control-height-visual: 32px;
@@ -458,7 +459,7 @@
     border-radius: var(--hz-radius-button);
     border: 1px solid transparent;
     padding: 0 0.75rem;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;

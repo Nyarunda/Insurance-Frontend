@@ -15,7 +15,7 @@ const REGISTRY = {
   density: {
     key: 'ic.pref.density',
     values: ['compact', 'comfortable', 'spacious'] as const,
-    fallback: 'compact' as const,
+    fallback: 'comfortable' as const,
   },
 };
 
