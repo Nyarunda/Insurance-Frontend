@@ -5,9 +5,10 @@
  * the maker prepares and submits change-limit endorsements, the checker decides them from My work,
  * and the policy moves to its new version. Along the way: a dropped response replays once, a held
  * form meets a 412 and succeeds with the same key, a superseded endorsement shows the PTH1-D4
- * state and is withdrawn, a rejection uses a reason code from the endpoint, a maker cannot approve
- * their own endorsement, an out-of-scope user gets "not found", and tenant B's address gives tenant
- * A's user nothing. No rendered text contains a UUID (the Reference is the only exception).
+ * state and is withdrawn, a rejection uses a reason code from the endpoint, a maker never gets
+ * their own endorsement to approve (WORK-QUEUE-ACTIONABILITY-1), an out-of-scope user gets "not
+ * found", and tenant B's address gives tenant A's user nothing. No rendered text contains a UUID
+ * (the Reference is the only exception).
  *
  * Sign-in with the forced password change runs here for every person; the session-expiry,
  * refresh and host-boundary checks are the FI1-A suite's, on its own environment.
@@ -326,41 +327,30 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     await expect(page.getByText('The valuation report is missing for the higher limit.').first()).toBeVisible();
   });
 
-  test('a maker cannot approve their own endorsement, even holding the checker role', async ({ browser }) => {
+  test('a maker never gets their own endorsement to approve, even holding the checker role', async ({ browser }) => {
     const dual = await person(browser, DUAL);
     try {
       const own = await prepareAndSubmit(dual.page, 'WINDSCREEN', '120000', 'Prepared by someone who is also a checker');
       const versionsBefore = await maker.page.goto(`${origin(facts().alpha.domain)}${policyPath()}?tab=versions`)
         .then(() => maker.page.getByRole('table', { name: 'Policy versions' }).getByRole('row').count());
 
-      // The approval is a role pool: every holder of the checker role sees the pooled task, its
-      // maker included (finding FI1-E-F1). Segregation of duties is enforced when someone acts.
+      // WORK-QUEUE-ACTIONABILITY-1: the pooled task is listed only to someone who could act on it,
+      // so its maker no longer sees it at all (FI1-E-F1). The command's own SOD check, which still
+      // refuses a direct attempt, is proven by the backend's tests.
       await dual.page.goto(`${origin(facts().alpha.domain)}/my-work`);
-      await dual.page.getByRole('row', { name: new RegExp(own.number) }).click();
-      await expect(dual.page.getByRole('heading', { name: `Policy endorsement ${own.number}` })).toBeVisible();
-      await dual.page.getByRole('button', { name: 'Approve' }).click();
-      await dual.page.getByRole('button', { name: 'Confirm approval' }).click();
-
-      // The backend refuses: the server's message, its Reference, no retry, the screen reloaded.
-      const notice = dual.page.getByRole('status').filter({ hasText: 'The decision was not recorded' });
-      await expect(notice).toContainText('A maker of this record cannot act on its approval.');
-      await expect(notice.locator('[data-correlation-id]')).toHaveCount(1);
-      const refusals = dual.tracked.matching(/\/actions$/).responses();
-      expect(refusals).toHaveLength(1);
-      expect(refusals[0].status()).toBe(403);
-      expect((await refusals[0].json()).error.code).toBe('SOD_MAKER_CANNOT_APPROVE');
-      await expect(dual.page.locator('dd').filter({ hasText: /^Pending approval$/ })).toBeVisible();
+      await expect(dual.page.getByRole('heading', { name: 'My Work Queue' })).toBeVisible();
+      await dual.page.getByRole('button', { name: 'Refresh' }).click();
+      await expect(dual.page.getByRole('button', { name: 'Refresh' })).toBeEnabled();
+      await expect(dual.page.getByRole('row', { name: new RegExp(own.number) })).toHaveCount(0);
       await expectNoUuid(dual.page);
 
-      // Nothing happened: still referred, and the policy has no new version.
+      // The distinct checker has it, and nothing has happened to the endorsement or the policy.
+      await checker.page.goto(`${origin(facts().alpha.domain)}/my-work`);
+      await expect(checker.page.getByRole('row', { name: new RegExp(own.number) })).toBeVisible();
       await dual.page.goto(`${origin(facts().alpha.domain)}${own.path}`);
       await expect(dual.page.getByText('Sent for approval', { exact: true })).toBeVisible();
       await maker.page.reload();
       await expect(maker.page.getByRole('table', { name: 'Policy versions' }).getByRole('row')).toHaveCount(versionsBefore);
-
-      // The distinct checker does have it.
-      await checker.page.goto(`${origin(facts().alpha.domain)}/my-work`);
-      await expect(checker.page.getByRole('row', { name: new RegExp(own.number) })).toBeVisible();
       endorsements.own = own;
     } finally {
       await dual.context.close();
