@@ -160,3 +160,38 @@ The reviewer confirmed it against the frozen backend:
 - The backend repository is unchanged (`insurance-core`, in sync with origin).
 
 The environment scripts (`setup_env.py`, `run_backend.py`, `cycle.sh`) stay in the session scratchpad. They build everything from the backend repository and new keys on each run.
+
+## FI1-E-R1: the 13 px rule on the sign-in flow (independent review, 2026-10-04)
+
+The review found that the 13 px guard did not follow backend sign-in into its shared components. They still had readable text below 13 px:
+- the shared `SignInLayout`: field labels, the panel subtitle, the OTP resend row, "Back to sign in", and the brand panel's "Operations Portal", pill and facts;
+- the password-requirement list in `PasswordStrengthMeter`, shown on the forced change.
+
+Fixed in one frontend-only follow-up commit:
+- **Text:** every one of those is now 13 px. Only sizes changed; there is no layout change. Shell chrome (top bar, sidebar, breadcrumb, status badges, page subtitles) is untouched, as ruled.
+- **Guard:** `fi1eContractGaps.test.tsx` now also checks `src/components/auth/SignInLayout.tsx` and `PasswordStrengthMeter`. Against `5532963` both checks fail; after the fix they pass.
+
+Two more corrections went into the same commit. Both came up while the frontend gate was rerun, and both are in tests only:
+- **The isolation check was timing-dependent.** The FI1-E journey's tenant-isolation check sent A's token to B's address, using whatever token the maker's page had last used. Access tokens last 20 s, and the gateway checks expiry before the tenant. After the page had been idle long enough, the token was refused as 401 `TOKEN_EXPIRED` before the cross-tenant check was reached; that happened on the first rerun. The check now:
+  1. loads an Alpha page;
+  2. takes the live token and proves it with a 200 from Alpha's `/auth/me`;
+  3. then requires 403 `CROSS_TENANT_TOKEN_ATTEMPT` on each of B's paths.
+
+  It is deterministic, and stronger than before.
+- **Test time budgets.** Under load (two suites at once, or with the dev server and the stack still running), five typed component journeys in the FI1-C and FI1-D page tests ran past Vitest's 5 s default, or Testing Library's 1 s `findBy` wait. They passed whenever the machine was idle. This was reproduced deliberately and then fixed once, for all tests:
+  - `testTimeout: 30_000` in the Vitest config (FI1-A had given its one typed journey that budget by hand);
+  - `configure({ asyncUtilTimeout: 5000 })` in the test setup.
+
+  A wrong value still fails at once. Two concurrent full suites, the load that had failed, then passed 195/195 each.
+
+**Refreshed frontend gate on the corrected tree.** The backend gate (1196) is not rerun, as ruled; the backend is unchanged.
+
+| Check | Result |
+| :--- | :--- |
+| Lint (tsc) | PASS |
+| Builds | PASS, backend and mock. Backend bundle: 0 mock markers, 0 `/approve` or `/decline`. Mock bundle: no backend client |
+| Vitest | 195 passed on two sequential runs, and 195 passed on each of two concurrent runs |
+| Playwright, FI1-A suite | **11 passed**, on a freshly built environment |
+| Playwright, FI1-E journey | **12 passed** on two consecutive freshly built environments, with the corrected isolation check. The run before that correction passed 11 and failed the isolation check, as described above. |
+
+Teardown as before: stack down with its volumes, processes stopped, worktrees removed, secrets deleted, `test-results/` deleted. No token, password or OTP appears in the diff or this document.

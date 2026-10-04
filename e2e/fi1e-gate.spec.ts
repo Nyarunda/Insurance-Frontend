@@ -397,11 +397,16 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     await expect(page.getByRole('alert')).toContainText('The email or password is not correct.');
     await stranger.close();
 
-    // The signed-in maker's own browser: no session at B's address, and A's token reads nothing there.
-    await maker.page.goto(`${origin(beta)}${policyPath()}`);
-    await expect(maker.page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+    // A's live token reads nothing at B's address. Access tokens last 20 s and the gateway checks
+    // expiry before the tenant, so the token is taken fresh from an Alpha page and first proven live
+    // at Alpha; otherwise an idle page's expired token would be refused as TOKEN_EXPIRED instead.
+    await maker.page.goto(`${origin(facts().alpha.domain)}/policies`);
+    await expect(maker.page.getByRole('row', { name: new RegExp(facts().alpha.policy.policy_no) })).toBeVisible();
     const token = maker.tracked.bearer();
     expect(token).toBeTruthy();
+    const home = direct(`${origin(facts().alpha.domain)}/api/v1/auth/me`);
+    const live = await maker.page.request.get(home.url, { headers: { Host: home.host, Authorization: token! } });
+    expect(live.status(), 'the token is live at its own tenant').toBe(200);
     for (const path of ['/auth/me', '/policies', `${policyPath()}`, '/work-queue']) {
       const target = direct(`${origin(beta)}/api/v1${path}`);
       const response = await maker.page.request.get(target.url, { headers: { Host: target.host, Authorization: token! } });
@@ -409,5 +414,9 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
       expect(response.status(), path).toBe(403);
       expect((await response.json()).error.code, path).toBe('CROSS_TENANT_TOKEN_ATTEMPT');
     }
+
+    // And the signed-in browser has no session at B's address.
+    await maker.page.goto(`${origin(beta)}${policyPath()}`);
+    await expect(maker.page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
   });
 });

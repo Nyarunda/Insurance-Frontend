@@ -276,7 +276,7 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
           style={{ width: `${password ? Math.max(strengthPct, 8) : 0}%` }}
         />
       </div>
-      <ul className="grid grid-cols-1 gap-1 text-[11px] sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-1 text-[13px] sm:grid-cols-2">
         {PASSWORD_REQUIREMENTS.map((requirement) => {
           const passed = requirement.test(password);
           return (

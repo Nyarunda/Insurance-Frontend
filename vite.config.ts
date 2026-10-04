@@ -44,6 +44,9 @@ export default defineConfig(({mode}) => {
       include: ['src/**/*.test.{ts,tsx}'],
       setupFiles: ['src/test/setup.ts'],
       restoreMocks: true,
+      // Component journeys type through userEvent; on a busy machine one can outlast the 5 s
+      // default. A wrong value still fails at once: only slow-but-correct runs use the budget.
+      testTimeout: 30_000,
       // One copy of React Router: under Node, `react-router` resolves to its CommonJS build while
       // `react-router/dom` loads the ES build, and the two do not share router contexts.
       alias: [

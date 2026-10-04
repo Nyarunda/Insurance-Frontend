@@ -119,9 +119,14 @@ describe('no text below 13 px in backend mode', () => {
       return name.endsWith('.tsx') && !name.includes('.test.') ? [path] : [];
     });
 
-  it('holds for every backend-mode screen and both dialogs', () => {
+  it('holds for every backend-mode screen, both dialogs, and the shared sign-in layout (FI1-E-R1)', () => {
     const src = resolve(__dirname, '..');
-    const checked = [...files(join(src, 'backend')), join(src, 'components', 'modals', 'DialogFrame.tsx')];
+    const checked = [
+      ...files(join(src, 'backend')),
+      join(src, 'components', 'modals', 'DialogFrame.tsx'),
+      // Backend sign-in renders this shared layout: labels, subtitle, OTP resend, back link, panel text.
+      join(src, 'components', 'auth', 'SignInLayout.tsx'),
+    ];
     expect(checked.length).toBeGreaterThan(15);
     const offenders = checked.filter((file) => SMALL.test(readFileSync(file, 'utf8')));
     expect(offenders).toEqual([]);
@@ -133,7 +138,8 @@ describe('no text below 13 px in backend mode', () => {
       const start = horizon.indexOf(`export function ${name}(`);
       return horizon.slice(start, horizon.indexOf('\nexport ', start + 1));
     };
-    for (const name of ['HorizonAlert', 'FieldError', 'CharacterCounter']) {
+    // PasswordStrengthMeter renders the password requirements on the forced change (FI1-E-R1).
+    for (const name of ['HorizonAlert', 'FieldError', 'CharacterCounter', 'PasswordStrengthMeter']) {
       expect(body(name), name).not.toMatch(SMALL);
     }
   });

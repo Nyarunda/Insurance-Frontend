@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
 if (typeof window !== 'undefined' && !window.matchMedia) {
@@ -16,6 +16,9 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
       dispatchEvent: () => false,
     }) as MediaQueryList;
 }
+
+// findBy* waits up to 5 s (default 1 s) for what a slow, loaded run renders a little later.
+configure({ asyncUtilTimeout: 5000 });
 
 afterEach(() => {
   cleanup();

@@ -19,13 +19,13 @@ export const SignInFrame: React.FC<{ children: React.ReactNode; footer?: React.R
             </div>
             <div>
               <div className="text-sm font-extrabold tracking-wide uppercase">INSURANCE CLOUD</div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-blue-100">Operations Portal</div>
+              <div className="text-[13px] uppercase tracking-[0.18em] text-blue-100">Operations Portal</div>
             </div>
           </div>
         </div>
 
         <div className="max-w-lg">
-          <div className="inline-flex items-center gap-2 rounded-[var(--hz-radius-md)] bg-white/10 border border-white/20 px-3 py-1.5 text-xs font-semibold text-blue-50 mb-5">
+          <div className="inline-flex items-center gap-2 rounded-[var(--hz-radius-md)] bg-white/10 border border-white/20 px-3 py-1.5 text-[13px] font-semibold text-blue-50 mb-5">
             <ShieldCheck className="w-4 h-4" />
             Secure insurance operations workspace
           </div>
@@ -37,7 +37,7 @@ export const SignInFrame: React.FC<{ children: React.ReactNode; footer?: React.R
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-3 gap-3 text-[13px]">
           {[
             ['12', 'Active modules'],
             ['24/7', 'Ops access'],
@@ -60,7 +60,7 @@ export const SignInFrame: React.FC<{ children: React.ReactNode; footer?: React.R
           </div>
           <div>
             <div className="text-sm font-extrabold tracking-wide uppercase">INSURANCE CLOUD</div>
-            <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--hz-primary)]">Operations Portal</div>
+            <div className="text-[13px] uppercase tracking-[0.16em] text-[var(--hz-primary)]">Operations Portal</div>
           </div>
         </div>
         {children}
@@ -82,14 +82,14 @@ export const SignInPanel: React.FC<{
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--hz-text-subtle)] hover:text-[var(--hz-text-primary)]"
+          className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--hz-text-subtle)] hover:text-[var(--hz-text-primary)]"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to sign in
         </button>
       )}
       <h2 className="text-xl font-extrabold text-[var(--hz-text-primary)]">{title}</h2>
-      <p className="text-xs text-[var(--hz-text-subtle)] mt-1">{subtitle}</p>
+      <p className="text-[13px] text-[var(--hz-text-subtle)] mt-1">{subtitle}</p>
     </div>
     {children}
   </div>
@@ -100,7 +100,7 @@ const fieldInput =
 
 export const EmailField: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => (
   <label className="block">
-    <span className="text-xs font-bold text-[var(--hz-text-secondary)]">Email address</span>
+    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">Email address</span>
     <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
       <Mail className="w-4 h-4 text-[var(--hz-text-subtle)]" />
       <input
@@ -124,7 +124,7 @@ export const PasswordField: React.FC<{
   error?: string;
 }> = ({ label, value, onChange, placeholder, autoComplete, error }) => (
   <label className="block">
-    <span className="text-xs font-bold text-[var(--hz-text-secondary)]">{label}</span>
+    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">{label}</span>
     <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
       <LockKeyhole className="w-4 h-4 text-[var(--hz-text-subtle)]" />
       <input
@@ -156,7 +156,7 @@ export const OtpCodeField: React.FC<{ value: string; onChange: (value: string) =
   error,
 }) => (
   <label className="block">
-    <span className="text-xs font-bold text-[var(--hz-text-secondary)]">Verification code</span>
+    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">Verification code</span>
     <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
       <KeyRound className="w-4 h-4 text-[var(--hz-text-subtle)]" />
       <input
@@ -177,7 +177,7 @@ export const OtpResendRow: React.FC<{ secondsRemaining: number; onResend: () => 
   onResend,
   disabled,
 }) => (
-  <div className="flex items-center justify-between text-xs">
+  <div className="flex items-center justify-between text-[13px]">
     <span className="text-[var(--hz-text-subtle)]">
       {secondsRemaining > 0
         ? `Resend available in ${Math.floor(secondsRemaining / 60)}:${String(secondsRemaining % 60).padStart(2, '0')}`
