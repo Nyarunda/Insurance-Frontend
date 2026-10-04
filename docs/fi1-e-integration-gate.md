@@ -17,7 +17,7 @@
 | Stage key collision | **FI1-E-D2.** The PR #1 approval stage lists (`ApprovalStatusPanel`, `ApprovalBar`; mock mode only) now key each stage by its position and label, so two stages with the same label no longer collide. |
 | Backdrop dismissal losing typed text | Done in FI1-B (decision dialog) and FI1-D (withdraw dialog): the backdrop does not dismiss once something has been typed. |
 | Focus trap | **FI1-E-D3.** The shared `DialogFrame` handles focus for both backend dialogs and PR #1's mock dialog:<ul><li>on opening, focus moves to the first field (or to the dialog);</li><li>Tab and Shift+Tab cycle inside the dialog;</li><li>on closing, focus returns to the control that opened it.</li></ul>Escape still closes it. |
-| Text below 13 px | **FI1-E-D4.** No running text, message, field error, helper or counter text below 13 px:<ul><li>in backend-mode screens;</li><li>in the shared dialog frame;</li><li>in the shared primitives that render their messages: `HorizonAlert`'s body, `FieldError`, `CharacterCounter`.</li></ul>A test fails the build if a backend-mode source or those primitives use a smaller size. Left as they are, as Horizon typography tokens shared by every screen of both modes: status badges (11 px uppercase labels) and the page title's subtitle line (12 px metadata). Changing them would restyle the whole shell, which the scope rules out. |
+| Text below 13 px | **FI1-E-D4.** No running text, message, field error, helper or counter text below 13 px:<ul><li>in backend-mode screens;</li><li>in the shared dialog frame;</li><li>in the shared primitives that render their messages: `HorizonAlert`'s body, `FieldError`, `CharacterCounter`.</li></ul>A test fails the build if a backend-mode source or those primitives use a smaller size. Left as they are, as Horizon typography tokens shared by every screen of both modes: status badges (11 px uppercase labels) and the page title's subtitle line (12 px metadata). Changing them would restyle the whole shell, which the scope rules out. **Ruled 2026-10-04: an accepted exception, not a defect or deferred item.** Status badges (11 px) and page subtitles (12 px) are compact shell chrome. Readable content (instructions, helper text, errors, field messages, dialog content, running text) must be 13 px or larger. |
 
 **Readable reasons (FI1-E-D1):** the backend records some reasons as `CODE: detail`, for example a void's `ENDORSEMENT_BASE_STALE: V1 superseded by V2`. The heading and the history show them with the code in words ("Endorsement base stale: V1 superseded by V2"), and the detail is kept as written.
 
@@ -102,7 +102,28 @@ There is no integrity risk, but it is friction. The task shows a decision the us
 - Hiding it in the client would need the client to know the record's makers, which the queue does not expose.
 - Filtering pools by the maker set is a backend change, and the backend is frozen.
 
-For the reviewer to rule on: accept it as is for the pilot, or schedule a backend item (filter pooled tasks by the SoD maker set in `GET /work-queue`).
+**Ruled 2026-10-04: CONFIRMED / NON-BLOCKING for FI1-E.**
+
+| | |
+| :--- | :--- |
+| Classification | Backend queue actionability UX gap |
+| Security impact | None: the command-time SoD check stays authoritative |
+| Data-integrity impact | None |
+| FI1-E blocker | No |
+| Frontend fix | No. The client must not infer maker status or hide the task, because the queue payload lacks the evidence. |
+| Backend unfreeze during FI1-E | No |
+
+The reviewer confirmed it against the frozen backend:
+- the assignment pipeline excludes makers when it checks whether a role pool has eligible candidates;
+- a `ROLE_POOL` assignment is stored against the role, not each user;
+- `GET /work-queue` returns the unclaimed pool row to role holders without re-checking caller-specific SoD;
+- the command re-checks it and refuses with `SOD_MAKER_CANNOT_APPROVE`.
+
+**Scheduled as post-FI1 backend hardening, preferably before the real-user pilot: WORK-QUEUE-ACTIONABILITY-1.**
+- A role-pool task returned by `GET /work-queue` should be one the caller is currently eligible to act on.
+- The check reuses the runtime's live eligibility and SoD rules, without duplicating SoD logic in the view.
+- It covers maker, beneficiary, cross-stage and distinct-slot SoD alike. It is not a narrow maker-set special case.
+- The command-time SoD check remains mandatory and unchanged.
 
 ## Evidence (2026-10-04)
 
