@@ -1,13 +1,15 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthSession, ScreenId, UserRole, DensityMode } from './types';
 import { Sidebar } from './components/Sidebar';
-import { GlobalTopBar } from './components/GlobalTopBar';
+import { MockTopBar } from './mock/MockTopBar';
+import { useMockNavGroups } from './mock/useMockNavGroups';
 import { LoginPage } from './components/auth/LoginPage';
 import { GlobalCommandPalette } from './components/GlobalCommandPalette';
 import { GlobalModals } from './components/GlobalModals';
 import { usePermissionStore, useCanAccessApplication } from './store/permissionStore';
 import { recordsStore } from './data/recordsStore';
 import { SCREEN_MODULE_MAP } from './data/screenModuleMap';
+import { NAV_COUNTERS } from './data/navigation';
 import { MODULE_LABELS } from './data/roleRights';
 import { HorizonAlert, HorizonLoader, HorizonPage, HorizonPageContent, HorizonPageTitle } from './components/horizon';
 import { ShellBreadcrumb } from './components/ShellBreadcrumb';
@@ -196,6 +198,7 @@ const readAuthSession = (): AuthSession | null => {
   }
 };
 
+/** The mock demo (`VITE_DATA_SOURCE` unset or `mock`). Backend mode is `backend/BackendApp`. */
 export default function App() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(readAuthSession);
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('underwriter-dashboard');
@@ -220,6 +223,7 @@ export default function App() {
     if (!window.matchMedia('(max-width: 767px)').matches) writePreference('sidebar', next ? 'collapsed' : 'expanded');
   };
   const [currentRecordId, setCurrentRecordId] = useState<string | undefined>();
+  const navGroups = useMockNavGroups();
 
   const handleAuthenticated = (session: AuthSession) => {
     window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
@@ -549,7 +553,7 @@ export default function App() {
   return (
     <div className={`h-screen bg-[var(--hz-bg-app)] text-[var(--hz-text-primary)] flex flex-col font-sans antialiased overflow-hidden density-${densityMode}`}>
       {/* Global full-width top bar: brand, sidebar toggle, search, notifications, account */}
-      <GlobalTopBar
+      <MockTopBar
         onNavigate={handleNavigate}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         onToggleSidebar={toggleSidebar}
@@ -564,6 +568,8 @@ export default function App() {
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Persistent Grouped Navigation Sidebar */}
         <Sidebar
+          groups={navGroups}
+          counters={NAV_COUNTERS}
           currentScreen={currentScreen}
           onNavigate={handleNavigate}
           collapsed={sidebarCollapsed}

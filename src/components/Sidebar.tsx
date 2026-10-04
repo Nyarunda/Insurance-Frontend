@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { ScreenId } from '../types';
-import { ModuleId } from '../data/roleRights';
-import { NAV_COUNTERS, NAV_GROUPS, NavGroup, findNavLocation, resolveNavScreen } from '../data/navigation';
-import { useCanAccessApplication } from '../store/permissionStore';
+import { NavGroup, NavigationCountersResponse, findNavLocation, resolveNavScreen } from '../data/navigation';
 
 interface SidebarProps {
+  /** The groups this user may see, already filtered by the caller's permission source. */
+  groups: NavGroup[];
+  /** Item counters; items without a value show none. */
+  counters?: Partial<NavigationCountersResponse>;
   currentScreen: ScreenId;
   onNavigate: (screen: ScreenId, transition?: 'none' | 'push') => void;
   collapsed: boolean;
@@ -43,40 +45,10 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate, collapsed, onToggleCollapse }) => {
-  // Fixed set of hook calls (rules-of-hooks safe): a live permission snapshot per module.
-  const moduleAccess: Record<ModuleId, boolean> = {
-    customers: useCanAccessApplication('customers'),
-    quotations: useCanAccessApplication('quotations'),
-    policies: useCanAccessApplication('policies'),
-    claims: useCanAccessApplication('claims'),
-    billing: useCanAccessApplication('billing'),
-    'reinsurance-treaties': useCanAccessApplication('reinsurance-treaties'),
-    'product-studio': useCanAccessApplication('product-studio'),
-    'regulatory-admin': useCanAccessApplication('regulatory-admin'),
-    providers: useCanAccessApplication('providers'),
-    intermediaries: useCanAccessApplication('intermediaries'),
-    operations: useCanAccessApplication('operations'),
-    reporting: useCanAccessApplication('reporting'),
-  };
-  const accessKey = JSON.stringify(moduleAccess);
-
-  const visibleGroups: NavGroup[] = useMemo(
-    () =>
-      NAV_GROUPS.map((group) => ({
-        ...group,
-        items: group.items.filter((item) => {
-          const moduleId = item.moduleId ?? group.moduleId;
-          return !moduleId || moduleAccess[moduleId];
-        }),
-      })).filter((group) => group.items.length > 0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [accessKey]
-  );
-
+export const Sidebar: React.FC<SidebarProps> = ({ groups, counters, currentScreen, onNavigate, collapsed, onToggleCollapse }) => {
   const isMobile = useIsMobile();
   const activeScreen = resolveNavScreen(currentScreen);
-  const activeGroupId = findNavLocation(currentScreen)?.group.id ?? 'daily-desk';
+  const activeGroupId = findNavLocation(currentScreen, groups)?.group.id ?? 'daily-desk';
 
   // Groups the user opened explicitly are remembered. The active group opens automatically
   // without being remembered, so the menu does not grow as the user moves between modules.
@@ -122,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate, col
       }}
     >
       <nav className="flex-1 overflow-y-auto py-2">
-        {visibleGroups.map((group) => {
+        {groups.map((group) => {
           const Icon = group.icon;
           const isOpen = isGroupOpen(group.id);
           const isActiveGroup = group.id === activeGroupId;
@@ -165,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate, col
                 <ul className="pb-1">
                   {group.items.map((item) => {
                     const active = item.id === activeScreen;
-                    const count = item.counter ? NAV_COUNTERS[item.counter] : undefined;
+                    const count = item.counter ? counters?.[item.counter] : undefined;
                     return (
                       <li key={item.id}>
                         <button

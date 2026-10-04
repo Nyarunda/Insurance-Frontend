@@ -1,9 +1,11 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ScreenId } from '../types';
-import { RECORD_WORKSPACE_SCREENS, findNavLocation } from '../data/navigation';
+import { NavGroup, RECORD_WORKSPACE_SCREENS, findNavLocation } from '../data/navigation';
 
 interface ShellBreadcrumbProps {
+  /** The navigation registry the shell uses; defaults to the full registry. */
+  groups?: NavGroup[];
   currentScreen: ScreenId;
   recordId?: string;
   onNavigate: (screen: ScreenId) => void;
@@ -14,8 +16,8 @@ interface ShellBreadcrumbProps {
  * Group / Item / Record reference. Derived from the navigation registry so it never drifts
  * from the sidebar.
  */
-export const ShellBreadcrumb: React.FC<ShellBreadcrumbProps> = ({ currentScreen, recordId, onNavigate }) => {
-  const location = findNavLocation(currentScreen);
+export const ShellBreadcrumb: React.FC<ShellBreadcrumbProps> = ({ groups, currentScreen, recordId, onNavigate }) => {
+  const location = findNavLocation(currentScreen, groups);
   const isRecordWorkspace = RECORD_WORKSPACE_SCREENS.has(currentScreen);
 
   const crumbs: Array<{ label: string; screen?: ScreenId }> = [];

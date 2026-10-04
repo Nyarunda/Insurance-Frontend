@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { ScreenId } from '../types';
-import { ModuleId } from './roleRights';
+import type { ModuleId } from './roleRights';
 
 /**
  * Insurance Cloud navigation registry.
@@ -258,9 +258,12 @@ export function resolveNavScreen(screen: ScreenId): ScreenId {
   return SCREEN_ALIASES[screen] ?? screen;
 }
 
-export function findNavLocation(screen: ScreenId): { group: NavGroup; item: NavItem } | null {
+export function findNavLocation(
+  screen: ScreenId,
+  groups: NavGroup[] = NAV_GROUPS,
+): { group: NavGroup; item: NavItem } | null {
   const target = resolveNavScreen(screen);
-  for (const group of NAV_GROUPS) {
+  for (const group of groups) {
     const item = group.items.find((candidate) => candidate.id === target);
     if (item) return { group, item };
   }
