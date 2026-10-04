@@ -192,14 +192,14 @@ export const SignInPage: React.FC = () => {
               error={fieldError}
             />
             <div className="block">
-              <span className="text-xs font-bold text-[var(--hz-text-secondary)]">Tenant</span>
+              <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">Tenant</span>
               <span className="hz-field mt-1.5 flex items-center gap-2 px-3 bg-[var(--hz-surface-subtle)] cursor-not-allowed">
                 <Building2 className="w-4 h-4 text-[var(--hz-text-subtle)] shrink-0" />
                 <span className="w-full text-sm text-[var(--hz-text-primary)] truncate" data-testid="sign-in-host">
                   {host}
                 </span>
               </span>
-              <p className="mt-1 text-xs text-[var(--hz-text-subtle)]">You sign in to the tenant served at this address.</p>
+              <p className="mt-1 text-[13px] text-[var(--hz-text-subtle)]">You sign in to the tenant served at this address.</p>
             </div>
             <SubmitButton busy={busy} busyLabel="Signing in...">
               Sign In

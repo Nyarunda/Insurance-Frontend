@@ -164,14 +164,14 @@ export const PoliciesPage: React.FC = () => {
                       <td>
                         <span className="font-mono font-semibold">{policy.policy_no}</span>
                         {policy.insurer_policy_no && (
-                          <span className="block text-[12px] text-[var(--hz-text-secondary)]">
+                          <span className="block text-[13px] text-[var(--hz-text-secondary)]">
                             Insurer {policy.insurer_policy_no}
                           </span>
                         )}
                       </td>
                       <td>
                         {policy.customer.display_name}
-                        <span className="block text-[12px] text-[var(--hz-text-secondary)]">{policy.customer.customer_no}</span>
+                        <span className="block text-[13px] text-[var(--hz-text-secondary)]">{policy.customer.customer_no}</span>
                       </td>
                       <td>{policy.product.name}</td>
                       <td>{policy.insurer.name}</td>

@@ -21,6 +21,16 @@ export function humanize(code: string | null | undefined): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+/**
+ * A recorded reason, readable: the backend writes some as `CODE: detail` (for example a void's
+ * `ENDORSEMENT_BASE_STALE: V1 superseded by V2`); the code reads as words and the detail is kept.
+ */
+export function readableReason(text: string): string {
+  const match = /^([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)(?::\s*(.*))?$/s.exec(text.trim());
+  if (!match) return text.trim();
+  return match[2] ? `${humanize(match[1])}: ${match[2]}` : humanize(match[1]);
+}
+
 /** A backend `required_action`: a code reads as words, a sentence is shown as the backend wrote it. */
 export function requiredActionText(value: string): string {
   return /^[A-Z0-9_]+$/.test(value.trim()) ? humanize(value) : value.trim();

@@ -77,7 +77,7 @@ export const WorkQueuePage: React.FC = () => {
                     <td className="font-semibold">
                       {item.stage_label}
                       {item.acting_for_user_id && (
-                        <span className="ml-2 text-[12px] font-normal text-[var(--hz-text-secondary)]">for a colleague</span>
+                        <span className="ml-2 text-[13px] font-normal text-[var(--hz-text-secondary)]">for a colleague</span>
                       )}
                     </td>
                     <td>

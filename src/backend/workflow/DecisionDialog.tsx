@@ -176,7 +176,7 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
               <div>
                 {attempted && <FieldError message={textError ?? reasonError ?? undefined} />}
                 {attempted && !textError && reasonError && <ErrorReference reference={reasonReference} />}
-                <p className="mt-1 text-[12px] text-[var(--hz-text-secondary)]">The explanation is kept in the workflow history.</p>
+                <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">The explanation is kept in the workflow history.</p>
               </div>
               <CharacterCounter current={reasonText.length} max={REASON_TEXT_MAX} />
             </div>

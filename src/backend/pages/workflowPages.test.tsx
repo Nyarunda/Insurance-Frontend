@@ -15,6 +15,7 @@ import { backendRoutes } from '../BackendApp';
 import { NO_REJECTION_REASONS } from '../workflow/DecisionDialog';
 import type { InstanceView, ReasonCode, WorkQueueItem } from '../workflow/types';
 import { EMPTY_QUEUE_TEXT } from './WorkQueuePage';
+import { VOID_HEADING } from './InstancePage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
@@ -242,7 +243,12 @@ describe('the instance', () => {
       }),
     });
     renderAt(`/my-work/${INSTANCE_ID}`);
-    expect(await screen.findByText('ENDORSEMENT_BASE_STALE: V1 superseded by V2')).toBeInTheDocument();
+    // FI1-E: a VOID heading with the void's reason from history, the code read as words.
+    const heading = await screen.findByText(VOID_HEADING);
+    const panel = heading.closest('div.rounded-\\[3px\\]') as HTMLElement;
+    expect(panel).toHaveTextContent('Endorsement base stale: V1 superseded by V2');
+    expect(panel).toHaveTextContent('No decision can be made on it.');
+    expect(mainText()).not.toContain('ENDORSEMENT_BASE_STALE');
     expect(screen.getByText('System')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
   });

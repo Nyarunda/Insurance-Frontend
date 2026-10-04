@@ -9,7 +9,7 @@ export const referenceOf = (error: unknown): string | null => (error instanceof 
 /** "Reference <correlation_id>", shown with every handled error message. Renders nothing without one. */
 export const ErrorReference: React.FC<{ reference: string | null | undefined }> = ({ reference }) =>
   reference ? (
-    <span className="mt-0.5 block text-[12px] text-[var(--hz-text-secondary)]">
+    <span className="mt-0.5 block text-[13px] text-[var(--hz-text-secondary)]">
       Reference <span className="font-mono" data-correlation-id>{reference}</span>
     </span>
   ) : null;

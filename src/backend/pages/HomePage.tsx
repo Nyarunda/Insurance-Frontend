@@ -34,7 +34,7 @@ export const HomePage: React.FC = () => {
             Records that belong to a branch are not available to you until an administrator assigns you a branch.
           </HorizonAlert>
         )}
-        <p className="text-[12px] text-[var(--hz-text-secondary)]">
+        <p className="text-[13px] text-[var(--hz-text-secondary)]">
           The navigation shows the screens available to your account. The branch you choose is sent with your requests as
           context; what you can see and do is decided by your roles and branch access.
         </p>

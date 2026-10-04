@@ -295,7 +295,7 @@ const StatePanel: React.FC<{
       <HorizonAlert tone="warning" title={NO_LONGER_ACTIONABLE}>
         {view.blocker?.message ?? 'Its approval was cancelled, so it can no longer be approved.'}
         {action && <span className="mt-1 block">Required action: {requiredActionText(action)}</span>}
-        <span className="mt-1 block text-[12px] text-[var(--hz-text-secondary)]">
+        <span className="mt-1 block text-[13px] text-[var(--hz-text-secondary)]">
           {canWithdraw ? 'Withdraw is the only action left.' : 'Its maker can withdraw it; nothing else can be done with it.'}
         </span>
       </HorizonAlert>

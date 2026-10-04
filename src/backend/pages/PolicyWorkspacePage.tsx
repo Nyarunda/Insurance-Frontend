@@ -260,13 +260,13 @@ const Coverage: React.FC<{ version: PolicyVersion; currency: string }> = ({ vers
                   <tr key={benefit.code}>
                     <td>
                       {benefit.name}
-                      {benefit.description && <span className="block text-[12px] text-[var(--hz-text-secondary)]">{benefit.description}</span>}
+                      {benefit.description && <span className="block text-[13px] text-[var(--hz-text-secondary)]">{benefit.description}</span>}
                     </td>
                     <td>{sectionName(benefit.section)}</td>
                     <td className="text-right tabular-nums">
                       {benefit.limit_amount !== null ? formatMoney(benefit.limit_amount, currency) : 'No limit stated'}
                       {benefit.limit_description && (
-                        <span className="block text-[12px] text-[var(--hz-text-secondary)]">{benefit.limit_description}</span>
+                        <span className="block text-[13px] text-[var(--hz-text-secondary)]">{benefit.limit_description}</span>
                       )}
                     </td>
                     <td>{benefit.is_optional ? 'Optional, held' : 'Included'}</td>

@@ -123,7 +123,7 @@ export const BackendShell: React.FC = () => {
                   action={
                     <button
                       type="button"
-                      className="text-[12px] font-semibold text-[var(--hz-primary-700)] hover:underline"
+                      className="text-[13px] font-semibold text-[var(--hz-primary-700)] hover:underline"
                       onClick={() => useBranchStore.getState().dismissNotice()}
                     >
                       Dismiss

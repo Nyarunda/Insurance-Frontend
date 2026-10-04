@@ -195,7 +195,7 @@ export const EndorsementCreatePage: React.FC = () => {
               ))}
             </select>
             {chosen && (
-              <p className="mt-1 text-[12px] text-[var(--hz-text-secondary)]">
+              <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">
                 Current limit:{' '}
                 {chosen.limit_amount !== null ? formatMoney(chosen.limit_amount, currency) : 'no limit stated'}
                 {chosen.limit_description ? ` (${chosen.limit_description})` : ''}
@@ -229,7 +229,7 @@ export const EndorsementCreatePage: React.FC = () => {
               aria-invalid={!!errorFor('effective_date')}
               className={field(!!errorFor('effective_date'))}
             />
-            <p className="mt-1 text-[12px] text-[var(--hz-text-secondary)]">
+            <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">
               Within the period, up to {formatDate(latest.expiry_date)}.
             </p>
             <FieldError message={errorFor('effective_date')} />

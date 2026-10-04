@@ -27,7 +27,7 @@ import { ApiError } from '../../lib/api/errors';
 import { useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
-import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize, requiredActionText } from '../workflow/format';
+import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize, readableReason, requiredActionText } from '../workflow/format';
 import { useInstance, useWorkQueue } from '../workflow/queries';
 import type { ActionBody, Decision } from '../workflow/types';
 import { useDecision } from '../workflow/useDecision';
@@ -38,6 +38,8 @@ const STATUS_TONE: Record<string, StatusTone> = {
   REJECTED: 'danger',
   VOID: 'neutral',
 };
+
+export const VOID_HEADING = 'Void: this approval no longer applies';
 
 type PageNotice = { tone: 'warning' | 'danger'; text?: string; error?: unknown; reference?: string | null } | null;
 
@@ -156,6 +158,9 @@ export const InstancePage: React.FC = () => {
       ? pageNotice.error.details.required_action
       : null;
   const facts = displayFacts(view.approval_facts);
+  // FI1-E: a void instance says so as a heading, with the reason recorded when it was voided.
+  const voided = view.status === 'VOID' ? [...view.history].reverse().find((entry) => entry.new_status === 'VOID') : undefined;
+  const voidReason = voided?.reason_text ? readableReason(voided.reason_text) : voided?.reason_code ? humanize(voided.reason_code) : null;
 
   return (
     <HorizonPage id="workflow-instance">
@@ -194,6 +199,13 @@ export const InstancePage: React.FC = () => {
             <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {requiredActionText(requiredAction)}</p>
           )}
         </div>
+      )}
+
+      {view.status === 'VOID' && (
+        <HorizonAlert tone="neutral" title={VOID_HEADING}>
+          {voidReason ?? 'It was cancelled before a decision.'}
+          <span className="mt-1 block">No decision can be made on it.</span>
+        </HorizonAlert>
       )}
 
       {view.status === 'PENDING_APPROVAL' && !canAct && queue.isSuccess && (
@@ -249,7 +261,7 @@ export const InstancePage: React.FC = () => {
                       <td>
                         {entry.reason_code ? humanize(entry.reason_code) : ''}
                         {entry.reason_text && (
-                          <span className="block text-[12px] text-[var(--hz-text-secondary)]">{entry.reason_text}</span>
+                          <span className="block text-[13px] text-[var(--hz-text-secondary)]">{readableReason(entry.reason_text)}</span>
                         )}
                         {!entry.reason_code && !entry.reason_text && '—'}
                       </td>

@@ -196,7 +196,7 @@ export function HorizonAlert({
   const Icon = feedbackIcons[tone];
 
   return (
-    <div className={`rounded-[3px] border px-3 py-2 text-[12px] ${feedbackToneClass[tone]}`}>
+    <div className={`rounded-[3px] border px-3 py-2 text-[13px] ${feedbackToneClass[tone]}`}>
       <div className="flex items-start gap-2">
         <Icon className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="min-w-0 flex-1">
@@ -211,7 +211,7 @@ export function HorizonAlert({
 
 export function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="mt-1 text-[11px] font-semibold text-[var(--hz-danger)]">{message}</p>;
+  return <p className="mt-1 text-[13px] font-semibold text-[var(--hz-danger)]">{message}</p>;
 }
 
 export function CharacterCounter({ current, max }: { current: number; max: number }) {
@@ -224,7 +224,7 @@ export function CharacterCounter({ current, max }: { current: number; max: numbe
       : 'text-[var(--hz-text-subtle)]';
 
   return (
-    <div className={`mt-1 text-right text-[10px] font-mono ${tone}`}>
+    <div className={`mt-1 text-right text-[13px] font-mono ${tone}`}>
       {current}/{max} characters
     </div>
   );
@@ -635,7 +635,7 @@ export function ApprovalStatusPanel({
           <div className="text-[12px] text-[var(--hz-text-muted)]">Submitted {submittedAt}</div>
         </li>
         {stages.map((stage, index) => (
-          <li key={stage.label} className={`px-3 py-2 ${stage.state === 'PENDING' ? 'bg-[var(--hz-surface-selected)]' : ''}`}>
+          <li key={`${index}-${stage.label}`} className={`px-3 py-2 ${stage.state === 'PENDING' ? 'bg-[var(--hz-surface-selected)]' : ''}`}>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="hz-section-label">Stage {index + 1}</div>
@@ -764,7 +764,7 @@ export function ApprovalBar({
         <ol className="flex flex-wrap items-center gap-2 text-xs" aria-label="Approval stages">
           {stages.map((stage, index) => (
             <li
-              key={stage.label}
+              key={`${index}-${stage.label}`}
               title={[stage.actor, stage.assignee && `Assigned: ${stage.assignee}`, stage.timestamp, stage.dueAt && `Due: ${stage.dueAt}`]
                 .filter(Boolean)
                 .join(' · ') || undefined}
