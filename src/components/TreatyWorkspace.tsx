@@ -295,16 +295,16 @@ export const TreatyWorkspace: React.FC<TreatyWorkspaceProps> = ({ onNavigate, de
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Cession Rate</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Cession Rate</span>
                   <span className="font-bold text-slate-800">{treaty.cededQuotaPct}%</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Retention</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Retention</span>
                   <span className="font-bold text-slate-800">{treaty.companyRetentionPct}%</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Max Net Risk</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Max Net Risk</span>
                   <span className="font-bold text-slate-800">KES 10.0M</span>
                 </div>
               </div>
@@ -364,7 +364,7 @@ export const TreatyWorkspace: React.FC<TreatyWorkspaceProps> = ({ onNavigate, de
         {/* CENTER COLUMN: MAIN WORKSPACE (lg:col-span-6)                        */}
         {/* TABS: Overview | Panel | Cessions | Bordereaux | Recoveries | Slip  */}
         {/* ==================================================================== */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="min-w-0 space-y-4 lg:col-span-9 min-[1680px]:col-span-6">
           {/* Sticky Tab Bar */}
           <div className="sticky top-0 z-10 border-b border-[var(--hz-border-grid)] bg-[var(--hz-bg-app)]">
             <div className="flex items-center gap-4 text-[13px] overflow-x-auto no-scrollbar">
@@ -638,7 +638,7 @@ export const TreatyWorkspace: React.FC<TreatyWorkspaceProps> = ({ onNavigate, de
         {/* ==================================================================== */}
         {/* RIGHT COLUMN: CONTEXTUAL SOLVENCY & RECOVERIES (lg:col-span-3)       */}
         {/* ==================================================================== */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="grid items-start gap-4 md:grid-cols-2 lg:col-span-12 lg:grid-cols-3 min-[1680px]:col-span-3 min-[1680px]:grid-cols-1">
           {/* Next Bordereau Settlement */}
           <div className="hz-card space-y-3 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)]">

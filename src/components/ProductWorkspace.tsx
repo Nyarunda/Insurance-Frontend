@@ -254,16 +254,16 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
               </div>
 
               <div className="space-y-1.5 font-mono text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Code</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Code</span>
                   <span className="font-bold text-slate-800">{product.code}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Base Rate</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Base Rate</span>
                   <span className="font-bold text-slate-800">{product.baseRatePct}%</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Min Premium</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Min Premium</span>
                   <span className="font-bold text-slate-800">KES {product.minPremiumKes.toLocaleString()}</span>
                 </div>
               </div>
@@ -319,7 +319,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
         {/* CENTER COLUMN: MAIN WORKSPACE (lg:col-span-6)                        */}
         {/* TABS: Overview | Coverage | Rating | Rules | Reinsurance | Documents */}
         {/* ==================================================================== */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="min-w-0 space-y-4 lg:col-span-9 min-[1680px]:col-span-6">
           {/* Sticky Tab Bar */}
           <div className="sticky top-0 z-10 border-b border-[var(--hz-border-grid)] bg-[var(--hz-bg-app)]">
             <div className="flex items-center gap-4 text-[13px] overflow-x-auto no-scrollbar">
@@ -565,7 +565,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ onNavigate, 
         {/* ==================================================================== */}
         {/* RIGHT COLUMN: CONTEXTUAL PROFITABILITY & CHANNELS (lg:col-span-3)    */}
         {/* ==================================================================== */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="grid items-start gap-4 md:grid-cols-2 lg:col-span-12 lg:grid-cols-3 min-[1680px]:col-span-3 min-[1680px]:grid-cols-1">
           {/* Profitability Card */}
           <div className="hz-card space-y-3 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--hz-border-grid)]">

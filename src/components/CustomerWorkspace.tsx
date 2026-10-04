@@ -535,16 +535,16 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
               </div>
 
               <div className="space-y-1.5 border-t border-slate-100 pt-2 font-mono text-xs text-slate-600">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Customer No</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Customer No</span>
                   <span className="font-bold text-slate-800">{customer.id}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Status</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Status</span>
                   <span className="text-emerald-700 font-bold">● ACTIVE</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 uppercase font-medium">Client Since</span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="shrink-0 text-slate-400 uppercase font-medium">Client Since</span>
                   <span className="font-bold text-slate-800">{customer.relationshipSince}</span>
                 </div>
               </div>
