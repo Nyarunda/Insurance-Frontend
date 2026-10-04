@@ -15,7 +15,10 @@ import { restoreSession } from '../lib/auth/session';
 import { useSessionStore } from '../lib/auth/sessionStore';
 import { SignInPage } from './auth/SignInPage';
 import { HomePage, NotFoundPage } from './pages/HomePage';
-import { RequireSession, SignedOutOnly } from './routing';
+import { InstancePage } from './pages/InstancePage';
+import { WorkQueuePage } from './pages/WorkQueuePage';
+import { TASK_VIEW } from './permissions';
+import { RequirePermission, RequireSession, SignedOutOnly } from './routing';
 import { BackendShell } from './shell/BackendShell';
 
 export const backendRoutes: RouteObject[] = [
@@ -36,6 +39,22 @@ export const backendRoutes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomePage /> },
+      {
+        path: 'my-work',
+        element: (
+          <RequirePermission permission={TASK_VIEW}>
+            <WorkQueuePage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'my-work/:instanceId',
+        element: (
+          <RequirePermission permission={TASK_VIEW}>
+            <InstancePage />
+          </RequirePermission>
+        ),
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

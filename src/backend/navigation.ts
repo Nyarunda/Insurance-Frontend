@@ -7,6 +7,7 @@
  */
 
 import { LayoutDashboard, type LucideIcon } from 'lucide-react';
+import { TASK_VIEW } from './permissions';
 import type { NavGroup } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -30,7 +31,10 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     id: 'daily-desk',
     title: 'Daily Desk',
     icon: LayoutDashboard,
-    items: [{ screen: 'dashboard', label: 'Home', path: '/' }],
+    items: [
+      { screen: 'dashboard', label: 'Home', path: '/' },
+      { screen: 'my-work', label: 'My Work Queue', path: '/my-work', permission: TASK_VIEW },
+    ],
   },
 ];
 

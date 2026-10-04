@@ -41,7 +41,10 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/nowhere', REGISTRY)).toBeNull();
   });
 
-  it('FI1-A integrates the home screen only', () => {
-    expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => item.screen)).toEqual(['dashboard']);
+  it('integrates Home and, with workflow.task.view, My Work Queue', () => {
+    expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
+      ['dashboard', null],
+      ['my-work', 'workflow.task.view'],
+    ]);
   });
 });

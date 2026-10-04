@@ -1,0 +1,262 @@
+/**
+ * A workflow instance (FI1-B): approval facts, stage, quorum, history with the reason text
+ * (PTH1-D4), status, and the ETag from the response header.
+ *
+ * APPROVE and REJECT are offered only while the instance is PENDING_APPROVAL and the caller's queue
+ * holds its current step. Hiding the buttons is a convenience; the backend decides every action.
+ */
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { Check, XCircle } from 'lucide-react';
+import {
+  HorizonAlert,
+  HorizonLoader,
+  HorizonPage,
+  HorizonPageContent,
+  HorizonPageTitle,
+  HorizonToast,
+  KeyValueGrid,
+  Section,
+  StatusBadge,
+  StatusTone,
+} from '../../components/horizon';
+import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
+import { describeError } from '../../lib/api/errorText';
+import { ApiError } from '../../lib/api/errors';
+import { useMe } from '../../lib/auth/me';
+import { ApiErrorAlert } from '../components/ApiErrorAlert';
+import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
+import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
+import { useInstance, useWorkQueue } from '../workflow/queries';
+import type { ActionBody, Decision } from '../workflow/types';
+import { useDecision } from '../workflow/useDecision';
+
+const STATUS_TONE: Record<string, StatusTone> = {
+  PENDING_APPROVAL: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+  VOID: 'neutral',
+};
+
+type PageNotice = { tone: 'warning' | 'danger'; text?: string; error?: unknown } | null;
+
+interface DialogState {
+  decision: Decision;
+  notice: string | null;
+  error: unknown;
+  reasonError: string | null;
+}
+
+export const InstancePage: React.FC = () => {
+  const { instanceId = '' } = useParams();
+  const navigate = useNavigate();
+  const instance = useInstance(instanceId);
+  const queue = useWorkQueue();
+  const me = useMe().data;
+  const { submit, pending } = useDecision(instanceId);
+  const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [pageNotice, setPageNotice] = useState<PageNotice>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const back = () => navigate('/my-work');
+
+  if (instance.isPending) return <HorizonLoader tip="Loading the approval..." />;
+  if (instance.isError) {
+    const missing = instance.error instanceof ApiError && instance.error.status === 404;
+    return (
+      <HorizonPage id="workflow-instance">
+        <HorizonPageTitle title="Approval" onBack={back} backLabel="Back to My Work Queue" />
+        <HorizonPageContent className="p-4">
+          {missing ? (
+            <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
+              It may have been completed, or it is not one you can see.
+            </HorizonAlert>
+          ) : (
+            <ApiErrorAlert error={instance.error} title="The approval could not be loaded" />
+          )}
+        </HorizonPageContent>
+      </HorizonPage>
+    );
+  }
+
+  const { view, etag } = instance.data;
+  const myTask = queue.data?.results.find(
+    (task) => task.workflow_instance_id === view.id && task.step_id === view.step_id,
+  );
+  const canAct = view.status === 'PENDING_APPROVAL' && !!myTask && !!view.step_id;
+  const subject = `${humanize(view.resource.type)}${view.resource.reference ? ` ${view.resource.reference}` : ''}`;
+
+  const open = (decision: Decision) => {
+    setPageNotice(null);
+    setDialog({ decision, notice: null, error: null, reasonError: null });
+  };
+
+  const confirm = async ({ reasonCode, reasonText }: DecisionInput) => {
+    if (!dialog || !myTask || !view.step_id) return;
+    const body: ActionBody = {
+      action: dialog.decision,
+      step_id: view.step_id,
+      ...(myTask.slot_no != null ? { slot_no: myTask.slot_no } : {}),
+      ...(dialog.decision === 'REJECT' ? { reason_code: reasonCode, ...(reasonText ? { reason_text: reasonText } : {}) } : {}),
+    };
+    const outcome = await submit(body, etag);
+    if (outcome.ok) {
+      setDialog(null);
+      setToast(`${dialog.decision === 'APPROVE' ? 'Approved' : 'Rejected'}: ${subject}`);
+      return;
+    }
+    switch (outcome.kind) {
+      case 'stale':
+        setDialog({ ...dialog, notice: STALE_TEXT, error: null, reasonError: null });
+        return;
+      case 'invalid':
+        setDialog({ ...dialog, notice: null, error: null, reasonError: describeError(outcome.error).message });
+        return;
+      case 'defect':
+      case 'network':
+      case 'other':
+        setDialog({ ...dialog, notice: null, error: outcome.error, reasonError: null });
+        return;
+      case 'changed':
+        setDialog(null);
+        setPageNotice({ tone: 'warning', text: CHANGED_TEXT });
+        return;
+      default: // refused, business, notFound: the server's message, no retry; the screen has been reloaded
+        setDialog(null);
+        setPageNotice({ tone: 'danger', error: outcome.error });
+    }
+  };
+
+  const requiredAction =
+    pageNotice?.error instanceof ApiError && typeof pageNotice.error.details.required_action === 'string'
+      ? pageNotice.error.details.required_action
+      : null;
+  const facts = displayFacts(view.approval_facts);
+
+  return (
+    <HorizonPage id="workflow-instance">
+      <HorizonPageTitle
+        title={subject}
+        subtitle={`${humanize(view.definition_code)} · version ${view.version_no}`}
+        onBack={back}
+        backLabel="Back to My Work Queue"
+        actions={
+          canAct ? (
+            <>
+              <button type="button" className="hz-button hz-button-danger" onClick={() => open('REJECT')}>
+                <XCircle className="h-3.5 w-3.5" />
+                Reject
+              </button>
+              <button type="button" className="hz-button hz-button-primary" onClick={() => open('APPROVE')}>
+                <Check className="h-3.5 w-3.5" />
+                Approve
+              </button>
+            </>
+          ) : undefined
+        }
+      />
+
+      {pageNotice && (
+        <div role="status">
+          {pageNotice.error ? (
+            <ApiErrorAlert error={pageNotice.error} title="The decision was not recorded" />
+          ) : (
+            <HorizonAlert tone={pageNotice.tone}>{pageNotice.text}</HorizonAlert>
+          )}
+          {requiredAction && (
+            <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {humanize(requiredAction)}</p>
+          )}
+        </div>
+      )}
+
+      {view.status === 'PENDING_APPROVAL' && !canAct && queue.isSuccess && (
+        <HorizonAlert tone="info">This approval is not in your queue, so there is nothing for you to decide.</HorizonAlert>
+      )}
+
+      <HorizonPageContent className="p-5 space-y-2">
+        <KeyValueGrid
+          items={[
+            {
+              label: 'Status',
+              value: <StatusBadge label={humanize(view.status)} tone={STATUS_TONE[view.status] ?? 'neutral'} />,
+            },
+            { label: 'Stage', value: view.stage_label || humanize(view.stage) || '—' },
+            {
+              label: 'Approvals',
+              value: view.quorum ? `${view.quorum.counted} of ${view.quorum.required}` : '—',
+            },
+            { label: 'Amount', value: formatMoney(view.amount, view.currency, view.amount_reason) },
+            { label: 'Submitted', value: formatDateTime(view.submitted_at) },
+            { label: 'Completed', value: formatDateTime(view.completed_at) },
+          ]}
+        />
+
+        {facts.length > 0 && (
+          <Section title="What is being approved">
+            <KeyValueGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
+          </Section>
+        )}
+
+        <Section title="History">
+          {view.history.length === 0 ? (
+            <p className="text-[13px] text-[var(--hz-text-secondary)]">No actions yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="hz-grid w-full" aria-label="Workflow history">
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>Action</th>
+                    <th>By</th>
+                    <th>Outcome</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.history.map((entry, index) => (
+                    <tr key={`${entry.occurred_at}-${index}`}>
+                      <td>{formatDateTime(entry.occurred_at)}</td>
+                      <td>{humanize(entry.action)}</td>
+                      <td>{actorLabel(entry, me?.user.id)}</td>
+                      <td>{humanize(entry.new_status) || '—'}</td>
+                      <td>
+                        {entry.reason_code ? humanize(entry.reason_code) : ''}
+                        {entry.reason_text && (
+                          <span className="block text-[12px] text-[var(--hz-text-secondary)]">{entry.reason_text}</span>
+                        )}
+                        {!entry.reason_code && !entry.reason_text && '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Section>
+      </HorizonPageContent>
+
+      {dialog && (
+        <DecisionDialog
+          decision={dialog.decision}
+          subject={subject}
+          stageLabel={view.stage_label}
+          pending={pending}
+          notice={canAct ? dialog.notice : CHANGED_TEXT}
+          error={dialog.error}
+          reasonError={dialog.reasonError}
+          unavailable={!canAct}
+          onClose={() => setDialog(null)}
+          onConfirm={(input) => void confirm(input)}
+        />
+      )}
+      <HorizonToast message={toast} tone="success" />
+    </HorizonPage>
+  );
+};
