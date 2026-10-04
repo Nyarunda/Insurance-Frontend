@@ -250,7 +250,7 @@ describe('the instance', () => {
   it('says "not found or not available" for a 404, with no fallback data', async () => {
     const network = fakeFetch((call) =>
       call.url.includes('/workflows/instances/')
-        ? envelope(404, 'WORKFLOW_INSTANCE_NOT_FOUND', 'workflow instance not found')
+        ? envelope(404, 'WORKFLOW_INSTANCE_NOT_FOUND', 'workflow instance not found', {}, 'corr-404')
         : call.url.endsWith('/work-queue')
           ? json(200, { results: [] })
           : json(200, CHECKER),
@@ -258,6 +258,7 @@ describe('the instance', () => {
     vi.stubGlobal('fetch', network.fn);
     renderAt(`/my-work/${INSTANCE_ID}`);
     expect(await screen.findByText('Not found or not available to you.')).toBeInTheDocument();
+    expect(screen.getByText('corr-404')).toHaveAttribute('data-correlation-id');
   });
 });
 
@@ -299,7 +300,7 @@ describe('approving', () => {
         attempts += 1;
         if (attempts === 1) {
           state.etag = '"wf-v1b"'; // someone else touched it: same step, new version
-          return envelope(412, 'CONCURRENCY_CONFLICT', 'the record changed', { current_etag: '"wf-v1b"' });
+          return envelope(412, 'CONCURRENCY_CONFLICT', 'the record changed', { current_etag: '"wf-v1b"' }, 'corr-412');
         }
         return json(200, view({ status: 'APPROVED', step_id: null }), { ETag: '"wf-v2"' });
       },
@@ -308,7 +309,7 @@ describe('approving', () => {
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     expect(await screen.findByText(/This record changed since you opened it/)).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByText('corr-412')).toHaveAttribute('data-correlation-id');
 
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     await screen.findByText('Approved: Policy endorsement END0000001');
@@ -341,13 +342,14 @@ describe('approving', () => {
       act: () => {
         backend.state.instance = view({ status: 'APPROVED', step_id: null });
         backend.state.queue = [];
-        return envelope(409, 'WORKFLOW_STEP_NOT_CURRENT', 'the step is not current');
+        return envelope(409, 'WORKFLOW_STEP_NOT_CURRENT', 'the step is not current', {}, 'corr-409');
       },
     });
     renderAt(`/my-work/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     expect(await screen.findByText('This item changed: someone else acted or it is no longer pending.')).toBeInTheDocument();
+    expect(screen.getByText('corr-409')).toHaveAttribute('data-correlation-id');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(await screen.findByText('Approved')).toBeInTheDocument();
   });
@@ -409,14 +411,14 @@ describe('rejecting', () => {
 
   it('shows the backend’s reason complaint (422) on the field and keeps the dialog', async () => {
     workflowBackend({
-      act: () => envelope(422, 'WORKFLOW_REASON_REQUIRED', 'reason text is required for this reason code'),
+      act: () => envelope(422, 'WORKFLOW_REASON_REQUIRED', 'reason text is required for this reason code', {}, 'corr-422'),
     });
     renderAt(`/my-work/${INSTANCE_ID}`);
     const user = await openDecision('Reject');
     await user.selectOptions(await screen.findByLabelText(/Reason/), 'OUT_OF_APPETITE');
     await user.click(screen.getByRole('button', { name: 'Confirm rejection' }));
     expect(await screen.findByText('Reason text is required for this reason code.')).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByText('corr-422')).toHaveAttribute('data-correlation-id');
   });
 
   it('a changed decision after a refusal is a new command with a new key', async () => {

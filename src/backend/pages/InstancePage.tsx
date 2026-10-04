@@ -25,7 +25,7 @@ import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandE
 import { describeError } from '../../lib/api/errorText';
 import { ApiError } from '../../lib/api/errors';
 import { useMe } from '../../lib/auth/me';
-import { ApiErrorAlert } from '../components/ApiErrorAlert';
+import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
 import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
 import { useInstance, useWorkQueue } from '../workflow/queries';
@@ -39,14 +39,25 @@ const STATUS_TONE: Record<string, StatusTone> = {
   VOID: 'neutral',
 };
 
-type PageNotice = { tone: 'warning' | 'danger'; text?: string; error?: unknown } | null;
+type PageNotice = { tone: 'warning' | 'danger'; text?: string; error?: unknown; reference?: string | null } | null;
 
 interface DialogState {
   decision: Decision;
   notice: string | null;
+  noticeReference: string | null;
   error: unknown;
   reasonError: string | null;
+  reasonReference: string | null;
 }
+
+const freshDialog = (decision: Decision): DialogState => ({
+  decision,
+  notice: null,
+  noticeReference: null,
+  error: null,
+  reasonError: null,
+  reasonReference: null,
+});
 
 export const InstancePage: React.FC = () => {
   const { instanceId = '' } = useParams();
@@ -77,6 +88,7 @@ export const InstancePage: React.FC = () => {
           {missing ? (
             <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
               It may have been completed, or it is not one you can see.
+              <ErrorReference reference={referenceOf(instance.error)} />
             </HorizonAlert>
           ) : (
             <ApiErrorAlert error={instance.error} title="The approval could not be loaded" />
@@ -95,7 +107,7 @@ export const InstancePage: React.FC = () => {
 
   const open = (decision: Decision) => {
     setPageNotice(null);
-    setDialog({ decision, notice: null, error: null, reasonError: null });
+    setDialog(freshDialog(decision));
   };
 
   const confirm = async ({ reasonCode, reasonText }: DecisionInput) => {
@@ -112,21 +124,26 @@ export const InstancePage: React.FC = () => {
       setToast(`${dialog.decision === 'APPROVE' ? 'Approved' : 'Rejected'}: ${subject}`);
       return;
     }
+    const reference = referenceOf(outcome.error);
     switch (outcome.kind) {
       case 'stale':
-        setDialog({ ...dialog, notice: STALE_TEXT, error: null, reasonError: null });
+        setDialog({ ...freshDialog(dialog.decision), notice: STALE_TEXT, noticeReference: reference });
         return;
       case 'invalid':
-        setDialog({ ...dialog, notice: null, error: null, reasonError: describeError(outcome.error).message });
+        setDialog({
+          ...freshDialog(dialog.decision),
+          reasonError: describeError(outcome.error).message,
+          reasonReference: reference,
+        });
         return;
       case 'defect':
       case 'network':
       case 'other':
-        setDialog({ ...dialog, notice: null, error: outcome.error, reasonError: null });
+        setDialog({ ...freshDialog(dialog.decision), error: outcome.error });
         return;
       case 'changed':
         setDialog(null);
-        setPageNotice({ tone: 'warning', text: CHANGED_TEXT });
+        setPageNotice({ tone: 'warning', text: CHANGED_TEXT, reference });
         return;
       default: // refused, business, notFound: the server's message, no retry; the screen has been reloaded
         setDialog(null);
@@ -168,7 +185,10 @@ export const InstancePage: React.FC = () => {
           {pageNotice.error ? (
             <ApiErrorAlert error={pageNotice.error} title="The decision was not recorded" />
           ) : (
-            <HorizonAlert tone={pageNotice.tone}>{pageNotice.text}</HorizonAlert>
+            <HorizonAlert tone={pageNotice.tone}>
+              {pageNotice.text}
+              <ErrorReference reference={pageNotice.reference} />
+            </HorizonAlert>
           )}
           {requiredAction && (
             <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {humanize(requiredAction)}</p>
@@ -249,8 +269,10 @@ export const InstancePage: React.FC = () => {
           stageLabel={view.stage_label}
           pending={pending}
           notice={canAct ? dialog.notice : CHANGED_TEXT}
+          noticeReference={dialog.noticeReference}
           error={dialog.error}
           reasonError={dialog.reasonError}
+          reasonReference={dialog.reasonReference}
           unavailable={!canAct}
           onClose={() => setDialog(null)}
           onConfirm={(input) => void confirm(input)}

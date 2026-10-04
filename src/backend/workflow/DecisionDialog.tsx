@@ -15,7 +15,7 @@ import React, { useState } from 'react';
 import { Check, XCircle } from 'lucide-react';
 import { CharacterCounter, FieldError, HorizonAlert, HorizonLoader } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
-import { ApiErrorAlert } from '../components/ApiErrorAlert';
+import { ApiErrorAlert, ErrorReference } from '../components/ApiErrorAlert';
 import { useReasonCodes } from './queries';
 import type { Decision } from './types';
 
@@ -34,10 +34,14 @@ interface DecisionDialogProps {
   pending: boolean;
   /** Shown above the form, for example after a 412 reload. */
   notice?: string | null;
+  /** The correlation ID of the response that caused the notice. */
+  noticeReference?: string | null;
   /** A refusal to show with its reference. */
   error?: unknown;
   /** The backend's complaint about the reason (422), shown on the field. */
   reasonError?: string | null;
+  /** The correlation ID of that 422. */
+  reasonReference?: string | null;
   /** The task is no longer the caller's to decide (for example after a reload): nothing can be sent. */
   unavailable?: boolean;
   onClose: () => void;
@@ -50,8 +54,10 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
   stageLabel,
   pending,
   notice,
+  noticeReference,
   error,
   reasonError,
+  reasonReference,
   unavailable = false,
   onClose,
   onConfirm,
@@ -101,7 +107,14 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
         </>
       }
     >
-      {notice && <HorizonAlert tone="warning">{notice}</HorizonAlert>}
+      {notice && (
+        <div role="status">
+          <HorizonAlert tone="warning">
+            {notice}
+            <ErrorReference reference={noticeReference} />
+          </HorizonAlert>
+        </div>
+      )}
       {error ? <ApiErrorAlert error={error} /> : null}
 
       {!rejecting && (
@@ -162,6 +175,7 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
             <div className="flex items-start justify-between gap-3">
               <div>
                 {attempted && <FieldError message={textError ?? reasonError ?? undefined} />}
+                {attempted && !textError && reasonError && <ErrorReference reference={reasonReference} />}
                 <p className="mt-1 text-[12px] text-[var(--hz-text-secondary)]">The explanation is kept in the workflow history.</p>
               </div>
               <CharacterCounter current={reasonText.length} max={REASON_TEXT_MAX} />

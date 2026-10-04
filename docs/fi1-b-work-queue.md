@@ -58,3 +58,19 @@ The component tests cover:
 - a step that moves under an open dialog.
 
 The mode-isolation test still passes: the new screens do not reach mock data.
+
+## FI1-B-R1: handled workflow errors keep their Reference (independent review, 2026-10-04)
+
+The review found that four handled paths showed their friendly wording but dropped the backend's correlation ID:
+- 412 `CONCURRENCY_CONFLICT`;
+- the 409 state conflict;
+- 422 `WORKFLOW_REASON_REQUIRED`;
+- the direct instance 404.
+
+Fixed in one frontend-only commit; the wording is unchanged.
+- `ErrorReference` ("Reference <correlation_id>", marked `data-correlation-id`) is shared with `ApiErrorAlert`.
+- The 412 notice in the dialog carries it, and the dialog and typed text stay as before.
+- So does the 409 page notice, and the 404 "Not found or not available to you".
+- The 422 shows it right under the field error.
+
+**Tests:** the four existing tests now use distinct correlation IDs (`corr-404`, `corr-412`, `corr-409`, `corr-422`) and assert each one. Run against the unfixed code, exactly those four fail; with the fix, 135/135 pass on two runs. Lint and both builds pass.
