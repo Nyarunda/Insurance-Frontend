@@ -41,10 +41,11 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/nowhere', REGISTRY)).toBeNull();
   });
 
-  it('integrates Home and, with workflow.task.view, My Work Queue', () => {
+  it('integrates Home, My Work Queue (workflow.task.view) and the Policy Directory (policies.policy.view)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', 'workflow.task.view'],
+      ['policies', 'policies.policy.view'],
     ]);
   });
 });

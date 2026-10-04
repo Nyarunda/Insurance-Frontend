@@ -16,8 +16,10 @@ import { useSessionStore } from '../lib/auth/sessionStore';
 import { SignInPage } from './auth/SignInPage';
 import { HomePage, NotFoundPage } from './pages/HomePage';
 import { InstancePage } from './pages/InstancePage';
+import { PoliciesPage } from './pages/PoliciesPage';
+import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
-import { TASK_VIEW } from './permissions';
+import { POLICY_VIEW, TASK_VIEW } from './permissions';
 import { RequirePermission, RequireSession, SignedOutOnly } from './routing';
 import { BackendShell } from './shell/BackendShell';
 
@@ -52,6 +54,22 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={TASK_VIEW}>
             <InstancePage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'policies',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <PoliciesPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'policies/:policyId',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <PolicyWorkspacePage />
           </RequirePermission>
         ),
       },

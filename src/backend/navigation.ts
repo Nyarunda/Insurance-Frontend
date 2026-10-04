@@ -3,11 +3,11 @@
  * when `/me.permissions` holds what it needs. Hiding an entry is a convenience; the route checks
  * the permission again, and the backend checks every call.
  *
- * Later slices add their screens here (FI1-B: My work, FI1-C: Policies).
+ * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { LayoutDashboard, type LucideIcon } from 'lucide-react';
-import { TASK_VIEW } from './permissions';
+import { FileCheck2, LayoutDashboard, type LucideIcon } from 'lucide-react';
+import { POLICY_VIEW, TASK_VIEW } from './permissions';
 import type { NavGroup } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -35,6 +35,12 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'dashboard', label: 'Home', path: '/' },
       { screen: 'my-work', label: 'My Work Queue', path: '/my-work', permission: TASK_VIEW },
     ],
+  },
+  {
+    id: 'policies',
+    title: 'Policies',
+    icon: FileCheck2,
+    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies', permission: POLICY_VIEW }],
   },
 ];
 
