@@ -44,3 +44,20 @@ The component tests cover:
   - a cancelled policy.
 
 **Left for the FI1-E gate:** the real-backend Playwright journey, which shows the policy's new version and limit after an approved endorsement.
+
+## FI1-C-R1: Back returns to the same list (independent review, 2026-10-04)
+
+The review found that FI1-C-D1's promise was not kept by the workspace's own Back action. The list kept its filters, search and page in the URL, but "Back to Policy Directory" went to the plain `/policies`.
+
+Fixed in one frontend-only commit:
+- Opening a policy from the directory carries the list's location (`/policies` plus its query) in router state (`policies/returnTo.ts`).
+- Back navigates there. A tab change in the workspace replaces the URL and keeps that state, so Back still knows the list afterwards.
+- A policy opened directly or from a bookmark has no such state, and Back goes to `/policies`.
+- Only the directory itself, with an optional query, is accepted as a return location. Another path, a scheme-relative or absolute URL, a fragment or a backslash all fall back to `/policies`.
+
+**Tests:**
+- Start on `/policies?coverage=ACTIVE&q=POL0000001&page=2`, open the policy, change tab, then press Back. The exact pathname and search are restored. With the cached list dropped, the one new request is `page=2&page_size=25&coverage_status=ACTIVE&q=POL0000001`, and the page, filter and search field show the same.
+- A policy opened directly returns to `/policies`.
+- The return location is validated.
+
+Run against the unfixed pages, the restore test fails. It also fails when only the tab change's state carry-over is removed. With the fix, 156/156 pass on two runs. Lint and both builds pass.

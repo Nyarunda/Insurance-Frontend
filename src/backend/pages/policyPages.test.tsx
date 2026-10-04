@@ -14,6 +14,7 @@ import { setAccessToken } from '../../lib/auth/tokens';
 import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
 import { LoadedPolicy, POLICY_KEYS } from '../policies/queries';
+import { directoryFrom, directoryReturnState } from '../policies/returnTo';
 import type { PolicyDetail, PolicySummary, PolicyVersion } from '../policies/types';
 import { EMPTY_POLICIES_TEXT } from './PoliciesPage';
 
@@ -239,6 +240,62 @@ describe('Policy Directory', () => {
     expect(await screen.findByText('You do not have access to this screen')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Policy Directory' })).not.toBeInTheDocument();
     expect(backend.listQueries()).toEqual([]);
+  });
+
+  it('Back from a policy returns to the same filtered, searched and paged list (FI1-C-R1)', async () => {
+    const user = userEvent.setup();
+    const backend = policyBackend({ count: 60 });
+    const listed = '/policies?coverage=ACTIVE&q=POL0000001&page=2';
+    const expectedQuery = '/policies?page=2&page_size=25&coverage_status=ACTIVE&q=POL0000001';
+    const router = renderAt(listed);
+    await user.click(await screen.findByRole('row', { name: /POL0000001/ }));
+    expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
+
+    // A tab change replaces the URL; the originating list must survive it.
+    await user.click(screen.getByRole('tab', { name: 'Coverage' }));
+    expect(router.state.location.search).toBe('?tab=coverage');
+
+    // Drop the cached list, so the restored URL has to drive a fresh request.
+    queryClient.removeQueries({ queryKey: ['policies', 'list'] });
+    const before = backend.listQueries().length;
+    await user.click(screen.getByTitle('Back to Policy Directory'));
+
+    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.search).toBe('?coverage=ACTIVE&q=POL0000001&page=2');
+    await screen.findByRole('row', { name: /POL0000001/ });
+    expect(backend.listQueries().slice(before)).toEqual([expectedQuery]);
+    expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Policy number')).toHaveValue('POL0000001');
+  });
+
+  it('Back from a policy opened directly goes to the plain directory', async () => {
+    const user = userEvent.setup();
+    policyBackend();
+    const router = renderAt(`/policies/${POLICY_ID}`);
+    await user.click(await screen.findByTitle('Back to Policy Directory'));
+    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.search).toBe('');
+  });
+
+  it('returns only to the directory, never to another path or origin', () => {
+    expect(directoryFrom(directoryReturnState('/policies', '?coverage=ACTIVE&page=2'))).toBe('/policies?coverage=ACTIVE&page=2');
+    expect(directoryFrom(directoryReturnState('/policies', ''))).toBe('/policies');
+    for (const state of [
+      null,
+      undefined,
+      'policies',
+      { directory: 42 },
+      { directory: '//evil.example/policies' },
+      { directory: 'https://evil.example/policies' },
+      { directory: '/my-work' },
+      { directory: `/policies/${POLICY_ID}` },
+      { directory: '/policiesx' },
+      { directory: '/policies?x=1#frag' },
+      { directory: '/policies?x=\\evil' },
+    ]) {
+      expect(directoryFrom(state)).toBe('/policies');
+    }
   });
 
   it('appears in the navigation with policies.policy.view', async () => {

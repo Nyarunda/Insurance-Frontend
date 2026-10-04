@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { RefreshCw, Search } from 'lucide-react';
 import {
   HorizonLoader,
@@ -18,6 +18,7 @@ import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { formatMoney, humanize } from '../workflow/format';
 import { COVERAGE_TONE, formatDate } from '../policies/format';
 import { POLICY_PAGE_SIZE, usePolicies } from '../policies/queries';
+import { directoryReturnState } from '../policies/returnTo';
 import type { CoverageStatus } from '../policies/types';
 
 export const EMPTY_POLICIES_TEXT = 'No policies to show';
@@ -35,6 +36,7 @@ const isCoverage = (value: string | null): value is CoverageStatus =>
 
 export const PoliciesPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const coverage = params.get('coverage');
   const q = params.get('q') ?? '';
@@ -53,7 +55,10 @@ export const PoliciesPage: React.FC = () => {
     }
     setParams(next);
   };
-  const open = (id: string) => navigate(`/policies/${encodeURIComponent(id)}`);
+  const open = (id: string) =>
+    navigate(`/policies/${encodeURIComponent(id)}`, {
+      state: directoryReturnState(location.pathname, location.search),
+    });
 
   return (
     <HorizonPage id="policies">

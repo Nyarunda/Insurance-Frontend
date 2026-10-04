@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import {
   HorizonAlert,
   HorizonLoader,
@@ -25,6 +25,7 @@ import { ApiError } from '../../lib/api/errors';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { COVERAGE_TONE, formatDate, LIFECYCLE_TONE, levyRate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
+import { directoryFrom } from '../policies/returnTo';
 import type { PolicyDetail, PolicyVersion } from '../policies/types';
 import { displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
 
@@ -45,12 +46,14 @@ const muted = 'text-[13px] text-[var(--hz-text-secondary)]';
 export const PolicyWorkspacePage: React.FC = () => {
   const { policyId = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const tab: TabId = isTab(params.get('tab')) ? (params.get('tab') as TabId) : 'overview';
   const policy = usePolicy(policyId);
   const versions = usePolicyVersions(policyId, tab === 'versions' && policy.isSuccess);
 
-  const back = () => navigate('/policies');
+  // Back to the list this policy was opened from, with its filters and page (FI1-C-R1).
+  const back = () => navigate(directoryFrom(location.state));
 
   if (policy.isPending) return <HorizonLoader tip="Loading the policy..." />;
   if (policy.isError) {
@@ -97,7 +100,8 @@ export const PolicyWorkspacePage: React.FC = () => {
           const changed = new URLSearchParams(params);
           if (next === 'overview') changed.delete('tab');
           else changed.set('tab', next);
-          setParams(changed, { replace: true });
+          // Keep the router state, so Back still knows the originating list after a tab change.
+          setParams(changed, { replace: true, state: location.state });
         }}
       />
       <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label}>
