@@ -27,7 +27,7 @@ import { ApiError } from '../../lib/api/errors';
 import { useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
-import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
+import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize, requiredActionText } from '../workflow/format';
 import { useInstance, useWorkQueue } from '../workflow/queries';
 import type { ActionBody, Decision } from '../workflow/types';
 import { useDecision } from '../workflow/useDecision';
@@ -191,7 +191,7 @@ export const InstancePage: React.FC = () => {
             </HorizonAlert>
           )}
           {requiredAction && (
-            <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {humanize(requiredAction)}</p>
+            <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {requiredActionText(requiredAction)}</p>
           )}
         </div>
       )}

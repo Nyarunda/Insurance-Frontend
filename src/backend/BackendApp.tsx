@@ -15,11 +15,13 @@ import { restoreSession } from '../lib/auth/session';
 import { useSessionStore } from '../lib/auth/sessionStore';
 import { SignInPage } from './auth/SignInPage';
 import { HomePage, NotFoundPage } from './pages/HomePage';
+import { EndorsementCreatePage } from './pages/EndorsementCreatePage';
+import { EndorsementPage } from './pages/EndorsementPage';
 import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
-import { POLICY_VIEW, TASK_VIEW } from './permissions';
+import { ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from './permissions';
 import { RequirePermission, RequireSession, SignedOutOnly } from './routing';
 import { BackendShell } from './shell/BackendShell';
 
@@ -70,6 +72,24 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <PolicyWorkspacePage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'policies/:policyId/endorsements/new',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <RequirePermission permission={ENDORSEMENT_CREATE}>
+              <EndorsementCreatePage />
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'policies/:policyId/endorsements/:endorsementId',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <EndorsementPage />
           </RequirePermission>
         ),
       },

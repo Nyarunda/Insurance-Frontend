@@ -21,6 +21,11 @@ export function humanize(code: string | null | undefined): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+/** A backend `required_action`: a code reads as words, a sentence is shown as the backend wrote it. */
+export function requiredActionText(value: string): string {
+  return /^[A-Z0-9_]+$/.test(value.trim()) ? humanize(value) : value.trim();
+}
+
 export function formatMoney(amount: string | null, currency: string | null, reason?: string | null): string {
   if (amount === null) {
     return reason === 'FX_NOT_AVAILABLE'

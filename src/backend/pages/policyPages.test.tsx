@@ -15,113 +15,11 @@ import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
 import { LoadedPolicy, POLICY_KEYS } from '../policies/queries';
 import { directoryFrom, directoryReturnState } from '../policies/returnTo';
-import type { PolicyDetail, PolicySummary, PolicyVersion } from '../policies/types';
+import type { PolicySummary } from '../policies/types';
+import { POLICY_ID, ENDORSEMENT_ID, POLICY_ETAG, MAKER, summary, version, V1, detail } from '../../test/policyFixtures';
 import { EMPTY_POLICIES_TEXT } from './PoliciesPage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-
-const POLICY_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const ENDORSEMENT_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-const POLICY_ETAG = `"policy-${POLICY_ID}-v3"`;
-
-const MAKER: Me = {
-  user: { id: '11111111-1111-4111-8111-111111111111', email: 'maker@acme.test' },
-  tenant: { id: '66666666-6666-4666-8666-666666666666', name: 'Acme Insurance' },
-  permissions: ['policies.policy.view'],
-  branches: [{ id: '77777777-7777-4777-8777-777777777777', code: 'NBO', name: 'Nairobi', scope: 'OWN' }],
-};
-
-const summary = (over: Partial<PolicySummary> = {}): PolicySummary => ({
-  id: POLICY_ID,
-  policy_no: 'POL0000001',
-  insurer_policy_no: '',
-  lifecycle_status: 'BOUND',
-  coverage_status: 'ACTIVE',
-  customer: { id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', customer_no: 'CUS0000001', display_name: 'Wanjiku Holdings' },
-  product: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', code: 'MOTOR_PVT', name: 'Private Motor' },
-  insurer: { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', code: 'JUB', name: 'Jubilee Insurance' },
-  branch: { id: MAKER.branches[0].id, code: 'NBO', name: 'Nairobi' },
-  inception_date: '2026-01-01',
-  expiry_date: '2026-12-31',
-  version_no: 2,
-  currency: 'KES',
-  total_premium: '52000.00',
-  ...over,
-});
-
-const version = (over: Partial<PolicyVersion> = {}): PolicyVersion => ({
-  version_no: 2,
-  source_type: 'ENDORSEMENT',
-  endorsement_id: ENDORSEMENT_ID,
-  effective_from: '2026-06-01',
-  effective_to: null,
-  inception_date: '2026-01-01',
-  expiry_date: '2026-12-31',
-  terminated: false,
-  annual_premium: {
-    currency: 'KES',
-    basic_premium: '50000.00',
-    levies_total: '2000.00',
-    total_premium: '52000.00',
-    levies: [
-      { code: 'TL', name: 'Training levy', basis: 'PERCENT', rate: '0.2000', amount: '100.00' },
-      { code: 'STAMP', name: 'Stamp duty', basis: 'FIXED', rate: '40.00', amount: '40.00' },
-    ],
-    rating_date: '2026-01-01',
-  },
-  risk: {
-    factors: { sum_insured: '2500000.00', vehicle_use: 'PRIVATE_USE', rate_table_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff' },
-    details: { make: 'Toyota', model: 'Prado', owner_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff' },
-    identifiers: [{ identifier_type: 'REGISTRATION_NUMBER', value: 'KDA 123A' }],
-    items: [{ code: 'TRAILER', description: 'Box trailer', identifier: 'ZD 4411', value: '150000.00' }],
-  },
-  cover: {
-    cover_sections: [{ code: 'OWN_DAMAGE', name: 'Own damage', description: '', is_mandatory: true }],
-    benefits: [
-      {
-        code: 'WINDSCREEN',
-        name: 'Windscreen cover',
-        section: 'OWN_DAMAGE',
-        description: 'Repair or replacement',
-        limit_amount: '75000.00',
-        limit_description: 'Per occurrence',
-        is_optional: false,
-      },
-      {
-        code: 'COURTESY_CAR',
-        name: 'Courtesy car',
-        section: 'OWN_DAMAGE',
-        description: '',
-        limit_amount: null,
-        limit_description: '',
-        is_optional: true,
-      },
-    ],
-    exclusions: [{ code: 'RACING', section: null, text: 'Racing, pace-making or speed testing' }],
-  },
-  terms: { geographical_limit: 'Kenya, Uganda and Tanzania' },
-  sum_insured: '2500000.00',
-  underwriting_details: { excess_note: 'Standard excess applies', approver_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff' },
-  created_at: '2026-05-20T08:00:00Z',
-  ...over,
-});
-
-const V1 = version({ version_no: 1, source_type: 'BIND', endorsement_id: null, effective_from: '2026-01-01', effective_to: '2026-05-31' });
-
-const detail = (over: Partial<PolicyDetail> = {}): PolicyDetail => ({
-  ...summary(),
-  source: {
-    quotation: { id: '12121212-1212-4121-8121-121212121212', quotation_no: 'QUO0000007' },
-    proposal: { id: '13131313-1313-4131-8131-131313131313', proposal_no: 'PRP0000004' },
-  },
-  agreement: { id: '14141414-1414-4141-8141-141414141414', agreement_type: 'BINDER', reference_no: 'BND-2026-01' },
-  sum_insured: '2500000.00',
-  bound_at: '2025-12-20T10:00:00Z',
-  current_version: version(),
-  cancellation: null,
-  row_version: 3,
-  ...over,
-});
 
 interface BackendOptions {
   policies?: PolicySummary[];
@@ -339,12 +237,19 @@ describe('the policy workspace', () => {
     expect(queryClient.getQueryData<LoadedPolicy>(POLICY_KEYS.detail(POLICY_ID))?.etag).toBeNull();
   });
 
-  it('offers only the sections the backend provides', async () => {
+  it('offers only the sections the backend provides (endorsements since FI1-D)', async () => {
     policyBackend();
     renderAt(`/policies/${POLICY_ID}`);
     const tabs = within(await screen.findByRole('tablist', { name: 'Policy sections' })).getAllByRole('tab');
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['Overview', 'Risk Schedule', 'Coverage', 'Premium & Levies', 'Versions']);
-    for (const absent of ['Claims', 'Billing', 'Documents', 'Accounting', 'Audit Timeline', 'Endorsements']) {
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'Overview',
+      'Risk Schedule',
+      'Coverage',
+      'Premium & Levies',
+      'Versions',
+      'Endorsements', // FI1-D
+    ]);
+    for (const absent of ['Claims', 'Billing', 'Documents', 'Accounting', 'Audit Timeline']) {
       expect(screen.queryByRole('tab', { name: absent })).not.toBeInTheDocument();
     }
   });

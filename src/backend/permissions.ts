@@ -2,3 +2,4 @@
 
 export const TASK_VIEW = 'workflow.task.view';
 export const POLICY_VIEW = 'policies.policy.view';
+export const ENDORSEMENT_CREATE = 'policies.endorsement.create';

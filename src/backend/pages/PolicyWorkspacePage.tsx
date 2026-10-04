@@ -3,8 +3,8 @@
  *
  * Only sections the backend provides are shown. Claims, billing, documents, accounting and the
  * audit timeline have no backend yet and are left out in backend mode, never filled from mock
- * data. Endorsements arrive with FI1-D. The policy's ETag (from the header) is kept with the query
- * for FI1-D's endorsement creation.
+ * data. The Endorsements tab (FI1-D) lists `GET /policies/{id}/endorsements`. The policy's ETag
+ * (from the header) is kept with the query for endorsement creation.
  */
 
 import React from 'react';
@@ -25,6 +25,7 @@ import { ApiError } from '../../lib/api/errors';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { COVERAGE_TONE, formatDate, LIFECYCLE_TONE, levyRate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
+import { PolicyEndorsementsTab } from '../endorsements/PolicyEndorsementsTab';
 import { directoryFrom } from '../policies/returnTo';
 import type { PolicyDetail, PolicyVersion } from '../policies/types';
 import { displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
@@ -35,6 +36,7 @@ export const POLICY_TABS = [
   { id: 'coverage', label: 'Coverage' },
   { id: 'premium', label: 'Premium & Levies' },
   { id: 'versions', label: 'Versions' },
+  { id: 'endorsements', label: 'Endorsements' },
 ] as const;
 
 type TabId = (typeof POLICY_TABS)[number]['id'];
@@ -118,6 +120,7 @@ export const PolicyWorkspacePage: React.FC = () => {
           ) : (
             <Versions versions={versions.data.results} inForce={current.version_no} currency={view.currency} />
           ))}
+        {tab === 'endorsements' && <PolicyEndorsementsTab policy={view} />}
       </HorizonPageContent>
       </div>
     </HorizonPage>

@@ -24,6 +24,8 @@ const WORDING: Record<string, string> = {
   CHALLENGE_INVALID: 'This sign-in attempt is no longer valid. Start again.',
   AUTHENTICATION_REQUIRED: 'Your session ended. Sign in again to continue.',
   BRANCH_SCOPE_DENIED: 'The selected branch is not one you can use.',
+  // FI1-D: no screen reaches the lightweight /approve or /decline; if one ever did, this is why it was refused.
+  WORKFLOW_APPROVAL_REQUIRED: 'This approval is made through the workflow task.',
   NETWORK_ERROR: 'The server could not be reached. Check your connection and try again.',
   NETWORK_TIMEOUT: 'The server did not answer in time. Try again.',
 };

@@ -4,8 +4,8 @@
  * | kind        | responses                                        | the screen                                  |
  * | stale       | 412 CONCURRENCY_CONFLICT                         | reload, keep what was typed, resubmit with  |
  * |             |                                                  | the new ETag (same key if unchanged)        |
- * | changed     | 409 WORKFLOW_STEP_NOT_CURRENT, other state       | "This item changed…", reload                |
- * |             | conflicts                                        |                                             |
+ * | changed     | 409 WORKFLOW_STEP_NOT_CURRENT, ENDORSEMENT_STATE_ | "This item changed…", reload                |
+ * |             | INVALID, other state conflicts                   |                                             |
  * | business    | 409 with a `required_action`, or a business code | the message and the required action         |
  * | refused     | 403                                              | the server's message, no retry, reload      |
  * | notFound    | 404                                              | "Not found or not available to you"         |
@@ -29,7 +29,7 @@ export type CommandErrorKind =
   | 'other';
 
 /** 409 codes that mean "someone else acted or it is no longer pending", not a business rule. */
-const STATE_CONFLICTS = new Set(['WORKFLOW_STEP_NOT_CURRENT', 'INVALID_STATE_TRANSITION']);
+const STATE_CONFLICTS = new Set(['WORKFLOW_STEP_NOT_CURRENT', 'INVALID_STATE_TRANSITION', 'ENDORSEMENT_STATE_INVALID']);
 
 export function classifyCommandError(error: unknown): CommandErrorKind {
   if (!(error instanceof ApiError)) return 'other';
