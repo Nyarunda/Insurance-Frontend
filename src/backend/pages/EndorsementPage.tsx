@@ -17,11 +17,12 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { FileText, RefreshCw, Send, Undo2 } from 'lucide-react';
 import {
+  DetailDivider,
+  DetailGrid,
+  DetailGroup,
   HorizonAlert,
   HorizonLoader,
   HorizonToast,
-  KeyValueGrid,
-  Section,
   StatusBadge,
 } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
@@ -206,6 +207,7 @@ export const EndorsementPage: React.FC = () => {
           {...frame}
           title={view.endorsement_no}
           subtitle={`${humanize(view.endorsement_type)} · Policy ${view.policy.policy_no}`}
+          badge={<StatusBadge square label={ENDORSEMENT_STATUS_LABEL[view.status] ?? humanize(view.status)} tone={ENDORSEMENT_TONE[view.status] ?? 'neutral'} />}
           footer={
             <>
               <button type="button" className="hz-button hz-button-secondary" onClick={back}>
@@ -244,10 +246,6 @@ export const EndorsementPage: React.FC = () => {
           }
         >
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <StatusBadge square label={ENDORSEMENT_STATUS_LABEL[view.status] ?? humanize(view.status)} tone={ENDORSEMENT_TONE[view.status] ?? 'neutral'} />
-            </div>
-
             {pageNotice && (
               <div role="status">
                 {pageNotice.error ? (
@@ -266,23 +264,31 @@ export const EndorsementPage: React.FC = () => {
 
             <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyHref(view.policy.policy_no)} returnState={state} />
 
-            <div className="space-y-2">
-              <KeyValueGrid
-                items={[
-                  { label: 'Type', value: humanize(view.endorsement_type) },
-                  { label: 'Policy', value: view.policy.policy_no },
-                  { label: 'Base version', value: `Version ${view.base_version_no}` },
-                  { label: 'Effective from', value: formatDate(view.effective_date) },
-                  { label: 'Reason', value: view.reason || '—' },
-                  { label: 'Submitted', value: formatDateTime(view.submitted_at) },
-                  ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
-                  ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
-                  ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
-                ]}
-              />
-              <RequestedChange view={view} />
-              <Financials view={view} />
-              <Approval view={view} />
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_17rem]">
+              <div className="hz-record-body pb-4 lg:pb-0 lg:pr-6">
+                <DetailGroup title="Endorsement">
+                  <DetailGrid
+                    items={[
+                      { label: 'Type', value: humanize(view.endorsement_type) },
+                      { label: 'Base version', value: `Version ${view.base_version_no}` },
+                      { label: 'Effective from', value: formatDate(view.effective_date) },
+                      { label: 'Reason', value: view.reason || '—' },
+                      { label: 'Submitted', value: formatDateTime(view.submitted_at) },
+                      ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
+                      ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
+                      ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
+                    ]}
+                  />
+                </DetailGroup>
+                <DetailDivider />
+                <RequestedChange view={view} />
+              </div>
+              <DetailDivider vertical />
+              <div className="border-t border-[var(--hz-divider)] pt-4 lg:border-t-0 lg:pt-0 lg:pl-6">
+                <Financials view={view} />
+                <DetailDivider />
+                <Approval view={view} />
+              </div>
             </div>
           </div>
         </DialogFrame>
@@ -384,11 +390,12 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
   const benefit = view.endorsement_type === 'CHANGE_LIMIT' ? changedBenefit(view) : null;
   const requested = view.endorsement_type === 'CHANGE_LIMIT' ? [] : displayFacts(view.requested_changes);
   const terms = view.resulting_terms;
+  const benefits = terms.cover?.benefits ?? [];
   return (
     <>
-      <Section title="Requested change">
+      <DetailGroup title="Requested change">
         {benefit ? (
-          <KeyValueGrid
+          <DetailGrid
             items={[
               { label: 'Benefit', value: benefit.name },
               {
@@ -399,19 +406,20 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
             ]}
           />
         ) : requested.length > 0 ? (
-          <KeyValueGrid items={requested} />
+          <DetailGrid items={requested} />
         ) : (
           <p className="text-[13px] text-[var(--hz-text-secondary)]">No details.</p>
         )}
-      </Section>
-      <Section title="Resulting terms">
-        <KeyValueGrid
+      </DetailGroup>
+      <DetailDivider />
+      <DetailGroup title="Resulting terms" description="The policy as it will stand once this takes effect.">
+        <DetailGrid
           items={[
             { label: 'Expiry', value: formatDate(terms.expiry_date) },
             { label: 'Sum insured', value: formatMoney(terms.sum_insured, currency) },
           ]}
         />
-        {(terms.cover?.benefits ?? []).length > 0 && (
+        {benefits.length > 0 && (
           <div className="mt-3 overflow-x-auto">
             <table className="hz-grid w-full" aria-label="Resulting benefits and limits">
               <thead>
@@ -421,10 +429,15 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
                 </tr>
               </thead>
               <tbody>
-                {terms.cover.benefits.map((item) => (
+                {benefits.map((item) => (
                   <tr key={item.code}>
-                    <td>{item.name}</td>
-                    <td className="text-right tabular-nums">
+                    <td>
+                      <span className="inline-flex items-center gap-2">
+                        {item.name}
+                        {benefit?.code === item.code && <StatusBadge square label="Changed" tone="info" />}
+                      </span>
+                    </td>
+                    <td className={`text-right tabular-nums ${benefit?.code === item.code ? 'font-semibold' : ''}`}>
                       {item.limit_amount !== null ? formatMoney(item.limit_amount, currency) : 'No limit stated'}
                     </td>
                   </tr>
@@ -433,35 +446,54 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
             </table>
           </div>
         )}
-      </Section>
+      </DetailGroup>
     </>
   );
 };
 
+/** Label left, value right, in a narrow column; `strong` closes the list with a total. */
+const SummaryList: React.FC<{ items: Array<{ label: string; value: React.ReactNode; strong?: boolean }> }> = ({ items }) => (
+  <dl className="flex flex-col">
+    {items.map((item) => (
+      <div
+        key={item.label}
+        className={`flex items-baseline justify-between gap-3 py-1.5 text-sm ${
+          item.strong ? 'mt-1 border-t border-[var(--hz-divider)] pt-2.5 font-semibold' : ''
+        }`}
+      >
+        <dt className={item.strong ? 'text-[var(--hz-text-primary)]' : 'text-[13px] text-[var(--hz-text-muted)]'}>{item.label}</dt>
+        <dd className="text-right tabular-nums text-[var(--hz-text-primary)]">{item.value}</dd>
+      </div>
+    ))}
+  </dl>
+);
+
 const Financials: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
   const { currency } = view.financial;
   return (
-    <Section title="Premium">
-      <KeyValueGrid
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Premium</h2>
+      <SummaryList
         items={[
+          { label: 'Annual premium before', value: formatMoney(view.old_annual.total_premium, currency) },
           { label: 'Premium change', value: formatDelta(view.financial.premium_delta, currency) },
           { label: 'Levy change', value: formatDelta(view.financial.levy_delta, currency) },
-          { label: 'Total change', value: formatDelta(view.financial.total_delta, currency) },
           ...(view.financial.commission_delta !== undefined
             ? [{ label: 'Commission change', value: formatDelta(view.financial.commission_delta, currency) }]
             : []),
-          { label: 'Annual premium before', value: formatMoney(view.old_annual.total_premium, currency) },
-          { label: 'Annual premium after', value: formatMoney(view.new_annual.total_premium, currency) },
+          { label: 'Total change', value: formatDelta(view.financial.total_delta, currency) },
+          { label: 'Annual premium after', value: formatMoney(view.new_annual.total_premium, currency), strong: true },
         ]}
       />
-    </Section>
+    </section>
   );
 };
 
 const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
-  <Section title="Approval">
+  <section className="flex flex-col gap-2">
+    <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Approval</h2>
     {view.workflow ? (
-      <KeyValueGrid
+      <SummaryList
         items={[
           { label: 'Approval', value: humanize(view.workflow.definition_code) },
           { label: 'Approval status', value: humanize(view.workflow.status) },
@@ -473,5 +505,5 @@ const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
         {view.requires_check ? 'Not sent for approval yet.' : 'This change needs no approval.'}
       </p>
     )}
-  </Section>
+  </section>
 );

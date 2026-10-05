@@ -49,6 +49,8 @@ export const DialogFrame: React.FC<{
   closeLabel?: string;
   /** A small icon shown before the title. */
   icon?: React.ReactNode;
+  /** A status badge shown beside the title. */
+  badge?: React.ReactNode;
 }> = ({
   titleId,
   title,
@@ -61,6 +63,7 @@ export const DialogFrame: React.FC<{
   expandable = false,
   closeLabel = 'Close',
   icon,
+  badge,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(() => expandable && readExpanded());
@@ -136,10 +139,13 @@ export const DialogFrame: React.FC<{
               </span>
             )}
             <div className="min-w-0">
-            <h2 id={titleId} className="text-base font-semibold text-[var(--hz-text-primary)]">
-              {title}
-            </h2>
-            {subtitle && <p className="mt-0.5 truncate text-[13px] text-[var(--hz-text-muted)]">{subtitle}</p>}
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id={titleId} className="text-base font-semibold text-[var(--hz-text-primary)]">
+                  {title}
+                </h2>
+                {badge}
+              </div>
+              {subtitle && <p className="mt-0.5 truncate text-[13px] text-[var(--hz-text-muted)]">{subtitle}</p>}
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
