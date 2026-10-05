@@ -120,7 +120,7 @@ export const RegulatoryAdmin: React.FC<RegulatoryAdminProps> = ({
                 STATUTORY COMPLIANCE
               </span>
               <span className="font-mono font-bold text-xs text-teal-700">IRA & KRA PACKS</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-[3px] bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                 ● CAPITAL ADEQUACY: 184% (SURPLUS)
               </span>

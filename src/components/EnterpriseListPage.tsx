@@ -246,7 +246,7 @@ export function EnterpriseListPage<T>({
                 <HelpCircle className="h-3.5 w-3.5" />
               </button>
               {isHelpOpen && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-72 rounded-[6px] border border-[var(--hz-border-grid)] bg-white p-3 text-[12px] text-[var(--hz-text-secondary)] shadow-lg">
+                <div className="absolute right-0 top-full z-20 mt-1 w-72 rounded-xl border border-[var(--hz-border-grid)] bg-white p-3 text-[12px] text-[var(--hz-text-secondary)] shadow-lg">
                   {helpText}
                 </div>
               )}
@@ -321,7 +321,7 @@ export function EnterpriseListPage<T>({
                 <span className="hidden md:inline">Columns</span>
               </button>
               {isColumnsMenuOpen && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-60 rounded-[6px] border border-[var(--hz-border-grid)] bg-white py-1 text-[13px] shadow-lg">
+                <div className="absolute right-0 top-full z-20 mt-1 w-60 rounded-xl border border-[var(--hz-border-grid)] bg-white py-1 text-[13px] shadow-lg">
                   <div className="hz-section-label border-b border-[var(--hz-border-grid)] px-3 py-1.5">Show columns</div>
                   <div className="max-h-64 overflow-y-auto py-1">
                     {columns
@@ -461,7 +461,7 @@ export function EnterpriseListPage<T>({
                                   onRowClick(item);
                                 }}
                                 title="Open record"
-                                className="rounded-[3px] p-1 text-[var(--hz-text-secondary)] hover:bg-[var(--hz-surface-muted)] hover:text-[var(--hz-text-primary)]"
+                                className="rounded-md p-1 text-[var(--hz-text-secondary)] hover:bg-[var(--hz-surface-muted)] hover:text-[var(--hz-text-primary)]"
                               >
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </button>
@@ -474,7 +474,7 @@ export function EnterpriseListPage<T>({
                                 confirmDeleteModal.open(item);
                               }}
                               title={canDelete ? 'Delete record' : "You don't have permission to delete this record."}
-                              className="rounded-[3px] p-1 text-[var(--hz-text-secondary)] hover:bg-[var(--hz-danger-bg)] hover:text-[var(--hz-danger-text)] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[var(--hz-text-secondary)]"
+                              className="rounded-md p-1 text-[var(--hz-text-secondary)] hover:bg-[var(--hz-danger-bg)] hover:text-[var(--hz-danger-text)] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[var(--hz-text-secondary)]"
                             >
                               {canDelete ? <Trash2 className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
                             </button>

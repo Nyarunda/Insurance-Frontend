@@ -632,7 +632,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                       Policy active from 01 Sep 2025 to 31 Aug 2026; loss occurred 28 Aug 2026.
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
                     VALID ✓
                   </span>
                 </div>
@@ -643,7 +643,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                       Section 156 Insurance Act compliant. Receipt #REC-2026-8812 verified.
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
                     VALID ✓
                   </span>
                 </div>
@@ -654,7 +654,7 @@ export const ClaimWorkspace: React.FC<ClaimWorkspaceProps> = ({ onNavigate, dens
                       Standard Own Damage excess: 2.5% of claim (KES 9,500) payable by insured to garage.
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
                     APPLIED ✓
                   </span>
                 </div>

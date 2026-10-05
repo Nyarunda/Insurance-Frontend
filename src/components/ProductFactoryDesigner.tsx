@@ -71,7 +71,7 @@ export const ProductFactoryDesigner: React.FC<ProductFactoryDesignerProps> = ({
                 PRODUCT STUDIO
               </span>
               <span className="font-mono font-bold text-xs text-teal-700">PRD-MTR-COMP-v4.2</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-[3px] bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                 ● IN PRODUCTION
               </span>

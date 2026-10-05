@@ -42,7 +42,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
           <div>
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               Submission Queue: Referral Escalation Pending
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-[3px] font-mono">
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md font-mono">
                 ACTION REQUIRED
               </span>
             </h2>
@@ -240,7 +240,7 @@ export const UnderwriterDashboard: React.FC<UnderwriterDashboardProps> = ({ onNa
                   </td>
                   <td className="px-4 py-3.5">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-[3px] text-[11px] font-medium ${
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${
                         item.status === 'Referral'
                           ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                           : item.status === 'Quoted'

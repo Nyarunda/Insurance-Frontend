@@ -29,6 +29,8 @@ export interface NavItem {
   moduleId?: ModuleId;
   /** Key of NavigationCountersResponse; counters are neutral, never business-state colored. */
   counter?: keyof NavigationCountersResponse;
+  /** The item's own icon; the group's icon stands in when absent. */
+  icon?: LucideIcon;
 }
 
 export interface NavGroup {

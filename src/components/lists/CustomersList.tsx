@@ -115,7 +115,7 @@ export const CustomersList: React.FC<CustomersListProps> = ({ onNavigate, densit
       header: 'Policies',
       align: 'center',
       render: (c) => (
-        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-[3px] text-xs">
+        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-xs">
           {c.activePoliciesCount}
         </span>
       ),

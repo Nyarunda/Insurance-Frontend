@@ -271,7 +271,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-[3px] ${
+                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
                     selectedTab === tab.id ? 'bg-teal-200 text-teal-900' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
@@ -357,7 +357,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                     </td>
                     <td className="py-2.5 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${row.statusColor}`}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${row.statusColor}`}
                       >
                         {row.status}
                       </span>
@@ -605,7 +605,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
             >
               <span>{tab.label}</span>
               <span
-                className={`text-[10px] font-mono px-1.5 py-0.2 rounded-[3px] ${
+                className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
                   uwTab === tab.id ? 'bg-teal-200 text-teal-900' : 'bg-slate-100 text-slate-600'
                 }`}
               >
@@ -691,7 +691,7 @@ export const ModuleLandingView: React.FC<ModuleLandingViewProps> = ({
                   </td>
                   <td className="py-2.5 px-4">
                     <span
-                      className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${row.statusColor}`}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${row.statusColor}`}
                     >
                       {row.status}
                     </span>

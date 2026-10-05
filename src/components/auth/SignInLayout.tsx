@@ -8,62 +8,45 @@ import { FieldError, PasswordStrengthMeter } from '../horizon';
  */
 
 export const SignInFrame: React.FC<{ children: React.ReactNode; footer?: React.ReactNode }> = ({ children, footer }) => (
-  <main className="min-h-screen bg-[var(--hz-app-bg)] text-[var(--hz-text-primary)] font-sans antialiased flex">
-    <section className="hidden lg:flex w-[43%] min-h-screen bg-[var(--hz-nav)] text-[var(--hz-text-inverse)] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(90deg,transparent_31px,white_32px),linear-gradient(transparent_31px,white_32px)] bg-[length:32px_32px]" />
-      <div className="relative z-10 flex flex-col justify-between w-full p-10 xl:p-12">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-[var(--hz-radius-md)] bg-white text-[var(--hz-nav)] flex items-center justify-center font-black text-lg">
-              IC
-            </div>
-            <div>
-              <div className="text-sm font-extrabold tracking-wide uppercase">INSURANCE CLOUD</div>
-              <div className="text-[13px] uppercase tracking-[0.18em] text-blue-100">Operations Portal</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-lg">
-          <div className="inline-flex items-center gap-2 rounded-[var(--hz-radius-md)] bg-white/10 border border-white/20 px-3 py-1.5 text-[13px] font-semibold text-blue-50 mb-5">
-            <ShieldCheck className="w-4 h-4" />
-            Secure insurance operations workspace
-          </div>
-          <h1 className="text-4xl xl:text-5xl font-extrabold leading-tight tracking-normal">
-            Welcome to your commercial insurance operating console
-          </h1>
-          <p className="mt-4 text-sm leading-6 text-blue-50/90 max-w-md">
-            Underwriting, policy administration, claims, billing, reinsurance, and regulator-ready controls in one workspace.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 text-[13px]">
-          {[
-            ['12', 'Active modules'],
-            ['24/7', 'Ops access'],
-            ['KES', 'Local finance'],
-          ].map(([value, label]) => (
-            <div key={label} className="border border-white/20 bg-white/10 rounded-[var(--hz-radius-md)] p-3">
-              <div className="text-xl font-extrabold">{value}</div>
-              <div className="text-blue-100 mt-0.5">{label}</div>
-            </div>
-          ))}
-        </div>
+  <main className="min-h-screen bg-[var(--hz-bg-app)] text-[var(--hz-text-primary)] font-sans antialiased flex">
+    <section className="flex-1 min-h-screen flex flex-col px-5 py-6 md:px-10">
+      <div className="flex items-center gap-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--hz-primary-700)] text-[var(--hz-text-inverse)]">
+          <ShieldCheck className="h-4 w-4" />
+        </span>
+        <span className="text-[15px] font-semibold">Insurance Cloud</span>
+      </div>
+      <div className="flex flex-1 items-center justify-center py-8">
+        <div className="w-full max-w-[400px]">{children}</div>
       </div>
     </section>
 
-    <section className="flex-1 min-h-screen flex items-center justify-center px-5 py-8">
-      <div className="w-full max-w-[430px]">
-        <div className="lg:hidden flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-[var(--hz-radius-md)] bg-[var(--hz-nav)] text-white flex items-center justify-center font-black">
-            IC
+    <section className="hidden lg:flex w-[46%] min-h-screen bg-[var(--hz-primary-800)] text-[var(--hz-text-inverse)] relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(90deg,transparent_47px,white_48px),linear-gradient(transparent_47px,white_48px)] bg-[length:48px_48px]" />
+      <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
+      <div className="relative z-10 flex w-full flex-col justify-end p-10 xl:p-14">
+        <div className="max-w-lg">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[13px] text-white/80">
+            <ShieldCheck className="h-4 w-4" />
+            Secure insurance operations workspace
           </div>
-          <div>
-            <div className="text-sm font-extrabold tracking-wide uppercase">INSURANCE CLOUD</div>
-            <div className="text-[13px] uppercase tracking-[0.16em] text-[var(--hz-primary)]">Operations Portal</div>
-          </div>
+          <h1 className="text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
+            Policies, endorsements and approvals in one place.
+          </h1>
+          <p className="mt-4 max-w-md text-[15px] leading-7 text-white/70">
+            Every change is prepared by one person and decided by another, with the facts that matter shown at the point of decision.
+          </p>
+          <ul className="mt-8 space-y-3 text-[14px] text-white/80">
+            {['Maker and checker on every change', 'Branch access decided by the server', 'A full history of who did what'].map((line) => (
+              <li key={line} className="flex items-center gap-3">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                </span>
+                {line}
+              </li>
+            ))}
+          </ul>
         </div>
-        {children}
       </div>
     </section>
     {footer}
@@ -76,20 +59,20 @@ export const SignInPanel: React.FC<{
   onBack?: () => void;
   children: React.ReactNode;
 }> = ({ title, subtitle, onBack, children }) => (
-  <div className="hz-panel shadow-sm">
-    <div className="px-7 pt-7 pb-5 border-b border-[var(--hz-divider)]">
+  <div>
+    <div className="pb-6">
       {onBack && (
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--hz-text-subtle)] hover:text-[var(--hz-text-primary)]"
+          className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to sign in
         </button>
       )}
-      <h2 className="text-xl font-extrabold text-[var(--hz-text-primary)]">{title}</h2>
-      <p className="text-[13px] text-[var(--hz-text-subtle)] mt-1">{subtitle}</p>
+      <h2 className="text-2xl font-semibold tracking-tight text-[var(--hz-text-primary)]">{title}</h2>
+      <p className="mt-1.5 text-sm text-[var(--hz-text-muted)]">{subtitle}</p>
     </div>
     {children}
   </div>
@@ -100,9 +83,9 @@ const fieldInput =
 
 export const EmailField: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => (
   <label className="block">
-    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">Email address</span>
-    <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
-      <Mail className="w-4 h-4 text-[var(--hz-text-subtle)]" />
+    <span className="text-sm font-medium text-[var(--hz-text-primary)]">Email address</span>
+    <span className="hz-field mt-2 flex h-10 items-center gap-2 px-3">
+      <Mail className="w-4 h-4 text-[var(--hz-text-muted)]" />
       <input
         type="email"
         value={value}
@@ -124,9 +107,9 @@ export const PasswordField: React.FC<{
   error?: string;
 }> = ({ label, value, onChange, placeholder, autoComplete, error }) => (
   <label className="block">
-    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">{label}</span>
-    <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
-      <LockKeyhole className="w-4 h-4 text-[var(--hz-text-subtle)]" />
+    <span className="text-sm font-medium text-[var(--hz-text-primary)]">{label}</span>
+    <span className="hz-field mt-2 flex h-10 items-center gap-2 px-3">
+      <LockKeyhole className="w-4 h-4 text-[var(--hz-text-muted)]" />
       <input
         type="password"
         value={value}
@@ -145,7 +128,7 @@ export const SubmitButton: React.FC<{ busy?: boolean; busyLabel?: string; childr
   busyLabel,
   children,
 }) => (
-  <button type="submit" disabled={busy} className="hz-button hz-button-primary w-full h-10 disabled:opacity-60">
+  <button type="submit" disabled={busy} className="hz-button hz-button-primary w-full h-10">
     {busy && busyLabel ? busyLabel : children}
   </button>
 );
@@ -156,9 +139,9 @@ export const OtpCodeField: React.FC<{ value: string; onChange: (value: string) =
   error,
 }) => (
   <label className="block">
-    <span className="text-[13px] font-bold text-[var(--hz-text-secondary)]">Verification code</span>
-    <span className="hz-field mt-1.5 flex items-center gap-2 px-3">
-      <KeyRound className="w-4 h-4 text-[var(--hz-text-subtle)]" />
+    <span className="text-sm font-medium text-[var(--hz-text-primary)]">Verification code</span>
+    <span className="hz-field mt-2 flex h-10 items-center gap-2 px-3">
+      <KeyRound className="w-4 h-4 text-[var(--hz-text-muted)]" />
       <input
         value={value}
         onChange={(event) => onChange(event.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -187,7 +170,7 @@ export const OtpResendRow: React.FC<{ secondsRemaining: number; onResend: () => 
       type="button"
       onClick={onResend}
       disabled={secondsRemaining > 0 || disabled}
-      className="font-semibold text-[var(--hz-primary)] hover:underline disabled:text-[var(--hz-text-disabled)] disabled:no-underline disabled:cursor-not-allowed"
+      className="font-medium text-[var(--hz-primary)] underline-offset-4 hover:underline disabled:text-[var(--hz-text-disabled)] disabled:no-underline disabled:cursor-not-allowed"
     >
       Resend code
     </button>

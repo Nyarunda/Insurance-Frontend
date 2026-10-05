@@ -7,7 +7,7 @@ import {
   GitBranch,
   HelpCircle,
   LogOut,
-  Menu,
+  PanelLeft,
   Plus,
   Search,
   UserCheck,
@@ -81,6 +81,8 @@ interface GlobalTopBarProps {
   quickActions?: TopBarQuickAction[];
   onOpenProfile?: () => void;
   onLogout?: () => void;
+  /** The product mark; off when the sidebar already shows it. */
+  showBrand?: boolean;
 }
 
 type MenuId = 'tenant' | 'branch' | 'new' | 'alerts' | 'help' | 'user' | null;
@@ -92,6 +94,14 @@ const SHORTCUTS: Array<{ keys: string; action: string; needsSearch?: boolean }> 
   { keys: 'Enter', action: 'Open the selected record' },
 ];
 
+/** Two letters for the avatar: from the name's words, or the e-mail's local part. */
+export const userInitials = (name: string): string => {
+  const local = name.includes('@') ? name.split('@')[0] : name;
+  const words = local.split(/[\s._-]+/).filter(Boolean);
+  const letters = words.length > 1 ? words[0][0] + words[1][0] : local.slice(0, 2);
+  return letters.toUpperCase() || '?';
+};
+
 /** Dropdown panel shell shared by every top-bar menu. */
 const MenuPanel: React.FC<{ align?: 'left' | 'right'; width?: string; children: React.ReactNode }> = ({
   align = 'right',
@@ -100,18 +110,18 @@ const MenuPanel: React.FC<{ align?: 'left' | 'right'; width?: string; children: 
 }) => (
   <div
     role="menu"
-    className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full z-50 mt-1 ${width} rounded-[6px] border border-[var(--hz-border-grid)] bg-white py-1 text-[13px] text-[var(--hz-text-primary)] shadow-lg`}
+    className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full z-50 mt-1 ${width} rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] p-1 text-[13px] text-[var(--hz-text-primary)] shadow-md`}
   >
     {children}
   </div>
 );
 
 const MenuHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="hz-section-label border-b border-[var(--hz-border-grid)] px-3 py-1.5">{children}</div>
+  <div className="hz-section-label px-2 py-1.5">{children}</div>
 );
 
 const barButton =
-  'flex h-8 items-center gap-1.5 rounded-[3px] px-2 text-[13px] text-[var(--hz-sidebar-text)] hover:bg-white/10 transition-colors';
+  'flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--hz-text-primary)] hover:bg-[var(--hz-surface-muted)] transition-colors';
 
 export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
   onNavigate,
@@ -127,6 +137,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
   quickActions,
   onOpenProfile,
   onLogout,
+  showBrand = true,
 }) => {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -160,40 +171,43 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
     const parts = userName.split(' ').filter(Boolean);
     return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1].charAt(0)}.` : userName;
   })();
+  const initials = userInitials(userName);
 
   return (
     <header
       ref={barRef}
-      className="sticky top-0 z-40 flex shrink-0 items-center justify-between gap-2 border-b border-[var(--hz-sidebar-border)] bg-[var(--hz-topbar-bg)] px-2 text-[var(--hz-sidebar-text)]"
+      className="sticky top-0 z-40 flex shrink-0 items-center justify-between gap-2 border-b border-[var(--hz-border-grid)] bg-[var(--hz-topbar-bg)]/95 px-3 text-[var(--hz-text-primary)] backdrop-blur md:px-4"
       style={{ height: 'var(--hz-topbar-height)' }}
     >
       {/* Left: navigation toggle, product mark, tenant, branch, search */}
       <div className="flex min-w-0 items-center gap-1">
         <button type="button" onClick={onToggleSidebar} className={`${barButton} w-8 justify-center`} title="Toggle navigation">
-          <Menu className="h-4 w-4" />
+          <PanelLeft className="h-4 w-4" />
         </button>
 
-        <button type="button" onClick={() => go('dashboard')} className="mr-2 flex items-center gap-2 px-1" title="Dashboard">
-          <span className="flex h-6 w-6 items-center justify-center rounded-[3px] bg-white text-xs font-bold text-[var(--hz-primary-700)]">
-            IC
-          </span>
-          <span className="hidden text-[13px] font-semibold tracking-[0.04em] text-white md:inline">INSURANCE CLOUD</span>
-        </button>
+        {showBrand && (
+          <button type="button" onClick={() => go('dashboard')} className="mr-2 flex items-center gap-2 px-1" title="Dashboard">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--hz-primary-700)] text-xs font-semibold text-[var(--hz-text-inverse)]">
+              IC
+            </span>
+            <span className="hidden text-[15px] font-semibold md:inline">Insurance Cloud</span>
+          </button>
+        )}
 
-        <span className="mx-1 hidden h-5 w-px bg-white/15 sm:block" aria-hidden />
+        <span className="mx-1 hidden h-5 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
 
         {/* Tenant */}
         <div className="relative hidden sm:block">
           {tenant.options?.length ? (
             <button type="button" onClick={() => toggle('tenant')} className={barButton} aria-haspopup="menu" aria-expanded={openMenu === 'tenant'}>
-              <Building2 className="h-3.5 w-3.5 text-[var(--hz-sidebar-muted)]" />
-              <span className="max-w-[180px] truncate font-semibold text-white">{tenant.name}</span>
-              <ChevronDown className="h-3 w-3 text-[var(--hz-sidebar-muted)]" />
+              <Building2 className="h-3.5 w-3.5 text-[var(--hz-text-muted)]" />
+              <span className="max-w-[180px] truncate font-medium text-[var(--hz-text-primary)]">{tenant.name}</span>
+              <ChevronDown className="h-3 w-3 text-[var(--hz-text-muted)]" />
             </button>
           ) : (
             <span className={barButton} data-testid="tenant-name">
-              <Building2 className="h-3.5 w-3.5 text-[var(--hz-sidebar-muted)]" />
-              <span className="max-w-[180px] truncate font-semibold text-white">{tenant.name}</span>
+              <Building2 className="h-3.5 w-3.5 text-[var(--hz-text-muted)]" />
+              <span className="max-w-[180px] truncate font-medium text-[var(--hz-text-primary)]">{tenant.name}</span>
             </span>
           )}
           {openMenu === 'tenant' && tenant.options && (
@@ -207,7 +221,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                     tenant.onSelect?.(option.id);
                     setOpenMenu(null);
                   }}
-                  className="flex w-full items-start justify-between px-3 py-2 text-left hover:bg-[var(--hz-surface-subtle)]"
+                  className="flex w-full items-start justify-between px-3 py-2 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                 >
                   <span>
                     <span className="block font-semibold">{option.name}</span>
@@ -230,9 +244,9 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
             aria-expanded={openMenu === 'branch'}
             aria-label={`Branch: ${branch.label}`}
           >
-            <GitBranch className="h-3.5 w-3.5 text-[var(--hz-sidebar-muted)]" />
+            <GitBranch className="h-3.5 w-3.5 text-[var(--hz-text-muted)]" />
             <span className="max-w-[170px] truncate">{branch.label}</span>
-            <ChevronDown className="h-3 w-3 text-[var(--hz-sidebar-muted)]" />
+            <ChevronDown className="h-3 w-3 text-[var(--hz-text-muted)]" />
           </button>
           {openMenu === 'branch' && (
             <MenuPanel align="left">
@@ -249,7 +263,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                     branch.onSelect(null);
                     setOpenMenu(null);
                   }}
-                  className="flex w-full items-start justify-between px-3 py-2 text-left hover:bg-[var(--hz-surface-subtle)]"
+                  className="flex w-full items-start justify-between px-3 py-2 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                 >
                   <span className="block font-semibold">{branch.allLabel}</span>
                   {branch.activeId === null && <Check className="mt-0.5 h-3.5 w-3.5 text-[var(--hz-primary-700)]" />}
@@ -265,7 +279,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                     branch.onSelect(option.id);
                     setOpenMenu(null);
                   }}
-                  className="flex w-full items-start justify-between px-3 py-2 text-left hover:bg-[var(--hz-surface-subtle)]"
+                  className="flex w-full items-start justify-between px-3 py-2 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                 >
                   <span>
                     <span className="block font-semibold">{option.name}</span>
@@ -284,12 +298,12 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="ml-2 hidden h-8 w-[300px] items-center gap-2 rounded-[3px] border border-white/15 bg-white/5 px-2.5 text-left text-[13px] text-[var(--hz-sidebar-muted)] hover:border-white/30 hover:bg-white/10 lg:flex"
+          className="ml-2 hidden h-8 w-[300px] items-center gap-2 rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-2.5 text-left text-[13px] text-[var(--hz-text-muted)] shadow-xs hover:bg-[var(--hz-surface-muted)] lg:flex"
           title="Search (Ctrl+K)"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1 truncate">Search customer, policy, claim…</span>
-          <kbd className="rounded-[3px] border border-white/20 px-1 font-sans text-xs text-[var(--hz-sidebar-muted)]">Ctrl K</kbd>
+          <kbd className="rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-muted)] px-1 font-sans text-xs text-[var(--hz-text-muted)]">Ctrl K</kbd>
         </button>
         <button type="button" onClick={onOpenCommandPalette} className={`${barButton} w-8 justify-center lg:hidden`} title="Search (Ctrl+K)">
           <Search className="h-4 w-4" />
@@ -314,7 +328,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                   key={label}
                   type="button"
                   onClick={() => go(screen)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[var(--hz-surface-subtle)]"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                 >
                   <Icon className="h-3.5 w-3.5 text-[var(--hz-text-secondary)]" />
                   <span>{label}</span>
@@ -329,14 +343,14 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         <div className="relative">
           <button type="button" onClick={() => toggle('alerts')} className={barButton} title="Notifications" aria-haspopup="menu">
             <Bell className="h-4 w-4" />
-            <span className="rounded-[3px] bg-white/15 px-1 text-xs font-semibold tabular-nums text-white">{notifications.unread}</span>
+            <span className="rounded-md bg-[var(--hz-border-grid)] px-1 text-xs font-medium tabular-nums text-[var(--hz-text-primary)]">{notifications.unread}</span>
           </button>
           {openMenu === 'alerts' && (
             <MenuPanel width="w-80">
               <div className="flex items-center justify-between border-b border-[var(--hz-border-grid)] px-3 py-1.5">
                 <span className="hz-section-label">Notifications</span>
                 {notifications.badge && (
-                  <span className="rounded-[3px] border border-[var(--hz-danger-border)] bg-[var(--hz-danger-bg)] px-1.5 text-xs font-semibold text-[var(--hz-danger-text)]">
+                  <span className="rounded-md border border-[var(--hz-danger-border)] bg-[var(--hz-danger-bg)] px-1.5 text-xs font-semibold text-[var(--hz-danger-text)]">
                     {notifications.badge}
                   </span>
                 )}
@@ -347,7 +361,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                     key={notification.id}
                     type="button"
                     onClick={() => go(notification.screen)}
-                    className="block w-full px-3 py-2 text-left hover:bg-[var(--hz-surface-subtle)]"
+                    className="block w-full px-3 py-2 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                   >
                     <span className="flex items-baseline justify-between gap-2">
                       <span className={`font-semibold ${notification.urgent ? 'text-[var(--hz-danger-text)]' : ''}`}>{notification.title}</span>
@@ -378,7 +392,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                 {shortcuts.map((shortcut) => (
                   <div key={shortcut.keys} className="flex items-center justify-between gap-3 py-1">
                     <dt>
-                      <kbd className="rounded-[3px] border border-[var(--hz-border-default)] bg-[var(--hz-surface-subtle)] px-1.5 font-sans text-xs font-semibold">
+                      <kbd className="rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-subtle)] px-1.5 font-sans text-xs font-semibold">
                         {shortcut.keys}
                       </kbd>
                     </dt>
@@ -390,13 +404,15 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
           )}
         </div>
 
-        <span className="mx-1 hidden h-5 w-px bg-white/15 sm:block" aria-hidden />
+        <span className="mx-1 hidden h-5 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
 
         <div className="relative">
           <button type="button" onClick={() => toggle('user')} className={barButton} aria-haspopup="menu" aria-label="Account menu">
-            <span className="hidden max-w-[140px] truncate font-semibold text-white sm:inline">{shortName}</span>
-            <UserCheck className="h-4 w-4 sm:hidden" />
-            <ChevronDown className="h-3 w-3 text-[var(--hz-sidebar-muted)]" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--hz-surface-muted)] text-xs font-semibold text-[var(--hz-text-primary)] ring-1 ring-[var(--hz-border-grid)]" aria-hidden>
+              {initials}
+            </span>
+            <span className="hidden max-w-[140px] truncate font-medium text-[var(--hz-text-primary)] lg:inline">{shortName}</span>
+            <ChevronDown className="h-3 w-3 text-[var(--hz-text-muted)]" />
           </button>
           {openMenu === 'user' && (
             <MenuPanel width="w-72">
@@ -421,7 +437,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                         roleCenter.onSelect(option.id);
                         setOpenMenu(null);
                       }}
-                      className="flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-[var(--hz-surface-subtle)]"
+                      className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                     >
                       <span>{option.name}</span>
                       {roleCenter.activeId === option.id && <Check className="h-3.5 w-3.5 text-[var(--hz-primary-700)]" />}
@@ -437,10 +453,10 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                     key={density}
                     type="button"
                     onClick={() => onDensityChange(density)}
-                    className={`flex-1 rounded-[3px] border px-2 py-1 text-[12px] capitalize ${
+                    className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize ${
                       densityMode === density
                         ? 'border-[var(--hz-primary-700)] bg-[var(--hz-surface-selected)] font-semibold text-[var(--hz-primary-700)]'
-                        : 'border-[var(--hz-border-default)] text-[var(--hz-text-secondary)] hover:bg-[var(--hz-surface-subtle)]'
+                        : 'border-[var(--hz-border-default)] text-[var(--hz-text-secondary)] rounded-md hover:bg-[var(--hz-surface-muted)]'
                     }`}
                   >
                     {density}
@@ -456,7 +472,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
                       setOpenMenu(null);
                       onOpenProfile();
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-[var(--hz-surface-subtle)]"
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left rounded-md hover:bg-[var(--hz-surface-muted)]"
                   >
                     <UserCheck className="h-3.5 w-3.5 text-[var(--hz-text-secondary)]" />
                     My Profile

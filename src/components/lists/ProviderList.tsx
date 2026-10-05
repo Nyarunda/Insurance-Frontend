@@ -93,7 +93,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ onNavigate, densityM
       header: 'Active Orders',
       align: 'center',
       render: (p) => (
-        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-[3px] text-xs">
+        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-xs">
           {p.activeWorkOrdersCount}
         </span>
       ),

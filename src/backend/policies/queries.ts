@@ -23,7 +23,7 @@ export const POLICY_KEYS = {
   versions: (id: string) => ['policies', 'versions', id] as const,
 };
 
-export function usePolicies(filters: PolicyFilters) {
+export function usePolicies(filters: PolicyFilters, enabled = true) {
   return useQuery({
     queryKey: POLICY_KEYS.list(filters),
     queryFn: async () => {
@@ -33,6 +33,7 @@ export function usePolicies(filters: PolicyFilters) {
       return (await api.request<PolicyPage>(`/policies?${params}`)).data;
     },
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

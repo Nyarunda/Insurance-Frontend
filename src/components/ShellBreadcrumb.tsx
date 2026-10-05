@@ -9,6 +9,8 @@ interface ShellBreadcrumbProps {
   currentScreen: ScreenId;
   recordId?: string;
   onNavigate: (screen: ScreenId) => void;
+  /** `row`: a bordered strip above the workspace; `inline`: plain crumbs inside the page. */
+  variant?: 'row' | 'inline';
 }
 
 /**
@@ -16,7 +18,7 @@ interface ShellBreadcrumbProps {
  * Group / Item / Record reference. Derived from the navigation registry so it never drifts
  * from the sidebar.
  */
-export const ShellBreadcrumb: React.FC<ShellBreadcrumbProps> = ({ groups, currentScreen, recordId, onNavigate }) => {
+export const ShellBreadcrumb: React.FC<ShellBreadcrumbProps> = ({ groups, currentScreen, recordId, onNavigate, variant = 'row' }) => {
   const location = findNavLocation(currentScreen, groups);
   const isRecordWorkspace = RECORD_WORKSPACE_SCREENS.has(currentScreen);
 
@@ -33,25 +35,29 @@ export const ShellBreadcrumb: React.FC<ShellBreadcrumbProps> = ({ groups, curren
   return (
     <nav
       aria-label="Breadcrumb"
-      className="flex h-8 shrink-0 items-center border-b border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] px-4 text-[12px]"
+      className={
+        variant === 'inline'
+          ? 'mb-4 flex shrink-0 items-center text-[13px]'
+          : 'flex h-9 shrink-0 items-center border-b border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] px-4 text-[13px]'
+      }
     >
       <ol className="flex min-w-0 items-center gap-1">
         {crumbs.map((crumb, index) => {
           const last = index === crumbs.length - 1;
           return (
             <li key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1">
-              {index > 0 && <ChevronRight className="h-3 w-3 shrink-0 text-[var(--hz-text-disabled)]" aria-hidden />}
+              {index > 0 && <ChevronRight className="h-3 w-3 shrink-0 text-[var(--hz-text-muted)]" aria-hidden />}
               {crumb.screen && !last ? (
                 <button
                   type="button"
                   onClick={() => onNavigate(crumb.screen!)}
-                  className="truncate text-[var(--hz-primary-700)] hover:underline"
+                  className="truncate text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]"
                 >
                   {crumb.label}
                 </button>
               ) : (
                 <span
-                  className={`truncate ${last ? 'font-semibold text-[var(--hz-text-primary)]' : 'text-[var(--hz-text-muted)]'}`}
+                  className={`truncate ${last ? 'font-medium text-[var(--hz-text-primary)]' : 'text-[var(--hz-text-muted)]'}`}
                   aria-current={last ? 'page' : undefined}
                 >
                   {crumb.label}

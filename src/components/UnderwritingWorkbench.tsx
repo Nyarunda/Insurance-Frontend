@@ -64,7 +64,7 @@ export const UnderwritingWorkbench: React.FC<UnderwritingWorkbenchProps> = ({
                 UNDERWRITING
               </span>
               <span className="font-mono font-bold text-xs text-teal-700">MTR/Q/2026/00821</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-[3px] bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 Referral Triggered
               </span>

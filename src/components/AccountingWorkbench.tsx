@@ -122,7 +122,7 @@ export const AccountingWorkbench: React.FC<AccountingWorkbenchProps> = ({
               </span>
               <span className="font-mono font-bold text-xs text-teal-700">GENERAL LEDGER</span>
               <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-[3px] flex items-center gap-1 border ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-md flex items-center gap-1 border ${
                   isBooksBalanced ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                 }`}
               >

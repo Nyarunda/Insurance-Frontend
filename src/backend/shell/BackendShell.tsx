@@ -9,6 +9,7 @@ import { GlobalTopBar } from '../../components/GlobalTopBar';
 import { HorizonAlert, HorizonLoader } from '../../components/horizon';
 import { ShellBreadcrumb } from '../../components/ShellBreadcrumb';
 import { Sidebar } from '../../components/Sidebar';
+import { userInitials } from '../../components/GlobalTopBar';
 import { readDensity, readPreference, writePreference } from '../../store/preferences';
 import type { DensityMode, ScreenId } from '../../types';
 import { useBranchStore } from '../../lib/context/branchStore';
@@ -78,52 +79,55 @@ export const BackendShell: React.FC = () => {
   }
 
   const activeBranch = branches.find((branch) => branch.id === activeBranchId);
-  const densityPadding = densityMode === 'compact' ? 'px-4 pt-3' : densityMode === 'spacious' ? 'px-6 pt-5' : 'px-5 pt-4';
+  const densityPadding = densityMode === 'compact' ? 'px-4 py-4' : densityMode === 'spacious' ? 'px-6 py-8 md:px-8' : 'px-4 py-6 md:px-6';
 
   return (
     <div
-      className={`h-screen bg-[var(--hz-bg-app)] text-[var(--hz-text-primary)] flex flex-col font-sans antialiased overflow-hidden density-${densityMode}`}
+      className={`h-screen bg-[var(--hz-bg-app)] text-[var(--hz-text-primary)] flex font-sans antialiased overflow-hidden density-${densityMode}`}
     >
-      <GlobalTopBar
+      <Sidebar
+        groups={groups}
+        currentScreen={currentScreen}
         onNavigate={onNavigate}
-        onToggleSidebar={toggleSidebar}
-        tenant={{ name: meData.tenant.name }}
-        branch={{
-          label: activeBranch?.name ?? (branches.length ? 'All my branches' : 'No branch assigned'),
-          heading: 'Branch context',
-          options: branches.map((branch) => ({ id: branch.id, name: branch.name, detail: branch.code })),
-          activeId: activeBranchId,
-          onSelect: (branchId) => useBranchStore.getState().select(branchId),
-          allLabel: branches.length > 1 ? 'All my branches' : undefined,
-          emptyText: 'No branch is assigned to you.',
-        }}
-        user={{ name: meData.user.email, email: meData.user.email }}
-        densityMode={densityMode}
-        onDensityChange={changeDensity}
-        onLogout={() => void signOut()}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+        brand={{ title: 'Insurance Cloud', subtitle: meData.tenant.name }}
+        footer={(rail) => <SidebarUser email={meData.user.email} branch={activeBranch?.name} rail={rail} />}
       />
 
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        <Sidebar
-          groups={groups}
-          currentScreen={currentScreen}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <GlobalTopBar
           onNavigate={onNavigate}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={toggleSidebar}
+          onToggleSidebar={toggleSidebar}
+          showBrand={false}
+          tenant={{ name: meData.tenant.name }}
+          branch={{
+            label: activeBranch?.name ?? (branches.length ? 'All my branches' : 'No branch assigned'),
+            heading: 'Branch context',
+            options: branches.map((branch) => ({ id: branch.id, name: branch.name, detail: branch.code })),
+            activeId: activeBranchId,
+            onSelect: (branchId) => useBranchStore.getState().select(branchId),
+            allLabel: branches.length > 1 ? 'All my branches' : undefined,
+            emptyText: 'No branch is assigned to you.',
+          }}
+          user={{ name: meData.user.email, email: meData.user.email }}
+          densityMode={densityMode}
+          onDensityChange={changeDensity}
+          onLogout={() => void signOut()}
         />
 
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
-          <ShellBreadcrumb groups={groups} currentScreen={currentScreen} onNavigate={onNavigate} />
-          <main className={`flex-1 pb-10 ${densityPadding} w-full`}>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <main className={`mx-auto w-full max-w-screen-2xl flex-1 pb-10 ${densityPadding}`}>
+            <ShellBreadcrumb groups={groups} currentScreen={currentScreen} onNavigate={onNavigate} variant="inline" />
             {branchNotice === 'BRANCH_REJECTED' && (
-              <div className="mb-3" role="status">
+              <div className="mb-4" role="status">
                 <HorizonAlert
                   tone="warning"
                   title="Branch selection cleared"
                   action={
                     <button
                       type="button"
-                      className="text-[13px] font-semibold text-[var(--hz-primary-700)] hover:underline"
+                      className="text-[13px] font-medium text-[var(--hz-primary-700)] underline-offset-4 hover:underline"
                       onClick={() => useBranchStore.getState().dismissNotice()}
                     >
                       Dismiss
@@ -143,3 +147,18 @@ export const BackendShell: React.FC = () => {
     </div>
   );
 };
+
+/** The signed-in user at the foot of the sidebar, as in the template. Actions live in the account menu. */
+const SidebarUser: React.FC<{ email: string; branch?: string; rail: boolean }> = ({ email, branch, rail }) => (
+  <div className={`flex items-center gap-2 rounded-md p-1.5 ${rail ? 'justify-center' : ''}`} title={email}>
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hz-surface-main)] text-[13px] font-semibold ring-1 ring-[var(--hz-sidebar-border)]" aria-hidden>
+      {userInitials(email)}
+    </span>
+    {!rail && (
+      <span className="min-w-0 leading-tight">
+        <span className="block truncate text-[13px] font-medium">{email.split('@')[0]}</span>
+        <span className="block truncate text-[13px] text-[var(--hz-sidebar-muted)]">{branch ?? email}</span>
+      </span>
+    )}
+  </div>
+);

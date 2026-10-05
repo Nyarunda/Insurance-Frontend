@@ -245,7 +245,7 @@ describe('the instance', () => {
     renderAt(`/my-work/${INSTANCE_ID}`);
     // FI1-E: a VOID heading with the void's reason from history, the code read as words.
     const heading = await screen.findByText(VOID_HEADING);
-    const panel = heading.closest('div.rounded-\\[3px\\]') as HTMLElement;
+    const panel = heading.closest('[data-slot="alert"]') as HTMLElement;
     expect(panel).toHaveTextContent('Endorsement base stale: V1 superseded by V2');
     expect(panel).toHaveTextContent('No decision can be made on it.');
     expect(mainText()).not.toContain('ENDORSEMENT_BASE_STALE');

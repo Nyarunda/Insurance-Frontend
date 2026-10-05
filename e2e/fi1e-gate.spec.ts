@@ -271,7 +271,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
 
     const { page } = maker;
     await page.goto(`${origin(facts().alpha.domain)}${endorsements.second.path}`);
-    const panel = page.getByText('No longer actionable').locator('xpath=ancestor::div[contains(@class,"rounded-[3px]")][1]');
+    const panel = page.getByText('No longer actionable').locator('xpath=ancestor::div[@data-slot="alert"][1]');
     await expect(panel).toContainText('policy version V1 has been superseded by V2');
     await expect(panel).toContainText('Required action: Withdraw this endorsement and prepare it again from the current policy version.');
     await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0);

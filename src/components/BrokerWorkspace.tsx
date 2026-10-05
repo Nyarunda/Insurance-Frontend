@@ -104,7 +104,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                 {broker.code}
               </h1>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-[3px] bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 ml-1">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 ml-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 {broker.status}
               </span>
@@ -597,7 +597,7 @@ export const BrokerWorkspace: React.FC<BrokerWorkspaceProps> = ({ onNavigate, de
               <span className="text-[11px] font-semibold text-[var(--hz-text-secondary)] uppercase tracking-wider">
                 NEXT COMMISSION BATCH
               </span>
-              <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-100 text-emerald-800">
+              <span className="px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
                 SCHEDULED
               </span>
             </div>

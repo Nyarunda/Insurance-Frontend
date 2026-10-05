@@ -65,16 +65,16 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={`border-t border-[var(--hz-divider)] pt-6 ${className}`}>
+    <section className={`pt-2 ${className}`}>
       {(title || eyebrow || action) && (
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             {eyebrow && (
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--hz-text-subtle)]">
+              <div className="text-xs font-medium text-[var(--hz-text-subtle)]">
                 {eyebrow}
               </div>
             )}
-            {title && <h2 className="text-[13px] font-semibold uppercase tracking-[0.03em] text-[var(--hz-text-primary)]">{title}</h2>}
+            {title && <h2 className="text-base font-semibold text-[var(--hz-text-primary)]">{title}</h2>}
           </div>
           {action}
         </div>
@@ -111,8 +111,8 @@ export function CardHeader({
   return (
     <div className="mb-3 flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <h3 className="text-[13px] font-semibold text-[var(--hz-text-primary)]">{title}</h3>
-        {description && <p className="mt-0.5 text-xs text-[var(--hz-text-secondary)]">{description}</p>}
+        <h3 className="text-base font-semibold leading-tight text-[var(--hz-text-primary)]">{title}</h3>
+        {description && <p className="mt-1 text-[13px] text-[var(--hz-text-muted)]">{description}</p>}
       </div>
       {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
     </div>
@@ -145,7 +145,7 @@ export function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex h-5 items-center gap-1 rounded-[3px] border px-1.5 text-[11px] font-semibold uppercase tracking-[0.02em] whitespace-nowrap ${statusBadgeToneClass[tone]}`}
+      className={`inline-flex h-[22px] items-center gap-1 rounded-full border px-2 text-xs font-medium whitespace-nowrap ${statusBadgeToneClass[tone]}`}
     >
       {Icon && <Icon className="h-3 w-3 shrink-0" strokeWidth={2.5} />}
       {label}
@@ -176,7 +176,7 @@ export function Status({ tone = 'neutral', children }: { tone?: 'success' | 'war
   }[tone];
 
   return (
-    <span className={`inline-flex items-center rounded-[3px] border px-1.5 py-0.5 text-[11px] font-semibold uppercase ${toneClass}`}>
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${toneClass}`}>
       {children}
     </span>
   );
@@ -196,11 +196,11 @@ export function HorizonAlert({
   const Icon = feedbackIcons[tone];
 
   return (
-    <div className={`rounded-[3px] border px-3 py-2 text-[13px] ${feedbackToneClass[tone]}`}>
+    <div data-slot="alert" className={`rounded-lg border px-4 py-3 text-[13px] ${feedbackToneClass[tone]}`}>
       <div className="flex items-start gap-2">
         <Icon className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="min-w-0 flex-1">
-          {title && <div className="font-bold text-[var(--hz-text-primary)]">{title}</div>}
+          {title && <div className="font-medium text-[var(--hz-text-primary)]">{title}</div>}
           <div className={title ? 'mt-0.5' : ''}>{children}</div>
         </div>
         {action}
@@ -313,7 +313,7 @@ export function HorizonToast({
   const Icon = feedbackIcons[tone];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center gap-3 rounded-[6px] border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-4 py-3 text-[13px] text-[var(--hz-text-primary)] shadow-lg">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center gap-3 rounded-lg border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-4 py-3 text-[13px] text-[var(--hz-text-primary)] shadow-lg">
       <Icon className={`h-5 w-5 shrink-0 ${tone === 'success' ? 'text-[var(--hz-success)]' : tone === 'danger' ? 'text-[var(--hz-danger)]' : tone === 'warning' ? 'text-[var(--hz-warning)]' : 'text-[var(--hz-info)]'}`} />
       <span>{message}</span>
     </div>
@@ -358,7 +358,7 @@ export function HorizonPage({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`space-y-4 pb-8 ${className}`} {...props}>
+    <div className={`hz-screen-enter space-y-6 pb-8 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -386,8 +386,8 @@ export function HorizonPageTitle({
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="truncate text-[18px] font-semibold leading-6 text-[var(--hz-text-primary)]">{title}</h1>
-          {subtitle && <div className="truncate text-[12px] text-[var(--hz-text-secondary)]">{subtitle}</div>}
+          <h1 className="truncate text-2xl font-semibold leading-8 tracking-tight text-[var(--hz-text-primary)]">{title}</h1>
+          {subtitle && <div className="truncate text-sm text-[var(--hz-text-muted)]">{subtitle}</div>}
         </div>
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -452,8 +452,8 @@ export function KeyValueGrid({
   return (
     <dl className={`grid grid-cols-1 ${columns} gap-x-6 gap-y-2 text-[13px]`}>
       {items.map((item) => (
-        <div key={item.label} className="grid grid-cols-[minmax(8rem,0.9fr)_minmax(0,1.1fr)] items-baseline gap-3 border-b border-[var(--hz-divider)] py-1.5">
-          <dt className="text-[var(--hz-text-subtle)]">{item.label}</dt>
+        <div key={item.label} className="grid grid-cols-[minmax(8rem,0.9fr)_minmax(0,1.1fr)] items-baseline gap-3 border-b border-[var(--hz-divider)] py-2 last:border-b-0">
+          <dt className="text-[var(--hz-text-muted)]">{item.label}</dt>
           <dd className={`text-right font-medium text-[var(--hz-text-primary)] ${item.valueClassName || ''}`}>{item.value}</dd>
         </div>
       ))}
@@ -466,8 +466,8 @@ export function Metric({ label, value, note, tone = 'neutral' }: { label: string
 
   return (
     <div className="border-b border-[var(--hz-divider)] pb-3">
-      <div className="text-[13px] font-medium text-[var(--hz-text-subtle)]">{label}</div>
-      <div className={`mt-1 font-mono text-lg font-semibold ${toneClass}`}>{value}</div>
+      <div className="text-[13px] text-[var(--hz-text-muted)]">{label}</div>
+      <div className={`mt-1 font-mono text-2xl font-semibold tracking-tight ${toneClass}`}>{value}</div>
       {note && <div className="mt-0.5 text-[12px] text-[var(--hz-text-subtle)]">{note}</div>}
     </div>
   );
@@ -528,14 +528,14 @@ export function WorkspaceTabs<T extends string>({
   };
 
   return (
-    <div className="sticky top-0 z-10 border-b border-[var(--hz-border-grid)] bg-[var(--hz-bg-app)]">
+    <div className="sticky top-0 z-10 bg-[var(--hz-bg-app)] py-1">
       <div
         ref={listRef}
         role="tablist"
         aria-label={label}
         aria-orientation="horizontal"
         onKeyDown={onKeyDown}
-        className="flex items-center gap-5 overflow-x-auto overscroll-x-contain text-[13px] font-medium"
+        className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto overscroll-x-contain rounded-lg bg-[var(--hz-surface-muted)] p-[3px] text-[13px] font-medium"
       >
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
@@ -547,12 +547,12 @@ export function WorkspaceTabs<T extends string>({
               aria-selected={active}
               tabIndex={active ? 0 : -1}
               onClick={() => onChange(tab.id)}
-              className={`-mb-px border-b-2 px-0.5 py-2 whitespace-nowrap transition-colors ${
-                active ? 'border-[var(--hz-primary-700)] font-semibold text-[var(--hz-primary-700)]' : 'border-transparent text-[var(--hz-text-secondary)] hover:text-[var(--hz-text-primary)]'
+              className={`h-8 rounded-md px-3 whitespace-nowrap transition-all ${
+                active ? 'bg-[var(--hz-surface-main)] text-[var(--hz-text-primary)] shadow-sm' : 'text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]'
               }`}
             >
               {tab.label}
-              {tab.count !== undefined && <span className="ml-1 font-mono text-[10px] text-[var(--hz-text-subtle)]">{tab.count}</span>}
+              {tab.count !== undefined && <span className="ml-1.5 font-mono text-xs text-[var(--hz-text-muted)]">{tab.count}</span>}
             </button>
           );
         })}

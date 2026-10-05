@@ -501,7 +501,7 @@ describe('the endorsement', () => {
     endorsementBackend({ endorsement: blocked() });
     renderAt(ENDORSEMENT_PATH);
     const title = await screen.findByText(NO_LONGER_ACTIONABLE);
-    const panel = title.closest('div.rounded-\\[3px\\]') as HTMLElement;
+    const panel = title.closest('[data-slot="alert"]') as HTMLElement;
     expect(panel).toHaveTextContent('policy version V3 has been superseded by V4');
     expect(panel).toHaveTextContent(`Required action: ${REQUIRED_ACTION}`);
     expect(panel).toHaveTextContent('Withdraw is the only action left.');

@@ -186,7 +186,7 @@ export const UniversalWorkQueue: React.FC<UniversalWorkQueueProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-slate-900 tracking-tight">Universal Work Queue</h1>
-                <span className="px-2 py-0.5 rounded-[3px] text-xs font-mono font-bold bg-rose-100 text-rose-800">
+                <span className="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-rose-100 text-rose-800">
                   23 Pending Tasks
                 </span>
               </div>

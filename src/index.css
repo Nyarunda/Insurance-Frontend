@@ -1,114 +1,110 @@
 @import "tailwindcss";
 
 /* =========================================================
-   INSURANCE CLOUD — THEME-LEVEL OVERRIDES
-   Tailwind utilities used across screens resolve to the
-   institutional palette, so modules cannot invent colors:
-   - blue family  (teal, cyan, sky, blue, indigo, violet, purple) → navigation / action blue
-   - green family (emerald, green)                                → Active / Bound / Approved
-   - red family   (rose, red)                                     → Rejected / Repudiated / Danger
-   - amber stays amber                                            → Referral / Warning
-   Radii are restrained: 3px controls, 6px panels, no bubble UI.
+   INSURANCE CLOUD — STUDIO THEME (DESIGN-1)
+   Follows the Studio Admin (shadcn/ui) look: neutral palette, near-black primary,
+   Geist type, soft bordered cards, rounded controls, pill badges.
+   Tailwind's blue-like families resolve to the neutral scale, so screens that used
+   "action blue" now take the primary; green / amber / red stay for business state.
    ========================================================= */
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  /* Inter is the only operational font; numeric "mono" styling means tabular figures, not a code face. */
-  --font-mono: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Numeric "mono" styling means tabular figures, not a code face. */
+  --font-mono: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
 
-  --radius: 3px;
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 3px;
-  --radius-lg: 3px;
-  --radius-xl: 6px;
-  --radius-2xl: 6px;
-  --radius-3xl: 6px;
-  --radius-4xl: 6px;
+  --radius: 10px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
 
-  /* Institutional blue scale (600 = main operational blue #153980) */
-  --color-teal-50: #f3f7fc;
-  --color-teal-100: #eaf1fa;
-  --color-teal-200: #c9daf0;
-  --color-teal-300: #9dbce3;
-  --color-teal-400: #5b8dc9;
-  --color-teal-500: #2563a8;
-  --color-teal-600: #153980;
-  --color-teal-700: #102f5e;
-  --color-teal-800: #0b2347;
-  --color-teal-900: #0a1f3d;
-  --color-teal-950: #071831;
+  --color-teal-50: #fafafa;
+  --color-teal-100: #f5f5f5;
+  --color-teal-200: #e5e5e5;
+  --color-teal-300: #d4d4d4;
+  --color-teal-400: #a3a3a3;
+  --color-teal-500: #737373;
+  --color-teal-600: #262626;
+  --color-teal-700: #171717;
+  --color-teal-800: #0a0a0a;
+  --color-teal-900: #0a0a0a;
+  --color-teal-950: #000000;
 
-  --color-cyan-50: #f3f7fc;
-  --color-cyan-100: #eaf1fa;
-  --color-cyan-200: #c9daf0;
-  --color-cyan-300: #9dbce3;
-  --color-cyan-400: #5b8dc9;
-  --color-cyan-500: #2563a8;
-  --color-cyan-600: #153980;
-  --color-cyan-700: #102f5e;
-  --color-cyan-800: #0b2347;
-  --color-cyan-900: #0a1f3d;
-  --color-cyan-950: #071831;
+  --color-cyan-50: #fafafa;
+  --color-cyan-100: #f5f5f5;
+  --color-cyan-200: #e5e5e5;
+  --color-cyan-300: #d4d4d4;
+  --color-cyan-400: #a3a3a3;
+  --color-cyan-500: #737373;
+  --color-cyan-600: #262626;
+  --color-cyan-700: #171717;
+  --color-cyan-800: #0a0a0a;
+  --color-cyan-900: #0a0a0a;
+  --color-cyan-950: #000000;
 
-  --color-sky-50: #f3f7fc;
-  --color-sky-100: #eaf1fa;
-  --color-sky-200: #c9daf0;
-  --color-sky-300: #9dbce3;
-  --color-sky-400: #5b8dc9;
-  --color-sky-500: #2563a8;
-  --color-sky-600: #153980;
-  --color-sky-700: #102f5e;
-  --color-sky-800: #0b2347;
-  --color-sky-900: #0a1f3d;
-  --color-sky-950: #071831;
+  --color-sky-50: #fafafa;
+  --color-sky-100: #f5f5f5;
+  --color-sky-200: #e5e5e5;
+  --color-sky-300: #d4d4d4;
+  --color-sky-400: #a3a3a3;
+  --color-sky-500: #737373;
+  --color-sky-600: #262626;
+  --color-sky-700: #171717;
+  --color-sky-800: #0a0a0a;
+  --color-sky-900: #0a0a0a;
+  --color-sky-950: #000000;
 
-  --color-blue-50: #f3f7fc;
-  --color-blue-100: #eaf1fa;
-  --color-blue-200: #c9daf0;
-  --color-blue-300: #9dbce3;
-  --color-blue-400: #5b8dc9;
-  --color-blue-500: #2563a8;
-  --color-blue-600: #1d4f91;
-  --color-blue-700: #153980;
-  --color-blue-800: #102f5e;
-  --color-blue-900: #0b2347;
-  --color-blue-950: #071831;
+  --color-blue-50: #fafafa;
+  --color-blue-100: #f5f5f5;
+  --color-blue-200: #e5e5e5;
+  --color-blue-300: #d4d4d4;
+  --color-blue-400: #a3a3a3;
+  --color-blue-500: #737373;
+  --color-blue-600: #262626;
+  --color-blue-700: #171717;
+  --color-blue-800: #0a0a0a;
+  --color-blue-900: #0a0a0a;
+  --color-blue-950: #000000;
 
-  --color-indigo-50: #f3f7fc;
-  --color-indigo-100: #eaf1fa;
-  --color-indigo-200: #c9daf0;
-  --color-indigo-300: #9dbce3;
-  --color-indigo-400: #5b8dc9;
-  --color-indigo-500: #2563a8;
-  --color-indigo-600: #1d4f91;
-  --color-indigo-700: #153980;
-  --color-indigo-800: #102f5e;
-  --color-indigo-900: #0b2347;
-  --color-indigo-950: #071831;
+  --color-indigo-50: #fafafa;
+  --color-indigo-100: #f5f5f5;
+  --color-indigo-200: #e5e5e5;
+  --color-indigo-300: #d4d4d4;
+  --color-indigo-400: #a3a3a3;
+  --color-indigo-500: #737373;
+  --color-indigo-600: #262626;
+  --color-indigo-700: #171717;
+  --color-indigo-800: #0a0a0a;
+  --color-indigo-900: #0a0a0a;
+  --color-indigo-950: #000000;
 
-  --color-violet-50: #f3f7fc;
-  --color-violet-100: #eaf1fa;
-  --color-violet-200: #c9daf0;
-  --color-violet-300: #9dbce3;
-  --color-violet-400: #5b8dc9;
-  --color-violet-500: #2563a8;
-  --color-violet-600: #1d4f91;
-  --color-violet-700: #153980;
-  --color-violet-800: #102f5e;
-  --color-violet-900: #0b2347;
-  --color-violet-950: #071831;
+  --color-violet-50: #fafafa;
+  --color-violet-100: #f5f5f5;
+  --color-violet-200: #e5e5e5;
+  --color-violet-300: #d4d4d4;
+  --color-violet-400: #a3a3a3;
+  --color-violet-500: #737373;
+  --color-violet-600: #262626;
+  --color-violet-700: #171717;
+  --color-violet-800: #0a0a0a;
+  --color-violet-900: #0a0a0a;
+  --color-violet-950: #000000;
 
-  --color-purple-50: #f3f7fc;
-  --color-purple-100: #eaf1fa;
-  --color-purple-200: #c9daf0;
-  --color-purple-300: #9dbce3;
-  --color-purple-400: #5b8dc9;
-  --color-purple-500: #2563a8;
-  --color-purple-600: #1d4f91;
-  --color-purple-700: #153980;
-  --color-purple-800: #102f5e;
-  --color-purple-900: #0b2347;
-  --color-purple-950: #071831;
+  --color-purple-50: #fafafa;
+  --color-purple-100: #f5f5f5;
+  --color-purple-200: #e5e5e5;
+  --color-purple-300: #d4d4d4;
+  --color-purple-400: #a3a3a3;
+  --color-purple-500: #737373;
+  --color-purple-600: #262626;
+  --color-purple-700: #171717;
+  --color-purple-800: #0a0a0a;
+  --color-purple-900: #0a0a0a;
+  --color-purple-950: #000000;
 
   /* Success scale (600 = #15803D Active / Bound) */
   --color-emerald-50: #f0fdf4;
@@ -165,48 +161,42 @@
   :root {
     color-scheme: light;
 
-    /* =========================================================
-       INSURANCE CLOUD — INSTITUTIONAL LIGHT THEME
-       Blue means navigation / action.
-       Green, amber and red mean business state.
-       ========================================================= */
-
-    /* Brand / Primary */
-    --hz-primary-900: #0b2347;
-    --hz-primary-800: #102f5e;
-    --hz-primary-700: #153980; /* Main operational blue */
-    --hz-primary-600: #1d4f91;
-    --hz-primary-500: #2563a8;
-    --hz-primary-100: #eaf1fa;
-    --hz-primary-50: #f3f7fc;
+    /* Primary: near-black, as in the template */
+    --hz-primary-900: #0a0a0a;
+    --hz-primary-800: #262626;
+    --hz-primary-700: #171717; /* buttons, links, active states */
+    --hz-primary-600: #404040;
+    --hz-primary-500: #525252;
+    --hz-primary-100: #f5f5f5;
+    --hz-primary-50: #fafafa;
 
     /* Application surfaces */
-    --hz-bg-app: #f4f7fb;
+    --hz-bg-app: #ffffff;
     --hz-surface-main: #ffffff;
-    --hz-surface-subtle: #f8fafc;
-    --hz-surface-muted: #f1f5f9;
-    --hz-surface-selected: #edf4fc;
+    --hz-surface-subtle: #fafafa;
+    --hz-surface-muted: #f5f5f5;
+    --hz-surface-selected: #f5f5f5;
 
     /* Typography */
-    --hz-text-primary: #172033;
-    --hz-text-secondary: #475569;
-    --hz-text-muted: #64748b;
-    --hz-text-disabled: #94a3b8;
-    --hz-text-inverse: #ffffff;
+    --hz-text-primary: #0a0a0a;
+    --hz-text-secondary: #525252;
+    --hz-text-muted: #737373;
+    --hz-text-disabled: #a3a3a3;
+    --hz-text-inverse: #fafafa;
 
     /* Borders */
-    --hz-border-grid: #dfe6ee;
-    --hz-border-default: #cbd5e1;
-    --hz-border-strong: #94a3b8;
+    --hz-border-grid: #e5e5e5;
+    --hz-border-default: #e5e5e5;
+    --hz-border-strong: #d4d4d4;
 
-    /* Sidebar and top context bar */
-    --hz-sidebar-bg: #0f2747;
-    --hz-sidebar-bg-hover: #17375f;
-    --hz-sidebar-active: #1d4f91;
-    --hz-sidebar-text: #dce6f1;
-    --hz-sidebar-muted: #94a8bf;
-    --hz-sidebar-border: #294565;
-    --hz-topbar-bg: #0b2347;
+    /* Sidebar and header: light, as in the template */
+    --hz-sidebar-bg: #fafafa;
+    --hz-sidebar-bg-hover: #f0f0f0;
+    --hz-sidebar-active: #ebebeb;
+    --hz-sidebar-text: #0a0a0a;
+    --hz-sidebar-muted: #737373;
+    --hz-sidebar-border: #e5e5e5;
+    --hz-topbar-bg: #ffffff;
 
     /* Success / Bound / Active */
     --hz-success-bg: #f0fdf4;
@@ -216,7 +206,7 @@
     /* Pending / Information */
     --hz-info-bg: #eff6ff;
     --hz-info-border: #bfdbfe;
-    --hz-info-text: #153980;
+    --hz-info-text: #1d4ed8;
 
     /* Referral / Warning */
     --hz-warning-bg: #fffbeb;
@@ -226,43 +216,42 @@
     /* Danger / Repudiated / Cancelled */
     --hz-danger-bg: #fef2f2;
     --hz-danger-border: #fecaca;
-    --hz-danger-text: #b91c1c;
+    --hz-danger-text: #dc2626;
 
     /* Reversed / Void / Inactive */
-    --hz-neutral-bg: #f1f5f9;
-    --hz-neutral-border: #cbd5e1;
-    --hz-neutral-text: #475569;
+    --hz-neutral-bg: #f5f5f5;
+    --hz-neutral-border: #e5e5e5;
+    --hz-neutral-text: #525252;
 
     /* Focus */
-    --hz-focus: #2563eb;
+    --hz-focus: #a3a3a3;
 
     /* Radius */
-    --hz-radius-input: 3px;
-    --hz-radius-button: 3px;
-    --hz-radius-badge: 3px;
-    --hz-radius-panel: 6px;
-    /* Card padding follows density: compact keeps today's 16px, the others open up. */
-    --hz-card-pad: 16px;
-    --hz-radius-drawer: 6px;
+    --hz-radius-input: 8px;
+    --hz-radius-button: 8px;
+    --hz-radius-badge: 9999px;
+    --hz-radius-panel: 14px;
+    --hz-card-pad: 20px;
+    --hz-radius-drawer: 14px;
+    --hz-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 
     /* Shell dimensions */
-    --hz-topbar-height: 48px;
-    --hz-sidebar-width: 230px;
-    --hz-sidebar-collapsed: 64px;
+    --hz-topbar-height: 56px;
+    --hz-sidebar-width: 256px;
+    --hz-sidebar-collapsed: 56px;
 
     /* Density: compact tokens (comfortable is the default preference; see below) */
-    --hz-row-height: 32px;
-    --hz-control-height-visual: 28px;
+    --hz-row-height: 40px;
+    --hz-control-height-visual: 32px;
     --hz-control-hit-target: 34px;
-    --hz-font-size-table: 12px;
-    --hz-font-size-body: 13px;
-    --hz-padding-cell: 4px 8px;
+    --hz-font-size-table: 13px;
+    --hz-font-size-body: 14px;
+    --hz-padding-cell: 6px 10px;
 
-    --horizon-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --horizon-font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
     /* ---------------------------------------------------------
-       Compatibility aliases. Existing screens reference these
-       names; they now resolve to the institutional palette.
+       Compatibility aliases. Existing screens reference these names.
        --------------------------------------------------------- */
     --hz-app-bg: var(--hz-bg-app);
     --hz-surface: var(--hz-surface-main);
@@ -277,54 +266,54 @@
     --hz-primary: var(--hz-primary-700);
     --hz-primary-hover: var(--hz-primary-800);
     --hz-primary-subtle: var(--hz-primary-100);
-    --hz-accent: #5b8dc9;
-    --hz-accent-hover: var(--hz-primary-500);
+    --hz-accent: #525252;
+    --hz-accent-hover: var(--hz-primary-700);
     --hz-success: var(--hz-success-text);
     --hz-warning: var(--hz-warning-text);
     --hz-danger: var(--hz-danger-text);
     --hz-info: var(--hz-info-text);
-    --hz-hover: rgba(15, 23, 42, 0.04);
-    --hz-pressed: rgba(15, 23, 42, 0.08);
+    --hz-hover: rgba(0, 0, 0, 0.04);
+    --hz-pressed: rgba(0, 0, 0, 0.08);
     --hz-selected: var(--hz-surface-selected);
     --hz-focus-ring: var(--hz-focus);
     --hz-disabled-bg: var(--hz-surface-muted);
     --hz-disabled-text: var(--hz-text-disabled);
-    --hz-scrim: rgba(11, 35, 71, 0.5);
-    --hz-radius-xs: 2px;
-    --hz-radius-sm: 3px;
-    --hz-radius-md: 3px;
-    --hz-radius-lg: 6px;
-    --hz-control-compact: 28px;
-    --hz-control-default: 28px;
-    --hz-control-large: 32px;
-    --hz-table-row-compact: 32px;
-    --hz-table-row-default: 36px;
+    --hz-scrim: rgba(0, 0, 0, 0.5);
+    --hz-radius-xs: 4px;
+    --hz-radius-sm: 6px;
+    --hz-radius-md: 8px;
+    --hz-radius-lg: 14px;
+    --hz-control-compact: 32px;
+    --hz-control-default: 36px;
+    --hz-control-large: 40px;
+    --hz-table-row-compact: 40px;
+    --hz-table-row-default: 48px;
     --primary-color: var(--hz-primary-700);
     --primary-color-darker: var(--hz-primary-800);
     --body-bg-color: var(--hz-bg-app);
-    --sidebar-bg-color: var(--hz-primary-100);
-    --table-header-row-bg-color: var(--hz-surface-subtle);
+    --sidebar-bg-color: var(--hz-sidebar-bg);
+    --table-header-row-bg-color: var(--hz-surface-main);
   }
 
   /* Density modes. The tokens in :root are compact; comfortable is the default preference
      (src/store/preferences.ts), and a user's stored choice always wins. */
   .density-comfortable {
-    --hz-row-height: 36px;
-    --hz-control-height-visual: 32px;
+    --hz-row-height: 48px;
+    --hz-control-height-visual: 36px;
     --hz-control-hit-target: 36px;
-    --hz-font-size-table: 13px;
-    --hz-padding-cell: 6px 12px;
-    --hz-card-pad: 20px;
+    --hz-font-size-table: 14px;
+    --hz-padding-cell: 8px 12px;
+    --hz-card-pad: 24px;
   }
 
   .density-spacious {
-    --hz-row-height: 42px;
-    --hz-control-height-visual: 36px;
+    --hz-row-height: 56px;
+    --hz-control-height-visual: 40px;
     --hz-control-hit-target: 40px;
     --hz-font-size-table: 14px;
     --hz-font-size-body: 14px;
-    --hz-padding-cell: 8px 16px;
-    --hz-card-pad: 24px;
+    --hz-padding-cell: 10px 16px;
+    --hz-card-pad: 28px;
   }
 
   html {
@@ -342,7 +331,7 @@
     letter-spacing: 0;
     color: var(--hz-text-primary);
     overscroll-behavior: none;
-    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
@@ -381,7 +370,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--hz-focus);
+    outline: 2px solid color-mix(in srgb, var(--hz-primary-700), transparent 40%);
     outline-offset: 2px;
   }
 
@@ -401,6 +390,7 @@
     background: var(--hz-surface-main);
     border: 1px solid var(--hz-border-grid);
     border-radius: var(--hz-radius-panel);
+    box-shadow: var(--hz-shadow-xs);
   }
 
   /* The one card: a panel with density-driven padding. Use .hz-panel alone for flush content (tables). */
@@ -408,18 +398,24 @@
     background: var(--hz-surface-main);
     border: 1px solid var(--hz-border-grid);
     border-radius: var(--hz-radius-panel);
+    box-shadow: var(--hz-shadow-xs);
     padding: var(--hz-card-pad);
+  }
+
+  /* Metric cards (Home): the template's faint bottom-to-top tint. */
+  .hz-stat-card {
+    background: linear-gradient(to top, color-mix(in srgb, var(--hz-primary-700), transparent 97%), var(--hz-surface-main));
   }
 
   .hz-toolbar {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    min-height: 40px;
+    min-height: 44px;
     border-bottom: 1px solid var(--hz-border-grid);
   }
 
-  /* Hit-target expansion: 28px visual control, >= 34px effective pointer area. */
+  /* Hit-target expansion: the visual control stays compact, the pointer area does not. */
   .hz-hit-target,
   .hz-button,
   .hz-icon-button {
@@ -449,7 +445,7 @@
     }
   }
 
-  /* Buttons: four visual levels only — primary, secondary, quiet, danger. */
+  /* Buttons: primary (solid), secondary (outline), quiet (ghost), danger (destructive). */
   .hz-button {
     display: inline-flex;
     align-items: center;
@@ -458,15 +454,20 @@
     min-height: var(--hz-control-height-visual);
     border-radius: var(--hz-radius-button);
     border: 1px solid transparent;
-    padding: 0 0.75rem;
-    font-size: 13px;
-    font-weight: 600;
+    padding: 0 0.875rem;
+    font-size: 14px;
+    font-weight: 500;
     line-height: 1;
     white-space: nowrap;
-    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .hz-button:active:not(:disabled) {
+    transform: translateY(1px);
   }
 
   .hz-button:disabled {
+    opacity: 0.5;
     background: var(--hz-surface-muted);
     border-color: var(--hz-border-grid);
     color: var(--hz-text-disabled);
@@ -475,40 +476,41 @@
   .hz-button-primary {
     background: var(--hz-primary-700);
     color: var(--hz-text-inverse);
+    box-shadow: var(--hz-shadow-xs);
   }
 
   .hz-button-primary:hover:not(:disabled) {
-    background: var(--hz-primary-800);
+    background: color-mix(in srgb, var(--hz-primary-700), transparent 10%);
   }
 
   .hz-button-secondary {
     background: var(--hz-surface-main);
     border-color: var(--hz-border-default);
     color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-xs);
   }
 
   .hz-button-secondary:hover:not(:disabled) {
-    background: var(--hz-surface-subtle);
-    border-color: var(--hz-border-strong);
+    background: var(--hz-surface-muted);
   }
 
   .hz-button-quiet {
     background: transparent;
-    color: var(--hz-text-secondary);
+    color: var(--hz-text-primary);
   }
 
   .hz-button-quiet:hover:not(:disabled) {
     background: var(--hz-surface-muted);
-    color: var(--hz-text-primary);
   }
 
   .hz-button-danger {
     background: var(--hz-danger-text);
-    color: var(--hz-text-inverse);
+    color: #ffffff;
+    box-shadow: var(--hz-shadow-xs);
   }
 
   .hz-button-danger:hover:not(:disabled) {
-    background: #991b1b;
+    background: color-mix(in srgb, var(--hz-danger-text), transparent 10%);
   }
 
   .hz-icon-button {
@@ -520,14 +522,13 @@
     border-radius: var(--hz-radius-button);
     border: 1px solid var(--hz-border-default);
     background: var(--hz-surface-main);
-    color: var(--hz-text-secondary);
-    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-xs);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
   }
 
   .hz-icon-button:hover:not(:disabled) {
-    background: var(--hz-surface-subtle);
-    border-color: var(--hz-border-strong);
-    color: var(--hz-text-primary);
+    background: var(--hz-surface-muted);
   }
 
   .hz-field {
@@ -536,12 +537,13 @@
     border: 1px solid var(--hz-border-default);
     background: var(--hz-surface-main);
     color: var(--hz-text-primary);
-    font-size: 13px;
-    transition: border-color 120ms ease, box-shadow 120ms ease;
+    font-size: 14px;
+    box-shadow: var(--hz-shadow-xs);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
   }
 
-  .hz-field:hover:not(:focus-within) {
-    border-color: var(--hz-border-strong);
+  .hz-field::placeholder {
+    color: var(--hz-text-muted);
   }
 
   .hz-field:focus-within,
@@ -549,21 +551,30 @@
   select.hz-field:focus,
   textarea.hz-field:focus {
     outline: none;
-    border-color: var(--hz-primary-700);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--hz-focus), transparent 80%);
+    border-color: var(--hz-border-strong);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--hz-text-disabled), transparent 50%);
   }
 
   .hz-field-invalid {
     border-color: var(--hz-danger-text);
   }
 
+  .hz-field-invalid:focus-within,
+  input.hz-field-invalid:focus,
+  select.hz-field-invalid:focus,
+  textarea.hz-field-invalid:focus {
+    border-color: var(--hz-danger-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--hz-danger-text), transparent 80%);
+  }
+
   .hz-field-disabled,
   .hz-field:disabled {
+    opacity: 0.6;
     background: var(--hz-surface-muted);
     color: var(--hz-text-disabled);
   }
 
-  /* Enterprise data grid */
+  /* Data table, as in the template: plain headers, roomy rows, quiet hover. */
   .hz-grid {
     width: 100%;
     border-collapse: collapse;
@@ -576,13 +587,12 @@
     z-index: 1;
     height: var(--hz-row-height);
     padding: var(--hz-padding-cell);
-    background: var(--hz-surface-subtle);
+    background: var(--hz-surface-main);
     border-bottom: 1px solid var(--hz-border-grid);
-    color: var(--hz-text-secondary);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    color: var(--hz-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
     white-space: nowrap;
   }
 
@@ -594,8 +604,12 @@
     white-space: nowrap;
   }
 
+  .hz-grid tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
   .hz-grid tbody tr:hover td {
-    background: var(--hz-surface-subtle);
+    background: color-mix(in srgb, var(--hz-surface-muted), transparent 30%);
   }
 
   .hz-grid tbody tr[aria-selected="true"] td {
@@ -616,30 +630,29 @@
   }
   .hz-grid td.hz-record-link:hover > * {
     text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .hz-section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--hz-text-muted);
   }
 
   .hz-screen-enter {
-    animation: hz-screen-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: hz-screen-enter 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
 @keyframes hz-screen-enter {
   from {
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateY(4px);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
@@ -652,9 +665,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.35);
-  border-radius: 3px;
+  background: rgba(115, 115, 115, 0.3);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 0.6);
+  background: rgba(82, 82, 82, 0.5);
 }

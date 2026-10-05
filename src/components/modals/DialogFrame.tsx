@@ -76,7 +76,7 @@ export const DialogFrame: React.FC<{
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={trapTab}
-        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-[6px] border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] shadow-xl"
+        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] shadow-xl"
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--hz-border-grid)] px-4 py-3">
           <div className="min-w-0">

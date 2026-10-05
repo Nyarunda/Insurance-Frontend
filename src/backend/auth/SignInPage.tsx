@@ -175,7 +175,7 @@ export const SignInPage: React.FC = () => {
     <SignInFrame>
       {step === 'credentials' && (
         <SignInPanel title="Sign in" subtitle="Insurance Cloud">
-          <form onSubmit={submitCredentials} className="p-7 space-y-4" noValidate>
+          <form onSubmit={submitCredentials} className="space-y-5" noValidate>
             {notice && !error && (
               <HorizonAlert tone="warning" title={notice === 'SIGN_OUT_UNCONFIRMED' ? 'Sign-out not confirmed' : 'Signed out'}>
                 {SESSION_NOTICE_TEXT[notice]}
@@ -210,7 +210,7 @@ export const SignInPage: React.FC = () => {
 
       {step === 'otp' && challenge && (
         <SignInPanel title="Verify your identity" subtitle="Two-factor authentication" onBack={() => startOver()}>
-          <form onSubmit={submitCode} className="p-7 space-y-4" noValidate>
+          <form onSubmit={submitCode} className="space-y-5" noValidate>
             {error ? <ApiErrorAlert error={error} /> : null}
             <HorizonAlert tone="info" title="Verification code sent">
               A 6-digit code was sent to <strong>{challenge.delivery.destination}</strong>.
@@ -232,7 +232,7 @@ export const SignInPage: React.FC = () => {
 
       {step === 'password' && (
         <SignInPanel title="Update your password" subtitle="Your temporary password must be changed">
-          <form onSubmit={submitNewPassword} className="p-7 space-y-4" noValidate>
+          <form onSubmit={submitNewPassword} className="space-y-5" noValidate>
             <HorizonAlert tone="warning">You signed in with a temporary password. Set a new one to continue.</HorizonAlert>
             {error ? <ApiErrorAlert error={error} /> : null}
             <NewPasswordFields

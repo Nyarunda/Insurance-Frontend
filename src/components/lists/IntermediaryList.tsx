@@ -67,7 +67,7 @@ export const IntermediaryList: React.FC<IntermediaryListProps> = ({ onNavigate, 
       header: 'In-Force Book',
       align: 'center',
       render: (b) => (
-        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-[3px] text-xs">
+        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-xs">
           {b.inForcePoliciesCount} Policies
         </span>
       ),

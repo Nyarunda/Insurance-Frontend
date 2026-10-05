@@ -119,7 +119,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                 {policyNumber}
               </h1>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-[3px] bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 ml-1">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 ml-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                 {policyStatus}
               </span>
@@ -430,7 +430,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <span>{tab.label}</span>
                   {'count' in tab && (
                     <span
-                      className={`text-[10px] font-mono px-1.5 py-0.2 rounded-[3px] ${
+                      className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
                         activeTab === tab.id ? 'bg-teal-700 text-teal-100' : 'bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -553,7 +553,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-teal-700">CLM-00982</span>
                       <span className="font-semibold text-slate-800">Athi River Guardrail Collision</span>
-                      <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                      <span className="px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
                         Assessment in Progress
                       </span>
                     </div>
@@ -625,37 +625,37 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                     <td className="py-2 px-3 font-semibold text-slate-900">Accidental Collision Damage</td>
                     <td className="py-2 px-3 font-mono">KES {currentVersionRecord.sumInsuredAtVersion.toLocaleString()}</td>
                     <td className="py-2 px-3 text-slate-600">2.5% of claim (Min KES 15,000)</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50">
                     <td className="py-2 px-3 font-semibold text-slate-900">Third Party Property Damage</td>
                     <td className="py-2 px-3 font-mono">KES 20,000,000</td>
                     <td className="py-2 px-3 text-slate-600">KES 5,000 each and every loss</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50">
                     <td className="py-2 px-3 font-semibold text-slate-900">Third Party Bodily Injury / Death</td>
                     <td className="py-2 px-3 font-mono">Statutory Unlimited</td>
                     <td className="py-2 px-3 text-slate-600">Nil statutory excess</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50">
                     <td className="py-2 px-3 font-semibold text-slate-900">Windscreen & Window Glass</td>
                     <td className="py-2 px-3 font-mono">KES 100,000</td>
                     <td className="py-2 px-3 text-slate-600">Nil if replaced by appointed glazier</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ENDORSED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ENDORSED</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50">
                     <td className="py-2 px-3 font-semibold text-slate-900">Political Violence & Terrorism (PVT)</td>
                     <td className="py-2 px-3 font-mono">KES {currentVersionRecord.sumInsuredAtVersion.toLocaleString()}</td>
                     <td className="py-2 px-3 text-slate-600">5% of claim (Min KES 25,000)</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ENDORSED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ENDORSED</span></td>
                   </tr>
                   <tr className="hover:bg-slate-50">
                     <td className="py-2 px-3 font-semibold text-slate-900">Emergency Medical Expenses</td>
                     <td className="py-2 px-3 font-mono">KES 50,000 per person</td>
                     <td className="py-2 px-3 text-slate-600">Nil</td>
-                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
+                    <td className="py-2 px-3"><span className="px-2 py-0.2 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">INCLUDED</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -730,7 +730,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="font-mono font-bold text-emerald-700 text-sm">
                     KES {currentVersionRecord.premiumAtVersion.toLocaleString()}
                   </div>
-                  <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                     PAID IN FULL
                   </span>
                 </div>
@@ -758,7 +758,7 @@ export const PolicyWorkspace: React.FC<PolicyWorkspaceProps> = ({ onNavigate, de
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-teal-700">CLM-00982</span>
                     <span className="font-semibold text-slate-900">Athi River Guardrail Collision</span>
-                    <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
                       Assessment
                     </span>
                   </div>

@@ -6,7 +6,7 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { FileCheck2, LayoutDashboard, type LucideIcon } from 'lucide-react';
+import { FileCheck2, Inbox, LayoutDashboard, type LucideIcon } from 'lucide-react';
 import { POLICY_VIEW, TASK_VIEW } from './permissions';
 import type { NavGroup } from '../data/navigation';
 import type { ScreenId } from '../types';
@@ -17,6 +17,7 @@ export interface BackendNavItem {
   path: string;
   /** The permission code the screen needs; none for screens every signed-in user has. */
   permission?: string;
+  icon?: LucideIcon;
 }
 
 export interface BackendNavGroup {
@@ -32,15 +33,15 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     title: 'Daily Desk',
     icon: LayoutDashboard,
     items: [
-      { screen: 'dashboard', label: 'Home', path: '/' },
-      { screen: 'my-work', label: 'My Work Queue', path: '/my-work', permission: TASK_VIEW },
+      { screen: 'dashboard', label: 'Home', path: '/', icon: LayoutDashboard },
+      { screen: 'my-work', label: 'My Work Queue', path: '/my-work', permission: TASK_VIEW, icon: Inbox },
     ],
   },
   {
     id: 'policies',
     title: 'Policies',
     icon: FileCheck2,
-    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies', permission: POLICY_VIEW }],
+    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies', permission: POLICY_VIEW, icon: FileCheck2 }],
   },
 ];
 
@@ -53,7 +54,7 @@ export function visibleNav(registry: BackendNavGroup[], permissions: readonly st
       icon: group.icon,
       items: group.items
         .filter((item) => !item.permission || permissions.includes(item.permission))
-        .map((item) => ({ id: item.screen, label: item.label })),
+        .map((item) => ({ id: item.screen, label: item.label, icon: item.icon })),
     }))
     .filter((group) => group.items.length > 0);
 }

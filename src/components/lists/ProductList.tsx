@@ -79,7 +79,7 @@ export const ProductList: React.FC<ProductListProps> = ({ onNavigate, densityMod
       header: 'In-Force Policies',
       align: 'center',
       render: (p) => (
-        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-[3px] text-xs">
+        <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-xs">
           {p.inForcePoliciesCount.toLocaleString()}
         </span>
       ),

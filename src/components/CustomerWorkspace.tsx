@@ -859,7 +859,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                           <td className="py-2.5 px-3 font-mono font-bold text-slate-900">{p.premium}</td>
                           <td className="py-2.5 px-3 font-mono text-slate-600">{p.expiry}</td>
                           <td className="py-2.5 px-3">
-                            <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${p.badgeClass}`}>
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.badgeClass}`}>
                               {p.status}
                             </span>
                           </td>
@@ -952,7 +952,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-teal-700">{q.no}</span>
                         <span className="font-bold text-slate-900">• {q.product}</span>
-                        <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${q.badge}`}>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${q.badge}`}>
                           {q.status}
                         </span>
                       </div>
@@ -1078,7 +1078,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 font-mono text-slate-500">{c.date}</td>
                         <td className="py-2.5 px-3 font-mono font-bold text-slate-900">{c.reserve}</td>
                         <td className="py-2.5 px-3">
-                          <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${c.badge}`}>
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${c.badge}`}>
                             {c.status}
                           </span>
                         </td>
@@ -1160,7 +1160,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 font-mono text-amber-700 font-bold">{inv.balance}</td>
                         <td className="py-2.5 px-3">
                           <span
-                            className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               inv.status === 'PAID'
                                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                 : inv.status === 'PARTIAL'
@@ -1247,7 +1247,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <td className="py-2.5 px-3 font-mono font-bold text-emerald-700">{p.amount}</td>
                         <td className="py-2.5 px-3 font-mono text-xs text-slate-700">{p.allocatedTo}</td>
                         <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded-[3px] text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             {p.status}
                           </span>
                         </td>
@@ -1280,7 +1280,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                 <button
                   type="button"
                   onClick={() => triggerToast('Document upload dialog launched')}
-                  className="flex h-7 items-center gap-1 rounded-[3px] bg-[var(--hz-primary-700)] px-2.5 text-xs font-semibold text-white hover:bg-[var(--hz-primary-800)]"
+                  className="flex h-7 items-center gap-1 rounded-md bg-[var(--hz-primary-700)] px-2.5 text-xs font-semibold text-white hover:bg-[var(--hz-primary-800)]"
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden />
                   <span>Upload File</span>
@@ -1324,7 +1324,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                               type="button"
                               onClick={() => triggerToast(`Downloading ${doc.name}`)}
                               aria-label={`Download ${doc.name}`}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-[3px] text-slate-600 hover:bg-slate-100"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
                             >
                               <Download className="h-4 w-4" aria-hidden />
                             </button>
@@ -1404,7 +1404,7 @@ export const CustomerWorkspace: React.FC<CustomerWorkspaceProps> = ({ onNavigate
                         <span className="text-slate-400">•</span>
                         <span className="font-bold text-slate-900">{comm.subject}</span>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${comm.badge}`}>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${comm.badge}`}>
                         {comm.status}
                       </span>
                     </div>
