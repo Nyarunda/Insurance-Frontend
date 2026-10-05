@@ -41,6 +41,16 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/nowhere', REGISTRY)).toBeNull();
   });
 
+  it('puts every list at /<module>/list, and its records under the module, on the same item', () => {
+    expect(pathForScreen('my-work')).toBe('/my-work/list');
+    expect(pathForScreen('policies')).toBe('/policies/list');
+    expect(screenForPath('/policies/list')).toBe('policies');
+    expect(screenForPath('/policies/POL0000001')).toBe('policies');
+    expect(screenForPath('/policies/POL0000001/endorsements/END0000001')).toBe('policies');
+    expect(screenForPath('/my-work/list')).toBe('my-work');
+    expect(screenForPath('/my-work/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toBe('my-work');
+  });
+
   it('integrates Home, My Work Queue (workflow.task.view) and the Policy Directory (policies.policy.view)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],

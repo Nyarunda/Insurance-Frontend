@@ -90,7 +90,7 @@ export const HomePage: React.FC = () => {
               title="Waiting for you"
               description="The latest tasks in your work queue"
               action={
-                <button type="button" className="hz-button hz-button-secondary" onClick={() => navigate('/my-work')}>
+                <button type="button" className="hz-button hz-button-secondary" onClick={() => navigate('/my-work/list')}>
                   Open My Work Queue
                   <ArrowRight className="h-4 w-4" />
                 </button>

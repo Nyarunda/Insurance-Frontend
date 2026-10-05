@@ -177,7 +177,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
 
   test('the policy shows its real detail, with no identifiers', async () => {
     const { page } = maker;
-    await page.goto(`${origin(facts().alpha.domain)}/policies`);
+    await page.goto(`${origin(facts().alpha.domain)}/policies/list`);
     await page.getByRole('row', { name: new RegExp(facts().alpha.policy.policy_no) }).click();
     await expect(page.getByRole('heading', { name: facts().alpha.policy.policy_no })).toBeVisible();
     await expect(page.getByText('Version 1, from')).toBeVisible();
@@ -200,7 +200,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
 
   test('the checker finds the first in My work and approves it; a dropped response replays with one effect', async () => {
     const { page, tracked } = checker;
-    await page.goto(`${origin(facts().alpha.domain)}/my-work`);
+    await page.goto(`${origin(facts().alpha.domain)}/my-work/list`);
     await expect(page.getByRole('row', { name: new RegExp(endorsements.first.number) })).toBeVisible();
     await expect(page.getByRole('row', { name: new RegExp(endorsements.second.number) })).toBeVisible();
     // RUP1-F1: the two pending changes are told apart in My Work, from the governed facts.
@@ -265,7 +265,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
   });
 
   test('PTH1-D4: the superseded endorsement leaves the queue, shows "No longer actionable", and is withdrawn', async () => {
-    await checker.page.goto(`${origin(facts().alpha.domain)}/my-work`);
+    await checker.page.goto(`${origin(facts().alpha.domain)}/my-work/list`);
     await checker.page.getByRole('button', { name: 'Refresh' }).click();
     await expect(checker.page.getByRole('row', { name: new RegExp(endorsements.second.number) })).toHaveCount(0);
 
@@ -314,7 +314,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
 
     const reason = facts().alpha.reject_reasons.find((item) => item.requires_text)!;
     const c = checker.page;
-    await c.goto(`${origin(facts().alpha.domain)}/my-work`);
+    await c.goto(`${origin(facts().alpha.domain)}/my-work/list`);
     await c.getByRole('row', { name: new RegExp(endorsements.third.number) }).click();
     const listed = c.waitForResponse((response) => new URL(response.url()).pathname === '/api/v1/workflows/reason-codes');
     await c.getByRole('button', { name: 'Reject' }).click();
@@ -349,7 +349,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
       // WORK-QUEUE-ACTIONABILITY-1: the pooled task is listed only to someone who could act on it,
       // so its maker no longer sees it at all (FI1-E-F1). The command's own SOD check, which still
       // refuses a direct attempt, is proven by the backend's tests.
-      await dual.page.goto(`${origin(facts().alpha.domain)}/my-work`);
+      await dual.page.goto(`${origin(facts().alpha.domain)}/my-work/list`);
       await expect(dual.page.getByRole('heading', { name: 'My Work Queue' })).toBeVisible();
       await dual.page.getByRole('button', { name: 'Refresh' }).click();
       await expect(dual.page.getByRole('button', { name: 'Refresh' })).toBeEnabled();
@@ -357,7 +357,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
       await expectNoUuid(dual.page);
 
       // The distinct checker has it, and nothing has happened to the endorsement or the policy.
-      await checker.page.goto(`${origin(facts().alpha.domain)}/my-work`);
+      await checker.page.goto(`${origin(facts().alpha.domain)}/my-work/list`);
       await expect(checker.page.getByRole('row', { name: new RegExp(own.number) })).toBeVisible();
       await dual.page.goto(`${origin(facts().alpha.domain)}${own.path}`);
       await expect(dual.page.getByText('Sent for approval', { exact: true })).toBeVisible();
@@ -373,7 +373,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     const outsider = await person(browser, OUTSIDER);
     try {
       const { page } = outsider;
-      await page.goto(`${origin(facts().alpha.domain)}/policies`);
+      await page.goto(`${origin(facts().alpha.domain)}/policies/list`);
       await expect(page.getByText('No policies to show')).toBeVisible();
       await page.goto(`${origin(facts().alpha.domain)}${policyPath()}`);
       await expect(page.getByText('Not found or not available to you.')).toBeVisible();
@@ -402,7 +402,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     // A's live token reads nothing at B's address. Access tokens last 20 s and the gateway checks
     // expiry before the tenant, so the token is taken fresh from an Alpha page and first proven live
     // at Alpha; otherwise an idle page's expired token would be refused as TOKEN_EXPIRED instead.
-    await maker.page.goto(`${origin(facts().alpha.domain)}/policies`);
+    await maker.page.goto(`${origin(facts().alpha.domain)}/policies/list`);
     await expect(maker.page.getByRole('row', { name: new RegExp(facts().alpha.policy.policy_no) })).toBeVisible();
     const token = maker.tracked.bearer();
     expect(token).toBeTruthy();

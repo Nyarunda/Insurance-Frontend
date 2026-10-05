@@ -294,7 +294,7 @@ describe('DESIGN-1: the approval as a dialog over My Work', () => {
     expect(router.state.location.pathname).toBe(`/my-work/${INSTANCE_ID}`);
 
     await user.keyboard('{Escape}');
-    expect(router.state.location.pathname).toBe('/my-work');
+    expect(router.state.location.pathname).toBe('/my-work/list');
   });
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -123,6 +123,18 @@ describe('Policy Directory', () => {
     );
   });
 
+  it('lives at /policies/list; the old address and a record under the list redirect, keeping the query', async () => {
+    policyBackend();
+    const old = renderAt('/policies?coverage=ACTIVE&page=2');
+    await waitFor(() => expect(old.state.location.pathname).toBe('/policies/list'));
+    expect(old.state.location.search).toBe('?coverage=ACTIVE&page=2');
+    cleanup();
+    const nested = renderAt('/policies/list/POL0000001?tab=coverage');
+    await waitFor(() => expect(nested.state.location.pathname).toBe('/policies/POL0000001'));
+    expect(nested.state.location.search).toBe('?tab=coverage');
+    expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
+  });
+
   it('opens a policy from its row', async () => {
     const user = userEvent.setup();
     policyBackend();
@@ -143,7 +155,7 @@ describe('Policy Directory', () => {
   it('Back from a policy returns to the same filtered, searched and paged list (FI1-C-R1)', async () => {
     const user = userEvent.setup();
     const backend = policyBackend({ count: 60 });
-    const listed = '/policies?coverage=ACTIVE&q=POL0000001&page=2';
+    const listed = '/policies/list?coverage=ACTIVE&q=POL0000001&page=2';
     const expectedQuery = '/policies?page=2&page_size=25&coverage_status=ACTIVE&q=POL0000001';
     const router = renderAt(listed);
     await user.click(await screen.findByRole('row', { name: /POL0000001/ }));
@@ -158,7 +170,7 @@ describe('Policy Directory', () => {
     const before = backend.listQueries().length;
     await user.click(screen.getByTitle('Back to Policy Directory'));
 
-    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.pathname).toBe('/policies/list');
     expect(router.state.location.search).toBe('?coverage=ACTIVE&q=POL0000001&page=2');
     await screen.findByRole('row', { name: /POL0000001/ });
     expect(backend.listQueries().slice(before)).toEqual([expectedQuery]);
@@ -172,13 +184,13 @@ describe('Policy Directory', () => {
     policyBackend();
     const router = renderAt(`/policies/${POLICY_ID}`);
     await user.click(await screen.findByTitle('Back to Policy Directory'));
-    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.pathname).toBe('/policies/list');
     expect(router.state.location.search).toBe('');
   });
 
   it('returns only to the directory, never to another path or origin', () => {
-    expect(directoryFrom(directoryReturnState('/policies', '?coverage=ACTIVE&page=2'))).toBe('/policies?coverage=ACTIVE&page=2');
-    expect(directoryFrom(directoryReturnState('/policies', ''))).toBe('/policies');
+    expect(directoryFrom(directoryReturnState('/policies/list', '?coverage=ACTIVE&page=2'))).toBe('/policies/list?coverage=ACTIVE&page=2');
+    expect(directoryFrom(directoryReturnState('/policies/list', ''))).toBe('/policies/list');
     for (const state of [
       null,
       undefined,
@@ -191,8 +203,11 @@ describe('Policy Directory', () => {
       { directory: '/policiesx' },
       { directory: '/policies?x=1#frag' },
       { directory: '/policies?x=\\evil' },
+      { directory: '/policies/listx' },
+      { directory: '/policies/list?x=1#frag' },
+      { directory: '/policies/list/POL0000001' },
     ]) {
-      expect(directoryFrom(state)).toBe('/policies');
+      expect(directoryFrom(state)).toBe('/policies/list');
     }
   });
 

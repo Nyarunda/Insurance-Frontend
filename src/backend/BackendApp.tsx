@@ -8,7 +8,7 @@
 
 import React, { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createBrowserRouter, type RouteObject } from 'react-router';
+import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { queryClient } from '../lib/query/queryClient';
 import { restoreSession } from '../lib/auth/session';
@@ -44,8 +44,10 @@ export const backendRoutes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <HomePage /> },
+      // Lists live at `/<module>/list`; the module's own address and the old ones lead there.
+      { path: 'my-work', element: <ToList to="/my-work/list" /> },
       {
-        path: 'my-work',
+        path: 'my-work/list',
         element: (
           <RequirePermission permission={TASK_VIEW}>
             <WorkQueuePage />
@@ -63,8 +65,11 @@ export const backendRoutes: RouteObject[] = [
           </RequirePermission>
         ),
       },
+      { path: 'policies', element: <ToList to="/policies/list" /> },
+      // A record addressed under the list (`/policies/list/POL0000001/…`) is the record itself.
+      { path: 'policies/list/*', element: <OutOfList /> },
       {
-        path: 'policies',
+        path: 'policies/list',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <PoliciesPage />
@@ -110,6 +115,18 @@ export const backendRoutes: RouteObject[] = [
     ],
   },
 ];
+
+/** Redirects to a list, keeping the query (filters, page). */
+function ToList({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: to, search }} replace />;
+}
+
+/** `/policies/list/POL0000001/endorsements/…` → `/policies/POL0000001/endorsements/…`. */
+function OutOfList() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={{ pathname: pathname.replace(/^\/(\w[\w-]*)\/list\//, '/$1/'), search }} replace />;
+}
 
 const router = createBrowserRouter(backendRoutes);
 

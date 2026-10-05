@@ -4,14 +4,14 @@
  * bookmark has no such state, and Back goes to the plain directory.
  */
 
-export const DIRECTORY_PATH = '/policies';
+export const DIRECTORY_PATH = '/policies/list';
 
 export interface DirectoryReturnState {
   directory: string;
 }
 
 /** Only the directory itself, with an optional query: never another path or origin. */
-const DIRECTORY_LOCATION = /^\/policies(?:\?[^#\\]*)?$/;
+const DIRECTORY_LOCATION = /^\/policies\/list(?:\?[^#\\]*)?$/;
 
 export const directoryReturnState = (pathname: string, search: string): DirectoryReturnState => ({
   directory: `${pathname}${search}`,

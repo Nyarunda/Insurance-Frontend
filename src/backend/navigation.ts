@@ -34,14 +34,14 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: LayoutDashboard,
     items: [
       { screen: 'dashboard', label: 'Home', path: '/', icon: LayoutDashboard },
-      { screen: 'my-work', label: 'My Work Queue', path: '/my-work', permission: TASK_VIEW, icon: Inbox },
+      { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', permission: TASK_VIEW, icon: Inbox },
     ],
   },
   {
     id: 'policies',
     title: 'Policies',
     icon: FileCheck2,
-    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies', permission: POLICY_VIEW, icon: FileCheck2 }],
+    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 }],
   },
 ];
 
@@ -68,8 +68,10 @@ export const screenForPath = (pathname: string, registry: BackendNavGroup[] = BA
   const items = allItems(registry);
   const exact = items.find((item) => item.path === pathname);
   if (exact) return exact.screen;
+  // A list lives at `/<module>/list` and its records at `/<module>/<number>`: both belong to the list's item.
+  const section = (path: string) => path.replace(/\/list$/, '');
   const nested = items
-    .filter((item) => item.path !== '/' && pathname.startsWith(`${item.path}/`))
+    .filter((item) => item.path !== '/' && pathname.startsWith(`${section(item.path)}/`))
     .sort((a, b) => b.path.length - a.path.length)[0];
   return nested?.screen ?? null;
 };

@@ -90,7 +90,7 @@ export const InstancePage: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const back = () => navigate('/my-work');
+  const back = () => navigate('/my-work/list');
 
   const frame = {
     titleId: TITLE_ID,

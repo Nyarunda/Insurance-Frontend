@@ -719,7 +719,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
 
   async function expectDirectoryRestored(user: ReturnType<typeof userEvent.setup>, router: ReturnType<typeof renderAt>) {
     await user.click(await screen.findByTitle('Back to Policy Directory'));
-    expect(router.state.location.pathname).toBe('/policies');
+    expect(router.state.location.pathname).toBe('/policies/list');
     expect(router.state.location.search).toBe('?coverage=ACTIVE&q=POL0000001&page=2');
   }
 
