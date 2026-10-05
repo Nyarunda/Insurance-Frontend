@@ -8,14 +8,19 @@
  *
  * PTH1-D4: a referred endorsement with a `blocker`, or whose workflow is VOID, is shown as
  * "No longer actionable" with the blocker's message and required action; Withdraw is the only
- * action, and Submit is not offered. Resubmission or rework is a future lifecycle feature.
+ * action, and Submit is not offered.
+ *
+ * DESIGN-1: the maker's actions follow the status. A draft can be edited (`PATCH`), submitted, or
+ * withdrawn; one waiting for approval can be withdrawn. To change something after submission, it
+ * is withdrawn and **prepared again**: a new draft from the same change and reason (the backend
+ * has no reopen; the withdrawn or declined endorsement stays as it is).
  *
  * DESIGN-1: shown as an expandable dialog over the policy's Endorsements tab; closing it returns there.
  */
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { FileText, RefreshCw, Send, Undo2 } from 'lucide-react';
+import { FileText, Pencil, RefreshCw, RotateCcw, Send, Undo2 } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -141,6 +146,38 @@ export const EndorsementPage: React.FC = () => {
   const blocked = isNoLongerActionable(view);
   const canSubmit = canPrepare && view.status === 'DRAFT';
   const canWithdraw = canPrepare && (view.status === 'DRAFT' || view.status === 'REFERRED');
+  const canEdit = canPrepare && view.status === 'DRAFT' && view.endorsement_type === 'CHANGE_LIMIT';
+  const canPrepareAgain =
+    canPrepare && (view.status === 'DECLINED' || view.status === 'CANCELLED') && view.endorsement_type === 'CHANGE_LIMIT';
+  const base = `${policyHref(view.policy.policy_no)}/endorsements`;
+  const edit = () => navigate(`${base}/${encodeURIComponent(view.endorsement_no)}/edit`, { state });
+  const prepareAgain = () => {
+    const changes = view.requested_changes as { benefit?: unknown; limit_amount?: unknown };
+    navigate(`${base}/new`, {
+      state: {
+        ...(state && typeof state === 'object' ? state : {}),
+        prefill: {
+          benefit: typeof changes.benefit === 'string' ? changes.benefit.toUpperCase() : '',
+          limit: typeof changes.limit_amount === 'string' ? changes.limit_amount : '',
+          reason: view.reason,
+        },
+      },
+    });
+  };
+  // What the maker can do next, said once beside the buttons.
+  const hint = !canPrepare
+    ? null
+    : blocked
+      ? 'Withdraw it, then prepare it again from the current policy.'
+      : view.status === 'DRAFT'
+        ? view.requires_check
+          ? 'Submitting sends it to a checker for approval.'
+          : 'Submitting applies it to the policy at once.'
+        : view.status === 'REFERRED'
+          ? 'To change it, withdraw it and prepare it again.'
+          : canPrepareAgain
+            ? 'Prepare it again to make a new draft from the same change.'
+            : null;
 
   const onSubmit = async () => {
     setPageNotice(null);
@@ -213,6 +250,7 @@ export const EndorsementPage: React.FC = () => {
           badge={<StatusBadge square label={ENDORSEMENT_STATUS_LABEL[view.status] ?? humanize(view.status)} tone={ENDORSEMENT_TONE[view.status] ?? 'neutral'} />}
           footer={
             <>
+              {hint && <p className="mr-auto hidden text-[13px] text-[var(--hz-text-muted)] md:block">{hint}</p>}
               <button type="button" className="hz-button hz-button-secondary" onClick={back}>
                 Close
               </button>
@@ -239,10 +277,22 @@ export const EndorsementPage: React.FC = () => {
                   Withdraw
                 </button>
               )}
+              {canEdit && (
+                <button type="button" className="hz-button hz-button-secondary" onClick={edit} disabled={pending}>
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit draft
+                </button>
+              )}
               {canSubmit && (
                 <button type="button" className="hz-button hz-button-primary" onClick={() => void onSubmit()} disabled={pending}>
                   <Send className="h-3.5 w-3.5" />
-                  {pending ? 'Submitting…' : 'Submit'}
+                  {pending ? 'Submitting…' : view.requires_check ? 'Submit for approval' : 'Submit and apply'}
+                </button>
+              )}
+              {canPrepareAgain && (
+                <button type="button" className="hz-button hz-button-primary" onClick={prepareAgain}>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Prepare again
                 </button>
               )}
             </>

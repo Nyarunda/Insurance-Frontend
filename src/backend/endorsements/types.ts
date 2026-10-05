@@ -77,6 +77,13 @@ export interface EndorsementDetail extends EndorsementSummary {
   row_version: number;
 }
 
+/** A draft's edit (`PATCH /endorsements/{id}`): its date, reason and change, computed again by the server. */
+export interface EndorsementPatchBody {
+  effective_date: string;
+  reason: string;
+  changes: { benefit: string; limit_amount: string };
+}
+
 /** FI1-D creates the change-limit type only; other types come later. */
 export interface ChangeLimitBody {
   endorsement_type: 'CHANGE_LIMIT';

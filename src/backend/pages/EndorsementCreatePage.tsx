@@ -9,9 +9,13 @@
  *
  * It opens as an expandable dialog over the policy's Endorsements tab, at its own address, so
  * links, refresh and browser Back still work; closing it returns to the policy.
+ *
+ * The same form edits a draft (`mode="edit"`, `PATCH /endorsements/{id}` with the endorsement's
+ * ETag), and prepares one again from a withdrawn or declined endorsement (its change and reason
+ * arrive as `prefill` in the router state; a new endorsement is created, the old one is unchanged).
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { ArrowRight, FilePen } from 'lucide-react';
 import { ChangeCallout, DetailDivider, DetailGrid, DetailGroup, FieldError, HorizonAlert, HorizonLoader } from '../../components/horizon';
@@ -22,6 +26,7 @@ import { fieldErrorsOf } from '../../lib/api/fieldErrors';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { NO_ETAG_TEXT, useEndorsementCommands } from '../endorsements/useEndorsementCommands';
 import { parseAmount } from '../endorsements/amount';
+import { useEndorsement } from '../endorsements/queries';
 import type { ChangeLimitBody } from '../endorsements/types';
 import { formatDate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
@@ -41,25 +46,64 @@ const todayIso = () => {
 
 type Notice = { text: string; reference: string | null } | null;
 
+/** What the form starts with when an endorsement is prepared again, or a draft edited. */
+export interface EndorsementPrefill {
+  benefit: string;
+  limit: string;
+  reason: string;
+  effectiveDate?: string;
+}
+
+const prefillOf = (state: unknown): EndorsementPrefill | null => {
+  const prefill = (state as { prefill?: Partial<EndorsementPrefill> } | null)?.prefill;
+  return prefill && typeof prefill.benefit === 'string' && typeof prefill.limit === 'string' && typeof prefill.reason === 'string'
+    ? { benefit: prefill.benefit, limit: prefill.limit, reason: prefill.reason }
+    : null;
+};
+
+/** The router state without the prefill, so it does not travel on. */
+const withoutPrefill = (state: unknown) => {
+  if (!state || typeof state !== 'object') return state;
+  const { prefill: _prefill, ...rest } = state as Record<string, unknown>;
+  return rest;
+};
+
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 
 const FORM_ID = 'endorsement-create-form';
 const TITLE_ID = 'endorsement-create-title';
 
-export const EndorsementCreatePage: React.FC = () => {
-  const { policyId, policyRef } = useRouteRefs();
+export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ mode = 'create' }) => {
+  const editing = mode === 'edit';
+  const { policyId, policyRef, endorsementId } = useRouteRefs();
   const navigate = useNavigate();
-  // Carried unchanged, so the policy's Back still returns to the originating list (FI1-D-R1).
-  const { state } = useLocation();
+  // Carried on (without a prefill), so the policy's Back still returns to the originating list (FI1-D-R1).
+  const location = useLocation();
+  const state = withoutPrefill(location.state);
   const policy = usePolicy(policyId);
   const versions = usePolicyVersions(policyId, policy.isSuccess);
-  const { create, pending } = useEndorsementCommands();
+  const existing = useEndorsement(endorsementId, editing);
+  const { create, update, pending } = useEndorsementCommands();
 
-  const [benefit, setBenefit] = useState('');
-  const [limit, setLimit] = useState('');
+  const again = editing ? null : prefillOf(location.state);
+  const [benefit, setBenefit] = useState(again?.benefit ?? '');
+  const [limit, setLimit] = useState(again?.limit ?? '');
   const [effectiveDate, setEffectiveDate] = useState(todayIso);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState(again?.reason ?? '');
+  const [seeded, setSeeded] = useState(!editing);
+
+  // A draft being edited starts from what it holds now.
+  useEffect(() => {
+    if (seeded || !existing.data) return;
+    const { view } = existing.data;
+    const changes = view.requested_changes as { benefit?: unknown; limit_amount?: unknown };
+    setBenefit(typeof changes.benefit === 'string' ? changes.benefit.toUpperCase() : '');
+    setLimit(typeof changes.limit_amount === 'string' ? changes.limit_amount : '');
+    setEffectiveDate(view.effective_date);
+    setReason(view.reason);
+    setSeeded(true);
+  }, [existing.data, seeded]);
   const [attempted, setAttempted] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [serverFields, setServerFields] = useState<Record<string, string>>({});
@@ -71,17 +115,33 @@ export const EndorsementCreatePage: React.FC = () => {
     return rows.reduce<(typeof rows)[number] | null>((top, row) => (!top || row.version_no > top.version_no ? row : top), null);
   }, [versions.data]);
 
-  // Back to the policy as the address named it (by number, or by ID for an old link).
-  const back = () => navigate(`${policyHref(policyRef)}?tab=endorsements`, { state });
+  // Back to the policy as the address named it (by number, or by ID for an old link); an edit goes back to the draft.
+  const back = () =>
+    editing && existing.data
+      ? navigate(endorsementHref(existing.data.view.policy.policy_no, existing.data.view.endorsement_no), { state })
+      : navigate(`${policyHref(policyRef)}?tab=endorsements`, { state });
 
   const cancel = (
     <button type="button" className="hz-button hz-button-secondary" onClick={back}>
       Cancel
     </button>
   );
-  const frame = { titleId: TITLE_ID, title: 'New endorsement', onClose: back, closeLabel: 'Back to the policy', size: 'lg' as const };
+  const frame = {
+    titleId: TITLE_ID,
+    title: editing ? 'Edit endorsement' : 'New endorsement',
+    onClose: back,
+    closeLabel: editing ? 'Back to the endorsement' : 'Back to the policy',
+    size: 'lg' as const,
+  };
 
-  if (policy.isPending || (policy.isSuccess && versions.isPending)) {
+  if (policy.isPending || (policy.isSuccess && versions.isPending) || (editing && (existing.isPending || !seeded))) {
+    if (editing && existing.isError) {
+      return (
+        <DialogFrame {...frame} icon={<FilePen className="h-4 w-4" />} footer={cancel}>
+          <ApiErrorAlert error={existing.error} title="The endorsement could not be loaded" />
+        </DialogFrame>
+      );
+    }
     return (
       <DialogFrame {...frame} icon={<FilePen className="h-4 w-4" />} footer={cancel}>
         <HorizonLoader tip="Loading the policy..." />
@@ -126,20 +186,25 @@ export const EndorsementCreatePage: React.FC = () => {
     setAttempted(true);
     setFailure(null);
     if (Object.values(clientErrors).some(Boolean)) return;
-    if (!etag) {
+    const ifMatch = editing ? existing.data?.etag : etag;
+    if (!ifMatch) {
       setNotice({ text: NO_ETAG_TEXT, reference: null });
       return;
     }
     setNotice(null);
     setServerFields({});
     setServerFieldsReference(null);
+    const changes = { benefit, limit_amount: amount.value ?? limit.trim() };
     const body: ChangeLimitBody = {
       endorsement_type: 'CHANGE_LIMIT',
       effective_date: effectiveDate,
       reason: reason.trim(),
-      changes: { benefit, limit_amount: amount.value ?? limit.trim() },
+      changes,
     };
-    const outcome = await create(policyId, body, etag);
+    const outcome =
+      editing && existing.data
+        ? await update(existing.data.view.id, { effective_date: effectiveDate, reason: reason.trim(), changes }, ifMatch)
+        : await create(policyId, body, ifMatch);
     if (outcome.ok === true) {
       navigate(endorsementHref(view.policy_no, outcome.view.endorsement_no), {
         replace: true,
@@ -177,10 +242,10 @@ export const EndorsementCreatePage: React.FC = () => {
   return (
     <DialogFrame
       titleId={TITLE_ID}
-      title="New endorsement"
+      title={editing && existing.data ? `Edit ${existing.data.view.endorsement_no}` : again ? 'Prepare again' : 'New endorsement'}
       subtitle={`Change a limit · ${view.policy_no} · prepared on version ${latest.version_no}`}
       onClose={back}
-      closeLabel="Back to the policy"
+      closeLabel={frame.closeLabel}
       dismissOnBackdrop={!typed}
       size="lg"
       expandable
@@ -188,13 +253,15 @@ export const EndorsementCreatePage: React.FC = () => {
       footer={
         <>
           <p className="mr-auto hidden text-[13px] text-[var(--hz-text-muted)] sm:block">
-            Creating saves it; you send it for approval on the next screen.
+            {editing
+              ? 'Saving keeps it a draft; submit it from the endorsement.'
+              : 'Creating saves it as a draft; you submit it on the next screen.'}
           </p>
           <button type="button" className="hz-button hz-button-secondary" onClick={back} disabled={pending}>
             Cancel
           </button>
           <button type="submit" form={FORM_ID} className="hz-button hz-button-primary" disabled={pending}>
-            {pending ? 'Creating…' : 'Create endorsement'}
+            {editing ? (pending ? 'Saving…' : 'Save changes') : pending ? 'Creating…' : 'Create endorsement'}
           </button>
         </>
       }

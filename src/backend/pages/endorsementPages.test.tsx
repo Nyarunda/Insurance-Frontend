@@ -143,6 +143,7 @@ function endorsementBackend(options: {
   create?: Handler;
   submit?: Handler;
   cancel?: Handler;
+  update?: Handler;
   me?: Me;
 } = {}) {
   const state: State = {
@@ -167,6 +168,7 @@ function endorsementBackend(options: {
     if (path === `/endorsements/${ENDORSEMENT_ID}` && call.method === 'GET') {
       return json(200, state.endorsement, { ETag: ENDORSEMENT_ETAG(state.row) });
     }
+    if (path === `/endorsements/${ENDORSEMENT_ID}` && call.method === 'PATCH' && options.update) return options.update(call, state);
     if (path === `/endorsements/${ENDORSEMENT_ID}/submit` && options.submit) return options.submit(call, state);
     if (path === `/endorsements/${ENDORSEMENT_ID}/cancel` && options.cancel) return options.cancel(call, state);
     if (path === '/work-queue') return json(200, { results: [] });
@@ -520,6 +522,88 @@ describe('creating a change-limit endorsement', () => {
 });
 
 describe('the endorsement', () => {
+  it("offers the maker's actions by status: a draft is edited, submitted or withdrawn", async () => {
+    endorsementBackend({});
+    renderAt(ENDORSEMENT_PATH);
+    const dialog = await screen.findByRole('dialog', { name: 'END0000001' });
+    for (const name of ['Edit draft', 'Submit for approval', 'Withdraw']) {
+      expect(within(dialog).getByRole('button', { name })).toBeInTheDocument();
+    }
+    expect(within(dialog).getByText('Submitting sends it to a checker for approval.')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Prepare again' })).not.toBeInTheDocument();
+  });
+
+  it('waiting for approval it can only be withdrawn, and says how to change it', async () => {
+    endorsementBackend({ endorsement: pending() });
+    renderAt(ENDORSEMENT_PATH);
+    const dialog = await screen.findByRole('dialog', { name: 'END0000001' });
+    expect(within(dialog).getByRole('button', { name: 'Withdraw' })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Edit draft' })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: /^Submit/ })).not.toBeInTheDocument();
+    expect(within(dialog).getByText('To change it, withdraw it and prepare it again.')).toBeInTheDocument();
+  });
+
+  it('edits a draft: the form starts from it, and saving sends PATCH with its ETag and key', async () => {
+    const user = userEvent.setup();
+    const backend = endorsementBackend({
+      update: (call, state) => {
+        const body = call.body as { changes: Record<string, unknown>; reason: string };
+        return answer(state, endorsement({ requested_changes: body.changes, reason: body.reason }));
+      },
+    });
+    const router = renderAt(ENDORSEMENT_PATH);
+    await user.click(await screen.findByRole('button', { name: 'Edit draft' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Edit END0000001' });
+    expect(router.state.location.pathname).toBe('/policies/list/POL0000001/endorsements/END0000001/edit');
+    expect(within(dialog).getByLabelText(/Benefit/)).toHaveValue('WINDSCREEN');
+    expect(within(dialog).getByLabelText(/New limit/)).toHaveValue('100000.00');
+    expect(within(dialog).getByLabelText(/Reason/)).toHaveValue('Customer asked for a higher windscreen limit');
+
+    const limit = within(dialog).getByLabelText(/New limit/);
+    await user.clear(limit);
+    await user.type(limit, '120,000');
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/policies/list/POL0000001/endorsements/END0000001'));
+    const [patch] = backend.calls.filter((call) => call.method === 'PATCH');
+    expect(patch.url).toContain(`/endorsements/${ENDORSEMENT_ID}`);
+    expect(patch.headers['if-match']).toBe(ENDORSEMENT_ETAG(1));
+    expect(patch.headers['x-idempotency-key']).toMatch(UUID_IN_TEXT);
+    expect(patch.body).toMatchObject({
+      reason: 'Customer asked for a higher windscreen limit',
+      changes: { benefit: 'WINDSCREEN', limit_amount: '120000' },
+    });
+    expect(backend.posts('/policies/' + POLICY_ID + '/endorsements')).toHaveLength(0);
+  });
+
+  it('prepares a withdrawn endorsement again: a new draft from the same change and reason', async () => {
+    const user = userEvent.setup();
+    const backend = endorsementBackend({
+      endorsement: endorsement({ status: 'CANCELLED', decision_reason: 'Wrong benefit chosen' }),
+      create: (call, state) =>
+        answer(state, endorsement({ requested_changes: (call.body as { changes: Record<string, unknown> }).changes }), 201),
+    });
+    renderAt(ENDORSEMENT_PATH);
+    const shown = await screen.findByRole('dialog', { name: 'END0000001' });
+    expect(within(shown).queryByRole('button', { name: 'Withdraw' })).not.toBeInTheDocument();
+    await user.click(within(shown).getByRole('button', { name: 'Prepare again' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Prepare again' });
+    expect(within(dialog).getByLabelText(/Benefit/)).toHaveValue('WINDSCREEN');
+    expect(within(dialog).getByLabelText(/New limit/)).toHaveValue('100000.00');
+    expect(within(dialog).getByLabelText(/Reason/)).toHaveValue('Customer asked for a higher windscreen limit');
+    const date = within(dialog).getByLabelText(/Effective from/);
+    await user.clear(date);
+    await user.type(date, '2026-11-15');
+    await user.click(within(dialog).getByRole('button', { name: 'Create endorsement' }));
+
+    await waitFor(() => expect(backend.posts(`/policies/${POLICY_ID}/endorsements`)).toHaveLength(1));
+    const [post] = backend.posts(`/policies/${POLICY_ID}/endorsements`);
+    expect((post.body as { changes: { benefit: string; limit_amount: string } }).changes.benefit).toBe('WINDSCREEN');
+    expect((post.body as { changes: { benefit: string; limit_amount: string } }).changes.limit_amount).toMatch(/^100000/);
+    expect(backend.calls.filter((call) => call.method === 'PATCH')).toHaveLength(0);
+  });
+
   it('opens as a dialog over its policy, with the policy behind it inert', async () => {
     endorsementBackend({});
     renderAt(ENDORSEMENT_PATH);
@@ -555,7 +639,7 @@ describe('the endorsement', () => {
     expect(within(screen.getByRole('table', { name: 'Resulting benefits and limits' })).getByRole('row', { name: /Windscreen cover/ }))
       .toHaveTextContent('KES 100,000.00');
     expect(text).not.toMatch(UUID_IN_TEXT);
-    expect(screen.getByRole('button', { name: 'Submit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Submit/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Withdraw' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Approve|Decline|Reject/ })).not.toBeInTheDocument();
   });
@@ -564,7 +648,7 @@ describe('the endorsement', () => {
     const user = userEvent.setup();
     const backend = endorsementBackend({ submit: (_call, state) => answer(state, pending()) });
     renderAt(ENDORSEMENT_PATH);
-    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    await user.click(await screen.findByRole('button', { name: /^Submit/ }));
 
     expect(await screen.findByText(SENT_FOR_APPROVAL)).toBeInTheDocument();
     expect(mainText()).toContain('Waiting at the Endorsement check stage');
@@ -572,7 +656,7 @@ describe('the endorsement', () => {
     expect(post.headers['if-match']).toBe(ENDORSEMENT_ETAG(1));
     expect(post.headers['x-idempotency-key']).toMatch(UUID_IN_TEXT);
     expect(post.body).toEqual({});
-    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Submit/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Withdraw' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Approve|Decline|Reject/ })).not.toBeInTheDocument();
   });
@@ -609,7 +693,7 @@ describe('the endorsement', () => {
     endorsementBackend({ endorsement: blocked({ blocker: null }) });
     renderAt(ENDORSEMENT_PATH);
     expect(await screen.findByText(NO_LONGER_ACTIONABLE)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Submit/ })).not.toBeInTheDocument();
   });
 
   it('withdraws with a reason, its ETag and a key; a 412 keeps the reason and the key', async () => {
@@ -675,7 +759,7 @@ describe('the endorsement', () => {
           { base_version_no: 3, latest_version_no: 4, required_action: REQUIRED_ACTION }, 'corr-409'),
     });
     renderAt(ENDORSEMENT_PATH);
-    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    await user.click(await screen.findByRole('button', { name: /^Submit/ }));
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Version 4 took effect after this endorsement was prepared on version 3; prepare it again.');
     expect(alert).toHaveTextContent('Reference corr-409');
@@ -688,7 +772,7 @@ describe('the endorsement', () => {
       submit: () => envelope(409, 'ENDORSEMENT_STATE_INVALID', 'a referred endorsement cannot be submitted', { status: 'REFERRED' }, 'corr-st'),
     });
     renderAt(ENDORSEMENT_PATH);
-    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    await user.click(await screen.findByRole('button', { name: /^Submit/ }));
     const notice = await screen.findByRole('status');
     expect(notice).toHaveTextContent('This item changed');
     expect(notice).toHaveTextContent('Reference corr-st');

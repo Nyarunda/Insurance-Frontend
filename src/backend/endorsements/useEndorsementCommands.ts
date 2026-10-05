@@ -2,6 +2,7 @@
  * Endorsement commands (FI1-D), through the FI1-A idempotency lifecycle:
  *
  * - create: `POST /policies/{id}/endorsements` with the **policy's** ETag as `If-Match`;
+ * - update: `PATCH /endorsements/{id}` (a draft's date, reason and change) with the endorsement's ETag;
  * - submit: `POST /endorsements/{id}/submit` with the endorsement's ETag;
  * - withdraw: `POST /endorsements/{id}/cancel` with the endorsement's ETag and a reason.
  *
@@ -18,7 +19,7 @@ import { api } from '../../lib/api/instance';
 import { POLICY_KEYS } from '../policies/queries';
 import { WORKFLOW_KEYS } from '../workflow/queries';
 import { ENDORSEMENT_KEYS, LoadedEndorsement } from './queries';
-import type { ChangeLimitBody, EndorsementDetail } from './types';
+import type { ChangeLimitBody, EndorsementDetail, EndorsementPatchBody } from './types';
 
 export type CommandOutcome =
   | { ok: true; view: EndorsementDetail; replayed: boolean }
@@ -30,6 +31,7 @@ export const NO_ETAG_TEXT = 'This record could not be checked for changes. Reloa
 export function useEndorsementCommands() {
   const queryClient = useQueryClient();
   const createKeys = useRef(new CommandKeyLifecycle());
+  const updateKeys = useRef(new CommandKeyLifecycle());
   const submitKeys = useRef(new CommandKeyLifecycle());
   const withdrawKeys = useRef(new CommandKeyLifecycle());
   const [pending, setPending] = useState(false);
@@ -41,10 +43,11 @@ export function useEndorsementCommands() {
       path: string,
       ifMatch: string,
       reload: () => Promise<unknown>,
+      method: 'POST' | 'PATCH' = 'POST',
     ): Promise<CommandOutcome> => {
       setPending(true);
       try {
-        const result = await sendCommand<EndorsementDetail>(api, lifecycle, command, { path, ifMatch });
+        const result = await sendCommand<EndorsementDetail>(api, lifecycle, command, { path, ifMatch, method });
         lifecycle.reset();
         const loaded: LoadedEndorsement = { view: result.data, etag: result.etag };
         queryClient.setQueryData(ENDORSEMENT_KEYS.detail(result.data.id), loaded);
@@ -84,6 +87,16 @@ export function useEndorsementCommands() {
       reloadPolicy(policyId),
     );
 
+  const update = (endorsementId: string, body: EndorsementPatchBody, etag: string) =>
+    run(
+      updateKeys.current,
+      { type: 'ENDORSEMENT_UPDATE', resource: `endorsement:${endorsementId}`, body },
+      `/endorsements/${encodeURIComponent(endorsementId)}`,
+      etag,
+      reloadEndorsement(endorsementId),
+      'PATCH',
+    );
+
   const submit = (endorsementId: string, etag: string) =>
     run(
       submitKeys.current,
@@ -102,5 +115,5 @@ export function useEndorsementCommands() {
       reloadEndorsement(endorsementId),
     );
 
-  return { create, submit, withdraw, pending };
+  return { create, update, submit, withdraw, pending };
 }

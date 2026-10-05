@@ -104,6 +104,21 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       {
+        path: 'policies/list/:policyId/endorsements/:endorsementId/edit',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <RequirePermission permission={ENDORSEMENT_CREATE}>
+              <PolicyRefRoute>
+                <div inert aria-hidden="true">
+                  <PolicyWorkspacePage tab="endorsements" />
+                </div>
+                <EndorsementCreatePage mode="edit" />
+              </PolicyRefRoute>
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
         path: 'policies/list/:policyId/endorsements/:endorsementId',
         element: (
           <RequirePermission permission={POLICY_VIEW}>

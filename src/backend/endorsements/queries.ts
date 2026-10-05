@@ -29,7 +29,7 @@ export interface LoadedEndorsement {
   etag: string | null;
 }
 
-export function useEndorsement(endorsementId: string) {
+export function useEndorsement(endorsementId: string, enabled = true) {
   return useQuery({
     queryKey: ENDORSEMENT_KEYS.detail(endorsementId),
     queryFn: async (): Promise<LoadedEndorsement> => {
@@ -37,5 +37,6 @@ export function useEndorsement(endorsementId: string) {
       return { view: result.data, etag: result.etag };
     },
     staleTime: 0, // the approval happens elsewhere; coming back to the tab shows the current state
+    enabled: enabled && !!endorsementId,
   });
 }
