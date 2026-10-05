@@ -5,19 +5,26 @@
  * audit timeline have no backend yet and are left out in backend mode, never filled from mock
  * data. The Endorsements tab (FI1-D) lists `GET /policies/{id}/endorsements`. The policy's ETag
  * (from the header) is kept with the query for endorsement creation.
+ *
+ * Laid out as the Studio Admin record (profile) page: a header with the policy period as a ring,
+ * line tabs, label-over-value groups split by rules, and on Overview a status column.
  */
 
 import React from 'react';
+import { ArrowLeft, CalendarDays, CircleCheck, CircleX, Clock3, ShieldCheck } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useRouteRefs } from '../policies/refs';
 import {
+  DetailDivider,
+  DetailGrid,
+  DetailGroup,
   HorizonAlert,
   HorizonLoader,
   HorizonPage,
   HorizonPageContent,
   HorizonPageTitle,
-  KeyValueGrid,
-  Section,
+  OutlineTag,
+  RecordHeader,
   StatusBadge,
   WorkspaceTabs,
 } from '../../components/horizon';
@@ -45,6 +52,27 @@ type TabId = (typeof POLICY_TABS)[number]['id'];
 const isTab = (value: string | null): value is TabId => POLICY_TABS.some((tab) => tab.id === value);
 
 const muted = 'text-[13px] text-[var(--hz-text-secondary)]';
+
+const DAY = 86_400_000;
+const dayOf = (value: string) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  return match ? Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : NaN;
+};
+const today = () => {
+  const now = new Date();
+  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
+/** How far through its period the policy is (0-100), and the days to expiry; null without usable dates. */
+export function periodProgress(inception: string, expiry: string, on = today()) {
+  const start = dayOf(inception);
+  const end = dayOf(expiry);
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null;
+  const percent = Math.max(0, Math.min(100, ((on - start) / (end - start)) * 100));
+  return { percent: Math.round(percent), daysLeft: Math.max(0, Math.round((end - on) / DAY)) };
+}
+
+const daysText = (days: number) => (days === 1 ? '1 day' : `${days} days`);
 
 /** `tab` fixes the tab shown, for when the page sits behind a dialog (the new endorsement form). */
 export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }) => {
@@ -82,50 +110,125 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
   const { view } = policy.data;
   const current = view.current_version;
 
+  const cancelled = view.lifecycle_status === 'CANCELLED' || !!view.cancellation;
+  const period = cancelled ? null : periodProgress(current.inception_date, current.expiry_date);
+
   return (
-    <HorizonPage id="policy-workspace">
-      <HorizonPageTitle
+    <HorizonPage id="policy-workspace" className="flex flex-col gap-4 !space-y-0">
+      <RecordHeader
+        icon={ShieldCheck}
         title={view.policy_no}
-        subtitle={`${view.product.name} · ${view.customer.display_name}`}
-        onBack={back}
-        backLabel="Back to Policy Directory"
-        actions={
+        subtitle={`${view.customer.display_name} · ${view.product.name}`}
+        progress={period?.percent}
+        progressLabel={period ? `Policy period ${period.percent}% elapsed` : undefined}
+        badges={
           <>
-            <StatusBadge label={humanize(view.lifecycle_status)} tone={LIFECYCLE_TONE[view.lifecycle_status] ?? 'neutral'} />
-            <StatusBadge label={humanize(view.coverage_status)} tone={COVERAGE_TONE[view.coverage_status] ?? 'neutral'} />
+            <StatusBadge square label={humanize(view.lifecycle_status)} tone={LIFECYCLE_TONE[view.lifecycle_status] ?? 'neutral'} />
+            <StatusBadge square label={humanize(view.coverage_status)} tone={COVERAGE_TONE[view.coverage_status] ?? 'neutral'} />
+            <OutlineTag>{view.insurer.name}</OutlineTag>
+            <OutlineTag>{view.branch.name}</OutlineTag>
+            <OutlineTag>{view.currency}</OutlineTag>
           </>
         }
+        actions={
+          <button type="button" className="hz-button hz-button-secondary" onClick={back} title="Back to Policy Directory" aria-label="Back to Policy Directory">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back
+          </button>
+        }
       />
-      <WorkspaceTabs
-        tabs={POLICY_TABS}
-        activeTab={tab}
-        label="Policy sections"
-        onChange={(next) => {
-          const changed = new URLSearchParams(params);
-          if (next === 'overview') changed.delete('tab');
-          else changed.set('tab', next);
-          // Keep the router state, so Back still knows the originating list after a tab change.
-          setParams(changed, { replace: true, state: location.state });
-        }}
-      />
-      <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label}>
-      <HorizonPageContent className="p-5 space-y-2">
-        {tab === 'overview' && <Overview view={view} />}
-        {tab === 'risk' && <RiskSchedule version={current} />}
-        {tab === 'coverage' && <Coverage version={current} currency={view.currency} />}
-        {tab === 'premium' && <Premium version={current} />}
-        {tab === 'versions' &&
-          (versions.isPending ? (
-            <HorizonLoader tip="Loading the versions..." />
-          ) : versions.isError ? (
-            <ApiErrorAlert error={versions.error} title="The versions could not be loaded" />
+      <div>
+        <WorkspaceTabs
+          tabs={POLICY_TABS}
+          activeTab={tab}
+          label="Policy sections"
+          variant="line"
+          onChange={(next) => {
+            const changed = new URLSearchParams(params);
+            if (next === 'overview') changed.delete('tab');
+            else changed.set('tab', next);
+            // Keep the router state, so Back still knows the originating list after a tab change.
+            setParams(changed, { replace: true, state: location.state });
+          }}
+        />
+        <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label} className="px-4 md:px-6">
+          {tab === 'overview' ? (
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_18rem]">
+              <div className="py-4 lg:pr-6">
+                <Overview view={view} />
+              </div>
+              <DetailDivider vertical />
+              <div className="border-t border-[var(--hz-divider)] py-4 lg:border-t-0 lg:pl-6">
+                <StatusColumn view={view} period={period} />
+              </div>
+            </div>
           ) : (
-            <Versions versions={versions.data.results} inForce={current.version_no} currency={view.currency} />
-          ))}
-        {tab === 'endorsements' && <PolicyEndorsementsTab policy={view} />}
-      </HorizonPageContent>
+            <div className="py-4">
+              {tab === 'risk' && <RiskSchedule version={current} />}
+              {tab === 'coverage' && <Coverage version={current} currency={view.currency} />}
+              {tab === 'premium' && <Premium version={current} />}
+              {tab === 'versions' &&
+                (versions.isPending ? (
+                  <HorizonLoader tip="Loading the versions..." />
+                ) : versions.isError ? (
+                  <ApiErrorAlert error={versions.error} title="The versions could not be loaded" />
+                ) : (
+                  <Versions versions={versions.data.results} inForce={current.version_no} currency={view.currency} />
+                ))}
+              {tab === 'endorsements' && <PolicyEndorsementsTab policy={view} />}
+            </div>
+          )}
+        </div>
       </div>
     </HorizonPage>
+  );
+};
+
+/** The Overview's side column: where the record stands, and the dates ahead. */
+const StatusColumn: React.FC<{ view: PolicyDetail; period: ReturnType<typeof periodProgress> }> = ({ view, period }) => {
+  const current = view.current_version;
+  const Mark = view.cancellation ? CircleX : CircleCheck;
+  return (
+    <aside aria-label="Record status">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Record status</h2>
+        <div className="flex items-start gap-2">
+          <Mark aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[var(--hz-text-muted)]" />
+          <div>
+            <p className="text-sm font-medium text-[var(--hz-text-primary)]">{humanize(view.lifecycle_status)} policy</p>
+            <p className="text-[13px] text-[var(--hz-text-muted)]">Cover {humanize(view.coverage_status).toLowerCase()}</p>
+          </div>
+        </div>
+        <p className="text-[13px] text-[var(--hz-text-muted)]">Bound {formatDateTime(view.bound_at)}</p>
+      </div>
+
+      <DetailDivider />
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Key dates</h2>
+        <div className="flex flex-col">
+          <div className="flex gap-3 py-2.5">
+            <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[var(--hz-text-muted)]" />
+            <div>
+              <p className="text-sm font-medium text-[var(--hz-text-primary)]">{view.cancellation ? 'Cancelled from' : 'Expiry'}</p>
+              <p className="text-[13px] text-[var(--hz-text-muted)]">
+                {view.cancellation
+                  ? formatDate(view.cancellation.date)
+                  : `${formatDate(current.expiry_date)}${period ? ` · ${daysText(period.daysLeft)} left` : ''}`}
+              </p>
+            </div>
+          </div>
+          <hr className="border-0 border-t border-[var(--hz-divider)]" />
+          <div className="flex gap-3 py-2.5">
+            <Clock3 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[var(--hz-text-muted)]" />
+            <div>
+              <p className="text-sm font-medium text-[var(--hz-text-primary)]">Version {current.version_no} in force</p>
+              <p className="text-[13px] text-[var(--hz-text-muted)]">From {formatDate(current.effective_from)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
   );
 };
 
@@ -135,47 +238,74 @@ const Overview: React.FC<{ view: PolicyDetail }> = ({ view }) => {
   const terms = displayFacts(current.terms);
   return (
     <>
-      <KeyValueGrid
-        items={[
-          { label: 'Customer', value: `${view.customer.display_name} (${view.customer.customer_no})` },
-          { label: 'Product', value: view.product.name },
-          { label: 'Insurer', value: view.insurer.name },
-          { label: 'Insurer policy number', value: view.insurer_policy_no || 'Not recorded yet' },
-          { label: 'Branch', value: view.branch.name },
-          { label: 'Period', value: `${formatDate(current.inception_date)} – ${formatDate(current.expiry_date)}` },
-          {
-            label: 'Version in force',
-            value: `Version ${current.version_no}, from ${formatDate(current.effective_from)}`,
-          },
-          { label: 'Latest version', value: `Version ${view.version_no}` },
-          { label: 'Sum insured', value: formatMoney(current.sum_insured, view.currency) },
-          { label: 'Annual premium', value: formatMoney(current.annual_premium.total_premium, current.annual_premium.currency) },
-          { label: 'Quotation', value: view.source.quotation.quotation_no },
-          { label: 'Proposal', value: view.source.proposal.proposal_no },
-          { label: 'Agreement', value: `${humanize(view.agreement.agreement_type)} ${view.agreement.reference_no}`.trim() },
-          { label: 'Bound', value: formatDateTime(view.bound_at) },
-        ]}
-      />
+      <DetailGroup title="Policy">
+        <DetailGrid
+          items={[
+            { label: 'Customer', value: `${view.customer.display_name} (${view.customer.customer_no})` },
+            { label: 'Product', value: view.product.name },
+            { label: 'Insurer', value: view.insurer.name },
+            { label: 'Insurer policy number', value: view.insurer_policy_no || 'Not recorded yet' },
+            { label: 'Branch', value: view.branch.name },
+            { label: 'Agreement', value: `${humanize(view.agreement.agreement_type)} ${view.agreement.reference_no}`.trim() },
+          ]}
+        />
+      </DetailGroup>
+
+      <DetailDivider />
+
+      <DetailGroup title="Period and cover">
+        <DetailGrid
+          items={[
+            { label: 'Period', value: `${formatDate(current.inception_date)} – ${formatDate(current.expiry_date)}` },
+            { label: 'Version in force', value: `Version ${current.version_no}, from ${formatDate(current.effective_from)}` },
+            { label: 'Latest version', value: `Version ${view.version_no}` },
+            { label: 'Sum insured', value: formatMoney(current.sum_insured, view.currency) },
+            { label: 'Annual premium', value: formatMoney(current.annual_premium.total_premium, current.annual_premium.currency) },
+          ]}
+        />
+      </DetailGroup>
+
+      <DetailDivider />
+
+      <DetailGroup title="Origin">
+        <DetailGrid
+          items={[
+            { label: 'Quotation', value: view.source.quotation.quotation_no },
+            { label: 'Proposal', value: view.source.proposal.proposal_no },
+            { label: 'Bound', value: formatDateTime(view.bound_at) },
+          ]}
+        />
+      </DetailGroup>
+
       {view.cancellation && (
-        <Section title="Cancellation">
-          <KeyValueGrid
-            items={[
-              { label: 'Cancelled from', value: formatDate(view.cancellation.date) },
-              { label: 'Reason', value: view.cancellation.reason || '—' },
-              { label: 'Recorded', value: formatDateTime(view.cancellation.cancelled_at) },
-            ]}
-          />
-        </Section>
+        <>
+          <DetailDivider />
+          <DetailGroup title="Cancellation">
+            <DetailGrid
+              items={[
+                { label: 'Cancelled from', value: formatDate(view.cancellation.date) },
+                { label: 'Reason', value: view.cancellation.reason || '—' },
+                { label: 'Recorded', value: formatDateTime(view.cancellation.cancelled_at) },
+              ]}
+            />
+          </DetailGroup>
+        </>
       )}
       {terms.length > 0 && (
-        <Section title="Terms">
-          <KeyValueGrid items={terms} />
-        </Section>
+        <>
+          <DetailDivider />
+          <DetailGroup title="Terms">
+            <DetailGrid items={terms} />
+          </DetailGroup>
+        </>
       )}
       {details.length > 0 && (
-        <Section title="Underwriting details">
-          <KeyValueGrid items={details} />
-        </Section>
+        <>
+          <DetailDivider />
+          <DetailGroup title="Underwriting details">
+            <DetailGrid items={details} />
+          </DetailGroup>
+        </>
       )}
     </>
   );
@@ -188,31 +318,31 @@ const RiskSchedule: React.FC<{ version: PolicyVersion }> = ({ version }) => {
   const items = version.risk.items ?? [];
   const empty = !factors.length && !details.length && !identifiers.length && !items.length;
   return (
-    <>
+    <div className="hz-detail-stack">
       <p className={muted}>As in version {version.version_no}, the version in force.</p>
       {empty && <p className={muted}>No risk details are recorded.</p>}
       {factors.length > 0 && (
-        <Section title="Rated factors">
-          <KeyValueGrid items={factors} />
-        </Section>
+        <DetailGroup title="Rated factors">
+          <DetailGrid items={factors} />
+        </DetailGroup>
       )}
       {details.length > 0 && (
-        <Section title="Risk details">
-          <KeyValueGrid items={details} />
-        </Section>
+        <DetailGroup title="Risk details">
+          <DetailGrid items={details} />
+        </DetailGroup>
       )}
       {identifiers.length > 0 && (
-        <Section title="Identifiers">
-          <KeyValueGrid
+        <DetailGroup title="Identifiers">
+          <DetailGrid
             items={identifiers.map((identifier, index) => ({
               label: identifiers.length > 1 ? `${humanize(identifier.identifier_type)} ${index + 1}` : humanize(identifier.identifier_type),
               value: identifier.value,
             }))}
           />
-        </Section>
+        </DetailGroup>
       )}
       {items.length > 0 && (
-        <Section title="Risk items">
+        <DetailGroup title="Risk items">
           <table className="hz-grid w-full" aria-label="Risk items">
             <thead>
               <tr>
@@ -231,9 +361,9 @@ const RiskSchedule: React.FC<{ version: PolicyVersion }> = ({ version }) => {
               ))}
             </tbody>
           </table>
-        </Section>
+        </DetailGroup>
       )}
-    </>
+    </div>
   );
 };
 
@@ -241,9 +371,9 @@ const Coverage: React.FC<{ version: PolicyVersion; currency: string }> = ({ vers
   const { cover_sections: sections = [], benefits = [], exclusions = [] } = version.cover ?? {};
   const sectionName = (code: string | null) => sections.find((section) => section.code === code)?.name ?? '—';
   return (
-    <>
+    <div className="hz-detail-stack">
       <p className={muted}>As in version {version.version_no}, the version in force.</p>
-      <Section title="Benefits and limits">
+      <DetailGroup title="Benefits and limits">
         {benefits.length === 0 ? (
           <p className={muted}>No benefits are recorded.</p>
         ) : (
@@ -278,49 +408,51 @@ const Coverage: React.FC<{ version: PolicyVersion; currency: string }> = ({ vers
             </table>
           </div>
         )}
-      </Section>
+      </DetailGroup>
       {sections.length > 0 && (
-        <Section title="Cover sections">
-          <KeyValueGrid
+        <DetailGroup title="Cover sections">
+          <DetailGrid
             items={sections.map((section) => ({
               label: section.name,
               value: section.is_mandatory ? 'Mandatory' : 'Optional',
             }))}
           />
-        </Section>
+        </DetailGroup>
       )}
       {exclusions.length > 0 && (
-        <Section title="Exclusions">
+        <DetailGroup title="Exclusions">
           <ul className="list-disc space-y-1 pl-5 text-[13px]">
             {exclusions.map((exclusion) => (
               <li key={exclusion.code}>{exclusion.text}</li>
             ))}
           </ul>
-        </Section>
+        </DetailGroup>
       )}
-    </>
+    </div>
   );
 };
 
 const Premium: React.FC<{ version: PolicyVersion }> = ({ version }) => {
   const premium = version.annual_premium;
   return (
-    <>
+    <div className="hz-detail-stack">
       <p className={muted}>
         Annual premium of version {version.version_no}, rated on {formatDate(premium.rating_date)}.
       </p>
-      <KeyValueGrid
-        items={[
-          { label: 'Basic premium', value: formatMoney(premium.basic_premium, premium.currency) },
-          { label: 'Levies', value: formatMoney(premium.levies_total, premium.currency) },
-          { label: 'Total premium', value: formatMoney(premium.total_premium, premium.currency) },
-          ...(premium.commission !== undefined
-            ? [{ label: 'Commission', value: formatMoney(premium.commission, premium.currency) }]
-            : []),
-        ]}
-      />
+      <DetailGroup title="Annual premium">
+        <DetailGrid
+          items={[
+            { label: 'Basic premium', value: formatMoney(premium.basic_premium, premium.currency) },
+            { label: 'Levies', value: formatMoney(premium.levies_total, premium.currency) },
+            { label: 'Total premium', value: formatMoney(premium.total_premium, premium.currency) },
+            ...(premium.commission !== undefined
+              ? [{ label: 'Commission', value: formatMoney(premium.commission, premium.currency) }]
+              : []),
+          ]}
+        />
+      </DetailGroup>
       {premium.levies.length > 0 && (
-        <Section title="Levies">
+        <DetailGroup title="Levies">
           <table className="hz-grid w-full" aria-label="Levies">
             <thead>
               <tr>
@@ -339,9 +471,9 @@ const Premium: React.FC<{ version: PolicyVersion }> = ({ version }) => {
               ))}
             </tbody>
           </table>
-        </Section>
+        </DetailGroup>
       )}
-    </>
+    </div>
   );
 };
 

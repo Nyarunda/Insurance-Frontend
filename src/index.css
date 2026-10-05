@@ -694,3 +694,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(82, 82, 82, 0.5);
 }
+
+/* A record tab's groups (Studio Admin profile): spaced, with a rule between titled groups. */
+.hz-detail-stack > * + * {
+  margin-top: 1rem;
+}
+.hz-detail-stack > section + section {
+  border-top: 1px solid var(--hz-divider);
+  padding-top: 1rem;
+}

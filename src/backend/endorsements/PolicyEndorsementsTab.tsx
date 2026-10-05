@@ -8,7 +8,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { endorsementHref, policyHref } from '../policies/refs';
 import { Plus } from 'lucide-react';
-import { HorizonLoader, StatusBadge } from '../../components/horizon';
+import { DetailGroup, HorizonLoader, StatusBadge } from '../../components/horizon';
 import { hasPermission, useMe } from '../../lib/auth/me';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { ENDORSEMENT_CREATE } from '../permissions';
@@ -31,15 +31,18 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
   const open = (endorsementNo: string) => navigate(endorsementHref(policy.policy_no, endorsementNo), { state });
 
   return (
-    <div className="space-y-3">
-      {canCreate && (
-        <div className="flex justify-end">
+    <DetailGroup
+      title="Endorsements"
+      description="Changes made to this policy after it was bound."
+      action={
+        canCreate && (
           <button type="button" className="hz-button hz-button-primary" onClick={() => navigate(`${base}/new`, { state })}>
             <Plus className="h-3.5 w-3.5" />
             New endorsement
           </button>
-        </div>
-      )}
+        )
+      }
+    >
       {endorsements.isPending && <HorizonLoader tip="Loading the endorsements..." />}
       {endorsements.isError && <ApiErrorAlert error={endorsements.error} title="The endorsements could not be loaded" />}
       {endorsements.isSuccess && endorsements.data.results.length === 0 && (
@@ -83,6 +86,6 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
           </table>
         </div>
       )}
-    </div>
+    </DetailGroup>
   );
 };

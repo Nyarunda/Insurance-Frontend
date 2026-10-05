@@ -138,14 +138,16 @@ export function StatusBadge({
   label,
   tone = 'neutral',
   icon: Icon,
+  square = false,
 }: {
   label: React.ReactNode;
   tone?: StatusTone;
   icon?: React.ElementType;
+  square?: boolean;
 }) {
   return (
     <span
-      className={`inline-flex h-[22px] items-center gap-1 rounded-full border px-2 text-xs font-medium whitespace-nowrap ${statusBadgeToneClass[tone]}`}
+      className={`inline-flex h-[22px] items-center gap-1 border px-2 text-xs font-medium whitespace-nowrap ${square ? 'rounded-sm' : 'rounded-full'} ${statusBadgeToneClass[tone]}`}
     >
       {Icon && <Icon className="h-3 w-3 shrink-0" strokeWidth={2.5} />}
       {label}
@@ -461,6 +463,128 @@ export function KeyValueGrid({
   );
 }
 
+/**
+ * A record's header (Studio Admin profile): a mark in a progress ring, the title, a subtitle,
+ * badges below, and actions on the right. `progress` (0-100) fills the ring; `progressLabel` reads it out.
+ */
+export function RecordHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  badges,
+  actions,
+  progress,
+  progressLabel,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle?: React.ReactNode;
+  badges?: React.ReactNode;
+  actions?: React.ReactNode;
+  progress?: number;
+  progressLabel?: string;
+}) {
+  const filled = progress === undefined ? 0 : Math.max(0, Math.min(100, Math.round(progress)));
+  return (
+    <div className="flex flex-col gap-5 px-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="grid size-[72px] shrink-0 place-items-center sm:size-[92px]">
+          {progressLabel && <span className="sr-only">{progressLabel}</span>}
+          <svg aria-hidden="true" className="col-start-1 row-start-1 size-full -rotate-90" viewBox="0 0 100 100">
+            <circle className="fill-none stroke-[var(--hz-divider)]" cx="50" cy="50" r="46" strokeWidth="2.5" />
+            {filled > 0 && (
+              <circle
+                className="fill-none stroke-[var(--hz-success)]"
+                cx="50"
+                cy="50"
+                pathLength="100"
+                r="46"
+                strokeDasharray={`${filled} 100`}
+                strokeLinecap="round"
+                strokeWidth="2.5"
+              />
+            )}
+          </svg>
+          <span className="col-start-1 row-start-1 grid size-16 place-items-center rounded-full bg-[var(--hz-surface-muted)] text-[var(--hz-text-primary)] sm:size-20">
+            <Icon aria-hidden="true" className="size-7 sm:size-8" strokeWidth={1.5} />
+          </span>
+        </div>
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-col gap-0.5">
+            <h1 className="truncate text-xl font-semibold leading-6 tracking-tight text-[var(--hz-text-primary)] sm:text-2xl sm:leading-7">{title}</h1>
+            {subtitle && <p className="truncate text-sm leading-5 text-[var(--hz-text-muted)]">{subtitle}</p>}
+          </div>
+          {badges && <div className="flex flex-wrap gap-2">{badges}</div>}
+        </div>
+      </div>
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** An outline tag for plain facts in a record header (branch, insurer, currency). */
+export function OutlineTag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex h-[22px] items-center rounded-sm border border-[var(--hz-border)] px-2 text-[13px] font-medium whitespace-nowrap text-[var(--hz-text-primary)]">
+      {children}
+    </span>
+  );
+}
+
+/** A titled block of a record; blocks are separated by `DetailDivider`. */
+export function DetailGroup({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-base font-medium leading-tight text-[var(--hz-text-primary)]">{title}</h2>
+          {description && <p className="text-sm text-[var(--hz-text-muted)]">{description}</p>}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function DetailDivider({ vertical = false }: { vertical?: boolean }) {
+  return vertical ? (
+    <div role="separator" aria-orientation="vertical" className="hidden w-px bg-[var(--hz-divider)] lg:block" />
+  ) : (
+    <hr className="my-4 border-0 border-t border-[var(--hz-divider)]" />
+  );
+}
+
+/** Label over value, in up to three columns of stacked facts (the template's `dl`). */
+export function DetailGrid({ items, columns = 3 }: { items: Array<{ label: string; value: React.ReactNode }>; columns?: 1 | 2 | 3 }) {
+  const per = Math.ceil(items.length / columns) || 1;
+  const stacks = Array.from({ length: columns }, (_, index) => items.slice(index * per, (index + 1) * per)).filter((stack) => stack.length);
+  return (
+    <dl className={`grid gap-8 ${columns > 1 ? 'sm:grid-cols-2' : ''} ${columns > 2 ? 'xl:grid-cols-3 xl:gap-12' : ''}`}>
+      {stacks.map((stack, index) => (
+        <div key={index} className="flex flex-col gap-5">
+          {stack.map((item) => (
+            <div key={item.label} className="flex flex-col gap-1">
+              <dt className="text-[13px] text-[var(--hz-text-muted)]">{item.label}</dt>
+              <dd className="text-sm text-[var(--hz-text-primary)]">{item.value}</dd>
+            </div>
+          ))}
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function Metric({ label, value, note, tone = 'neutral' }: { label: string; value: React.ReactNode; note?: string; tone?: 'success' | 'warning' | 'neutral' }) {
   const toneClass = tone === 'success' ? 'text-[var(--hz-success)]' : tone === 'warning' ? 'text-[var(--hz-warning)]' : 'text-[var(--hz-text-primary)]';
 
@@ -505,11 +629,13 @@ export function WorkspaceTabs<T extends string>({
   activeTab,
   onChange,
   label = 'Workspace sections',
+  variant = 'segmented',
 }: {
   tabs: readonly { id: T; label: string; count?: number }[];
   activeTab: T;
   onChange: (tab: T) => void;
   label?: string;
+  variant?: 'segmented' | 'line';
 }) {
   const listRef = React.useRef<HTMLDivElement>(null);
 
@@ -526,6 +652,43 @@ export function WorkspaceTabs<T extends string>({
     onChange(tabs[next].id);
     listRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
   };
+
+  if (variant === 'line') {
+    return (
+      <div className="sticky top-0 z-10 overflow-x-auto overscroll-x-contain border-y border-[var(--hz-divider)] bg-[var(--hz-bg-app)]">
+        <div
+          ref={listRef}
+          role="tablist"
+          aria-label={label}
+          aria-orientation="horizontal"
+          onKeyDown={onKeyDown}
+          className="flex w-max min-w-full items-center gap-4 px-4 text-sm font-medium"
+        >
+          {tabs.map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                tabIndex={active ? 0 : -1}
+                onClick={() => onChange(tab.id)}
+                className={`relative h-10 whitespace-nowrap px-1 transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 ${
+                  active
+                    ? 'text-[var(--hz-text-primary)] after:bg-[var(--hz-text-primary)]'
+                    : 'text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]'
+                }`}
+              >
+                {tab.label}
+                {tab.count !== undefined && <span className="ml-1.5 font-mono text-[13px] text-[var(--hz-text-muted)]">{tab.count}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sticky top-0 z-10 bg-[var(--hz-bg-app)] py-1">

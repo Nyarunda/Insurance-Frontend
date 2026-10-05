@@ -18,6 +18,7 @@ import { directoryFrom, directoryReturnState } from '../policies/returnTo';
 import type { PolicySummary } from '../policies/types';
 import { POLICY_ID, ENDORSEMENT_ID, POLICY_ETAG, MAKER, summary, version, V1, detail } from '../../test/policyFixtures';
 import { EMPTY_POLICIES_TEXT } from './PoliciesPage';
+import { periodProgress } from './PolicyWorkspacePage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
@@ -248,6 +249,32 @@ describe('the policy workspace', () => {
     }
     expect(text).not.toMatch(UUID_IN_TEXT);
     expect(queryClient.getQueryData<LoadedPolicy>(POLICY_KEYS.detail(POLICY_ID))?.etag).toBe(POLICY_ETAG);
+  });
+
+  it('lays the policy out as a record: header with status tags, line tabs, and a status column on Overview', async () => {
+    policyBackend();
+    renderAt(`/policies/list/${POLICY_ID}`);
+    await screen.findByRole('heading', { name: 'POL0000001' });
+    expect(screen.getByText('Wanjiku Holdings · Private Motor')).toBeInTheDocument();
+    for (const tag of ['Bound', 'Active', 'Jubilee Insurance', 'Nairobi', 'KES']) {
+      expect(screen.getAllByText(tag).length).toBeGreaterThan(0);
+    }
+    const status = screen.getByRole('complementary', { name: 'Record status' });
+    expect(status).toHaveTextContent('Bound policy');
+    expect(status).toHaveTextContent('Expiry31 Dec 2026');
+    expect(status).toHaveTextContent('Version 2 in force');
+    for (const group of ['Policy', 'Period and cover', 'Origin']) {
+      expect(screen.getByRole('heading', { name: group, level: 2 })).toBeInTheDocument();
+    }
+  });
+
+  it('fills the ring with the share of the period elapsed, clamped, and counts the days left', () => {
+    const on = (date: string) => Date.parse(`${date}T00:00:00Z`);
+    expect(periodProgress('2026-01-01', '2026-12-31', on('2026-01-01'))).toEqual({ percent: 0, daysLeft: 364 });
+    expect(periodProgress('2026-01-01', '2026-12-31', on('2026-07-02'))).toEqual({ percent: 50, daysLeft: 182 });
+    expect(periodProgress('2026-01-01', '2026-12-31', on('2027-03-01'))).toEqual({ percent: 100, daysLeft: 0 });
+    expect(periodProgress('2026-01-01', '2025-12-31')).toBeNull();
+    expect(periodProgress('', '2026-12-31')).toBeNull();
   });
 
   it('never rebuilds the ETag when the header is missing', async () => {
