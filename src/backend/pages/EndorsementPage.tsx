@@ -9,22 +9,22 @@
  * PTH1-D4: a referred endorsement with a `blocker`, or whose workflow is VOID, is shown as
  * "No longer actionable" with the blocker's message and required action; Withdraw is the only
  * action, and Submit is not offered. Resubmission or rework is a future lifecycle feature.
+ *
+ * DESIGN-1: shown as an expandable dialog over the policy's Endorsements tab; closing it returns there.
  */
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { RefreshCw, Send, Undo2 } from 'lucide-react';
+import { FileText, RefreshCw, Send, Undo2 } from 'lucide-react';
 import {
   HorizonAlert,
   HorizonLoader,
-  HorizonPage,
-  HorizonPageContent,
-  HorizonPageTitle,
   HorizonToast,
   KeyValueGrid,
   Section,
   StatusBadge,
 } from '../../components/horizon';
+import { DialogFrame } from '../../components/modals/DialogFrame';
 import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { describeError } from '../../lib/api/errorText';
 import { ApiError } from '../../lib/api/errors';
@@ -94,23 +94,40 @@ export const EndorsementPage: React.FC = () => {
       state,
     });
 
-  if (endorsement.isPending) return <HorizonLoader tip="Loading the endorsement..." />;
+  const frame = {
+    titleId: 'endorsement-title',
+    onClose: back,
+    closeLabel: 'Back to the policy',
+    size: 'xl' as const,
+    expandable: true,
+    icon: <FileText className="h-4 w-4" />,
+  };
+  const close = (
+    <button type="button" className="hz-button hz-button-secondary" onClick={back}>
+      Close
+    </button>
+  );
+
+  if (endorsement.isPending) {
+    return (
+      <DialogFrame {...frame} title="Endorsement" footer={close}>
+        <HorizonLoader tip="Loading the endorsement..." />
+      </DialogFrame>
+    );
+  }
   if (endorsement.isError) {
     const missing = endorsement.error instanceof ApiError && endorsement.error.status === 404;
     return (
-      <HorizonPage id="endorsement">
-        <HorizonPageTitle title="Endorsement" onBack={back} backLabel="Back to the policy" />
-        <HorizonPageContent className="p-4">
-          {missing ? (
-            <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
-              It does not exist, or its policy is outside the branches you can see.
-              <ErrorReference reference={referenceOf(endorsement.error)} />
-            </HorizonAlert>
-          ) : (
-            <ApiErrorAlert error={endorsement.error} title="The endorsement could not be loaded" />
-          )}
-        </HorizonPageContent>
-      </HorizonPage>
+      <DialogFrame {...frame} title="Endorsement" footer={close}>
+        {missing ? (
+          <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
+            It does not exist, or its policy is outside the branches you can see.
+            <ErrorReference reference={referenceOf(endorsement.error)} />
+          </HorizonAlert>
+        ) : (
+          <ApiErrorAlert error={endorsement.error} title="The endorsement could not be loaded" />
+        )}
+      </DialogFrame>
     );
   }
 
@@ -182,84 +199,94 @@ export const EndorsementPage: React.FC = () => {
   const noticeAction = pageNotice?.error ? requiredActionOf(pageNotice.error) : null;
 
   return (
-    <HorizonPage id="endorsement">
-      <HorizonPageTitle
-        title={view.endorsement_no}
-        subtitle={`${humanize(view.endorsement_type)} · Policy ${view.policy.policy_no}`}
-        onBack={back}
-        backLabel="Back to the policy"
-        actions={
-          <>
-            <StatusBadge label={ENDORSEMENT_STATUS_LABEL[view.status] ?? humanize(view.status)} tone={ENDORSEMENT_TONE[view.status] ?? 'neutral'} />
-            <button
-              type="button"
-              className="hz-button hz-button-secondary"
-              onClick={() => void endorsement.refetch()}
-              disabled={endorsement.isFetching}
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${endorsement.isFetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            {canWithdraw && (
+    <>
+      {/* Under the withdraw dialog, this one is inert: one dialog at a time is exposed. */}
+      <div inert={withdrawing ? true : undefined} aria-hidden={withdrawing ? true : undefined}>
+        <DialogFrame
+          {...frame}
+          title={view.endorsement_no}
+          subtitle={`${humanize(view.endorsement_type)} · Policy ${view.policy.policy_no}`}
+          footer={
+            <>
+              <button type="button" className="hz-button hz-button-secondary" onClick={back}>
+                Close
+              </button>
               <button
                 type="button"
                 className="hz-button hz-button-secondary"
-                onClick={() => {
-                  setPageNotice(null);
-                  setWithdrawing(freshWithdraw());
-                }}
-                disabled={pending}
+                onClick={() => void endorsement.refetch()}
+                disabled={endorsement.isFetching}
               >
-                <Undo2 className="h-3.5 w-3.5" />
-                Withdraw
+                <RefreshCw className={`h-3.5 w-3.5 ${endorsement.isFetching ? 'animate-spin' : ''}`} />
+                Refresh
               </button>
+              {canWithdraw && (
+                <button
+                  type="button"
+                  className="hz-button hz-button-secondary"
+                  onClick={() => {
+                    setPageNotice(null);
+                    setWithdrawing(freshWithdraw());
+                  }}
+                  disabled={pending}
+                >
+                  <Undo2 className="h-3.5 w-3.5" />
+                  Withdraw
+                </button>
+              )}
+              {canSubmit && (
+                <button type="button" className="hz-button hz-button-primary" onClick={() => void onSubmit()} disabled={pending}>
+                  <Send className="h-3.5 w-3.5" />
+                  {pending ? 'Submitting…' : 'Submit'}
+                </button>
+              )}
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <StatusBadge square label={ENDORSEMENT_STATUS_LABEL[view.status] ?? humanize(view.status)} tone={ENDORSEMENT_TONE[view.status] ?? 'neutral'} />
+            </div>
+
+            {pageNotice && (
+              <div role="status">
+                {pageNotice.error ? (
+                  <ApiErrorAlert error={pageNotice.error} title="The endorsement was not changed" />
+                ) : (
+                  <HorizonAlert tone={pageNotice.tone}>
+                    {pageNotice.text}
+                    <ErrorReference reference={pageNotice.reference} />
+                  </HorizonAlert>
+                )}
+                {noticeAction && (
+                  <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {requiredActionText(noticeAction)}</p>
+                )}
+              </div>
             )}
-            {canSubmit && (
-              <button type="button" className="hz-button hz-button-primary" onClick={() => void onSubmit()} disabled={pending}>
-                <Send className="h-3.5 w-3.5" />
-                {pending ? 'Submitting…' : 'Submit'}
-              </button>
-            )}
-          </>
-        }
-      />
 
-      {pageNotice && (
-        <div role="status">
-          {pageNotice.error ? (
-            <ApiErrorAlert error={pageNotice.error} title="The endorsement was not changed" />
-          ) : (
-            <HorizonAlert tone={pageNotice.tone}>
-              {pageNotice.text}
-              <ErrorReference reference={pageNotice.reference} />
-            </HorizonAlert>
-          )}
-          {noticeAction && (
-            <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">Required action: {requiredActionText(noticeAction)}</p>
-          )}
-        </div>
-      )}
+            <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyHref(view.policy.policy_no)} returnState={state} />
 
-      <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyHref(view.policy.policy_no)} returnState={state} />
-
-      <HorizonPageContent className="p-5 space-y-2">
-        <KeyValueGrid
-          items={[
-            { label: 'Type', value: humanize(view.endorsement_type) },
-            { label: 'Policy', value: view.policy.policy_no },
-            { label: 'Base version', value: `Version ${view.base_version_no}` },
-            { label: 'Effective from', value: formatDate(view.effective_date) },
-            { label: 'Reason', value: view.reason || '—' },
-            { label: 'Submitted', value: formatDateTime(view.submitted_at) },
-            ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
-            ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
-            ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
-          ]}
-        />
-        <RequestedChange view={view} />
-        <Financials view={view} />
-        <Approval view={view} />
-      </HorizonPageContent>
+            <div className="space-y-2">
+              <KeyValueGrid
+                items={[
+                  { label: 'Type', value: humanize(view.endorsement_type) },
+                  { label: 'Policy', value: view.policy.policy_no },
+                  { label: 'Base version', value: `Version ${view.base_version_no}` },
+                  { label: 'Effective from', value: formatDate(view.effective_date) },
+                  { label: 'Reason', value: view.reason || '—' },
+                  { label: 'Submitted', value: formatDateTime(view.submitted_at) },
+                  ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
+                  ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
+                  ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
+                ]}
+              />
+              <RequestedChange view={view} />
+              <Financials view={view} />
+              <Approval view={view} />
+            </div>
+          </div>
+        </DialogFrame>
+      </div>
 
       {withdrawing && (
         <WithdrawDialog
@@ -275,7 +302,7 @@ export const EndorsementPage: React.FC = () => {
         />
       )}
       <HorizonToast message={toast} tone="success" />
-    </HorizonPage>
+    </>
   );
 };
 

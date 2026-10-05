@@ -151,7 +151,7 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
             setParams(changed, { replace: true, state: location.state });
           }}
         />
-        <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label} className="px-4 md:px-6">
+        <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label} className="hz-record-body">
           {tab === 'overview' ? (
             <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_18rem]">
               <div className="py-4 lg:pr-6">

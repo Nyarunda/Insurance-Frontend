@@ -703,3 +703,13 @@
   border-top: 1px solid var(--hz-divider);
   padding-top: 1rem;
 }
+
+/* Tables in a record tab line up with the headings above them. */
+.hz-record-body .hz-grid th:first-child,
+.hz-record-body .hz-grid td:first-child {
+  padding-left: 0;
+}
+.hz-record-body .hz-grid th:last-child,
+.hz-record-body .hz-grid td:last-child {
+  padding-right: 0;
+}

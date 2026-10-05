@@ -486,7 +486,7 @@ export function RecordHeader({
 }) {
   const filled = progress === undefined ? 0 : Math.max(0, Math.min(100, Math.round(progress)));
   return (
-    <div className="flex flex-col gap-5 px-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-4">
         <div className="grid size-[72px] shrink-0 place-items-center sm:size-[92px]">
           {progressLabel && <span className="sr-only">{progressLabel}</span>}
@@ -655,14 +655,14 @@ export function WorkspaceTabs<T extends string>({
 
   if (variant === 'line') {
     return (
-      <div className="sticky top-0 z-10 overflow-x-auto overscroll-x-contain border-y border-[var(--hz-divider)] bg-[var(--hz-bg-app)]">
+      <div className="sticky top-0 z-10 overflow-x-auto overflow-y-hidden overscroll-x-contain border-t border-[var(--hz-divider)] bg-[var(--hz-bg-app)]">
         <div
           ref={listRef}
           role="tablist"
           aria-label={label}
           aria-orientation="horizontal"
           onKeyDown={onKeyDown}
-          className="flex w-max min-w-full items-center gap-4 px-4 text-sm font-medium"
+          className="flex w-max min-w-full items-center gap-6 text-sm font-medium shadow-[inset_0_-1px_0_var(--hz-divider)]"
         >
           {tabs.map((tab) => {
             const active = activeTab === tab.id;
@@ -674,7 +674,7 @@ export function WorkspaceTabs<T extends string>({
                 aria-selected={active}
                 tabIndex={active ? 0 : -1}
                 onClick={() => onChange(tab.id)}
-                className={`relative h-10 whitespace-nowrap px-1 transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 ${
+                className={`relative h-10 whitespace-nowrap transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 ${
                   active
                     ? 'text-[var(--hz-text-primary)] after:bg-[var(--hz-text-primary)]'
                     : 'text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]'

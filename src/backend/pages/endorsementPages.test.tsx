@@ -520,6 +520,15 @@ describe('creating a change-limit endorsement', () => {
 });
 
 describe('the endorsement', () => {
+  it('opens as a dialog over its policy, with the policy behind it inert', async () => {
+    endorsementBackend({});
+    renderAt(ENDORSEMENT_PATH);
+    const dialog = await screen.findByRole('dialog', { name: 'END0000001' });
+    expect(dialog.closest('[inert]')).toBeNull();
+    expect(document.querySelector('[inert][aria-hidden="true"]')).not.toBeNull();
+    expect(within(dialog).getByTitle('Back to the policy')).toBeInTheDocument();
+  });
+
   it('shows the type, base version, requested change, resulting terms and deltas, with no identifiers', async () => {
     endorsementBackend({
       endorsement: endorsement({
@@ -634,7 +643,9 @@ describe('the endorsement', () => {
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Withdraw' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // The withdraw dialog closes; the endorsement stays open, as a dialog over its policy.
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Withdraw endorsement' })).not.toBeInTheDocument());
+    expect(screen.getByRole('dialog', { name: 'END0000001' })).toBeInTheDocument();
     expect(await screen.findByText('Superseded; preparing again', { selector: 'div' })).toBeInTheDocument();
 
     const [first, second] = backend.posts('/cancel');

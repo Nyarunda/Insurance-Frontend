@@ -108,6 +108,9 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <PolicyRefRoute>
+              <div inert aria-hidden="true">
+                <PolicyWorkspacePage tab="endorsements" />
+              </div>
               <EndorsementPage />
             </PolicyRefRoute>
           </RequirePermission>
