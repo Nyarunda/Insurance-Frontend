@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router';
 import { TaskTable } from './WorkQueuePage';
 import { ArrowRight, Building2, FileCheck2, Inbox, SearchX, UserRound } from 'lucide-react';
-import { Card, DetailGrid, EmptyState, HorizonAlert, HorizonPage, HorizonPageTitle, ListCard, StatCard } from '../../components/horizon';
+import { Card, DetailGrid, EmptyState, HorizonAlert, HorizonPage, HorizonPageTitle, ListCard, StatCard, StatGrid } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { POLICY_VIEW, TASK_VIEW } from '../permissions';
@@ -10,7 +10,6 @@ import { usePolicies } from '../policies/queries';
 import { useWorkQueue } from '../workflow/queries';
 
 /** Cards fill the row: three cards take thirds, four take quarters. */
-const STAT_COLUMNS: Record<number, string> = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4' };
 
 /** One metric card in the template's form: an icon chip, a label, a large figure and a caption. */
 
@@ -39,7 +38,7 @@ export const HomePage: React.FC = () => {
     <HorizonPage id="backend-home">
       <HorizonPageTitle title="Home" subtitle={me.tenant.name} />
 
-      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${STAT_COLUMNS[2 + Number(canSeeTasks) + Number(canSeePolicies)]}`}>
+      <StatGrid>
         {canSeeTasks && (
           <StatCard
             icon={Inbox}
@@ -63,7 +62,7 @@ export const HomePage: React.FC = () => {
           caption={`${branches.length} branch${branches.length === 1 ? '' : 'es'} assigned`}
         />
         <StatCard icon={UserRound} label="Signed in as" value={me.user.email.split('@')[0]} caption={me.user.email} />
-      </div>
+      </StatGrid>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {canSeeTasks && (

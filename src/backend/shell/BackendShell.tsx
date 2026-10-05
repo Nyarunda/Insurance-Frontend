@@ -79,7 +79,7 @@ export const BackendShell: React.FC = () => {
   }
 
   const activeBranch = branches.find((branch) => branch.id === activeBranchId);
-  const densityPadding = densityMode === 'compact' ? 'px-4 py-4' : densityMode === 'spacious' ? 'px-6 py-8 md:px-8' : 'px-4 py-6 md:px-6';
+  const densityPadding = densityMode === 'compact' ? 'px-4 py-4' : densityMode === 'spacious' ? 'px-6 py-8 md:px-8' : 'p-4 md:p-6';
 
   return (
     <div

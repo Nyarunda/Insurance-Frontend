@@ -8,7 +8,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Clock3, FileText, Inbox, RefreshCw, UsersRound } from 'lucide-react';
+import { CalendarClock, Clock3, FileText, Inbox, RefreshCw, UsersRound } from 'lucide-react';
 import {
   DotTag,
   EmptyState,
@@ -22,6 +22,7 @@ import {
   SearchField,
   StackedCell,
   StatCard,
+  StatGrid,
 } from '../../components/horizon';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { changeSummary, formatDateTime, formatMoney, humanize } from '../workflow/format';
@@ -107,6 +108,8 @@ export const WorkQueuePage: React.FC = () => {
     null,
   );
   const forColleagues = items.filter((item) => item.acting_for_user_id).length;
+  const today = new Date().toDateString();
+  const assignedToday = items.filter((item) => item.assigned_at && new Date(item.assigned_at).toDateString() === today).length;
 
   return (
     <HorizonPage id="work-queue">
@@ -127,8 +130,14 @@ export const WorkQueuePage: React.FC = () => {
       />
 
       {queue.isSuccess && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatGrid>
           <StatCard icon={Inbox} label="Waiting" value={items.length} caption="Approvals assigned to you" />
+          <StatCard
+            icon={CalendarClock}
+            label="Assigned today"
+            value={assignedToday}
+            caption={assignedToday ? 'New since this morning' : 'Nothing new today'}
+          />
           <StatCard
             icon={Clock3}
             label="Oldest task"
@@ -141,7 +150,7 @@ export const WorkQueuePage: React.FC = () => {
             value={forColleagues}
             caption={forColleagues ? 'Held while you act for someone' : 'All are your own'}
           />
-        </div>
+        </StatGrid>
       )}
 
       <ListCard

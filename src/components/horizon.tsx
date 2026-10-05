@@ -98,6 +98,11 @@ export function Card({
   );
 }
 
+/** The template's metric grid: one column, four equal columns on wide screens, 16px gaps. */
+export function StatGrid({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">{children}</div>;
+}
+
 /** A metric card, as the template's (16px padding and gaps, a 28px icon tile, a 30px value). */
 export function StatCard({
   icon: Icon,
@@ -397,7 +402,7 @@ export function HorizonPage({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`hz-screen-enter space-y-6 pb-8 ${className}`} {...props}>
+    <div className={`hz-screen-enter flex flex-col gap-4 pb-8 md:gap-6 ${className}`} {...props}>
       {children}
     </div>
   );
