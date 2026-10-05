@@ -21,6 +21,7 @@ import { ApiError } from '../../lib/api/errors';
 import { fieldErrorsOf } from '../../lib/api/fieldErrors';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { NO_ETAG_TEXT, useEndorsementCommands } from '../endorsements/useEndorsementCommands';
+import { parseAmount } from '../endorsements/amount';
 import type { ChangeLimitBody } from '../endorsements/types';
 import { formatDate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
@@ -28,7 +29,6 @@ import { formatMoney, requiredActionText } from '../workflow/format';
 
 export const REASON_MAX = 500;
 
-const AMOUNT = /^\d+(\.\d{1,2})?$/;
 
 /** The backend's field names this form shows errors on (`changes` is the benefit). */
 const FORM_FIELDS = ['benefit', 'changes', 'limit_amount', 'effective_date', 'reason'];
@@ -107,10 +107,12 @@ export const EndorsementCreatePage: React.FC = () => {
   const currency = view.currency;
   const benefits = latest.cover?.benefits ?? [];
   const chosen = benefits.find((item) => item.code === benefit);
+  // RUP1 F-8: "55,000" is accepted; the server receives "55000".
+  const amount = parseAmount(limit);
 
   const clientErrors: Record<string, string | undefined> = {
     benefit: chosen ? undefined : 'Choose the benefit whose limit changes.',
-    limit_amount: !AMOUNT.test(limit.trim()) || Number(limit) <= 0 ? 'Give the new limit as a positive amount.' : undefined,
+    limit_amount: amount.error ?? undefined,
     effective_date: effectiveDate ? undefined : 'Give the date the change takes effect.',
     reason: reason.trim() ? undefined : 'Give the reason for the change.',
   };
@@ -133,7 +135,7 @@ export const EndorsementCreatePage: React.FC = () => {
       endorsement_type: 'CHANGE_LIMIT',
       effective_date: effectiveDate,
       reason: reason.trim(),
-      changes: { benefit, limit_amount: limit.trim() },
+      changes: { benefit, limit_amount: amount.value ?? limit.trim() },
     };
     const outcome = await create(policyId, body, etag);
     if (outcome.ok) {
@@ -163,10 +165,10 @@ export const EndorsementCreatePage: React.FC = () => {
 
   const typed = Boolean(benefit || limit.trim() || reason.trim());
   const preview =
-    chosen && AMOUNT.test(limit.trim()) && Number(limit) > 0
+    chosen && amount.value !== null
       ? {
           from: chosen.limit_amount !== null ? formatMoney(chosen.limit_amount, currency) : 'No limit stated',
-          to: formatMoney(limit.trim(), currency),
+          to: formatMoney(amount.value, currency),
         }
       : null;
 
@@ -261,7 +263,7 @@ export const EndorsementCreatePage: React.FC = () => {
           <input
             id="endorsement-limit"
             inputMode="decimal"
-            placeholder="e.g. 100000"
+            placeholder="e.g. 100,000"
             value={limit}
             onChange={(event) => setLimit(event.target.value)}
             aria-invalid={!!errorFor('limit_amount')}

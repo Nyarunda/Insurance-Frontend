@@ -321,8 +321,26 @@ describe('creating a change-limit endorsement', () => {
     }
     await user.type(screen.getByLabelText(/New limit/), '0');
     await user.click(screen.getByRole('button', { name: 'Create endorsement' }));
-    expect(screen.getByText('Give the new limit as a positive amount.')).toBeInTheDocument();
+    expect(screen.getByText('The new limit must be more than zero.')).toBeInTheDocument();
     expect(backend.posts('/endorsements')).toHaveLength(0);
+  });
+
+  it('RUP1 F-8: accepts a limit typed with thousands separators and sends plain digits', async () => {
+    const user = userEvent.setup();
+    const backend = endorsementBackend({ create: created });
+    renderAt(NEW_PATH);
+    await screen.findByLabelText(/Benefit/);
+    await user.type(screen.getByLabelText(/New limit/), '55,00');
+    await user.click(screen.getByRole('button', { name: 'Create endorsement' }));
+    expect(screen.getByText('Put commas only between groups of three digits, for example 55,000.')).toBeInTheDocument();
+    await fillChangeLimit(user);
+    await user.clear(screen.getByLabelText(/New limit/));
+    await user.type(screen.getByLabelText(/New limit/), '55,000');
+    expect(screen.getByRole('region', { name: 'Preview of the change' })).toHaveTextContent('KES 55,000.00');
+    await user.click(screen.getByRole('button', { name: 'Create endorsement' }));
+    await screen.findByRole('heading', { name: 'END0000001' });
+    const [post] = backend.posts(`/policies/${POLICY_ID}/endorsements`);
+    expect((post.body as { changes: { limit_amount: string } }).changes.limit_amount).toBe('55000');
   });
 
   it("creates it with the policy's header ETag and a key, then opens it", async () => {
