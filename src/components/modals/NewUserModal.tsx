@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Check, Lock, X } from 'lucide-react';
-import { ScreenId, UserRole } from '../../types';
-import { ALL_ROLES, ROLE_LABELS } from '../../data/roleRights';
+import { UserRole } from '../../types';
+import { ALL_ROLES, ModuleId, ROLE_LABELS } from '../../data/roleRights';
 import { useHasPermission } from '../../store/permissionStore';
 import { FieldError, ValidationSummary } from '../horizon';
 
 export interface PermissionModuleOption {
-  id: ScreenId;
+  id: ModuleId;
   label: string;
   group: string;
   functionality: string;

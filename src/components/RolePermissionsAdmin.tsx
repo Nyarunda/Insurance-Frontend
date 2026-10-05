@@ -105,7 +105,7 @@ export const RolePermissionsAdmin: React.FC<RolePermissionsAdminProps> = ({ onNa
 
         {viewMode === 'role' ? (
           <>
-            <WorkspaceTabs tabs={roleTabs} activeTab={activeRole} onChange={setActiveRole} />
+            <WorkspaceTabs tabs={roleTabs} activeTab={activeRole} onChange={(role: UserRole) => setActiveRole(role)} />
 
             <div className="p-5">
               <div className="flex items-center justify-between mb-3">

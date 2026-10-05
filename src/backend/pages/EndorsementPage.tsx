@@ -128,7 +128,7 @@ export const EndorsementPage: React.FC = () => {
       return;
     }
     const outcome = await submit(view.id, etag);
-    if (outcome.ok) {
+    if (outcome.ok === true) {
       setToast(outcome.view.status === 'EFFECTIVE' ? `Effective: ${view.endorsement_no}` : `${SENT_FOR_APPROVAL}: ${view.endorsement_no}`);
       return;
     }
@@ -145,7 +145,7 @@ export const EndorsementPage: React.FC = () => {
       return;
     }
     const outcome = await withdraw(view.id, reason, etag);
-    if (outcome.ok) {
+    if (outcome.ok === true) {
       setWithdrawing(null);
       setToast(`Withdrawn: ${view.endorsement_no}`);
       return;

@@ -149,7 +149,7 @@ export const InstancePage: React.FC = () => {
       ...(dialog.decision === 'REJECT' ? { reason_code: reasonCode, ...(reasonText ? { reason_text: reasonText } : {}) } : {}),
     };
     const outcome = await submit(body, etag);
-    if (outcome.ok) {
+    if (outcome.ok === true) {
       setDialog(null);
       setToast(`${dialog.decision === 'APPROVE' ? 'Approved' : 'Rejected'}: ${subject}`);
       return;

@@ -126,7 +126,7 @@ export const MyProfilePage: React.FC<MyProfilePageProps> = ({ onNavigate, sessio
           </div>
         </div>
 
-        <WorkspaceTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        <WorkspaceTabs tabs={tabs} activeTab={activeTab} onChange={(tab: typeof activeTab) => setActiveTab(tab)} />
 
         <div className="p-5">
           {activeTab === 'overview' && (

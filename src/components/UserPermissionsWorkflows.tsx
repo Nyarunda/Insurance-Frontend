@@ -13,7 +13,7 @@ import { HorizonPage, HorizonPageContent, HorizonPageTitle, HorizonToast, Worksp
 import { NewUserModal, NewUserPayload } from './modals/NewUserModal';
 import { MODAL_IDS, useModalWrapper } from '../store/modalStore';
 import { recordsStore } from '../data/recordsStore';
-import { ALL_ROLES, ModuleId, ROLE_LABELS } from '../data/roleRights';
+import { ALL_ROLES, ModuleId, moduleScreen, ROLE_LABELS } from '../data/roleRights';
 import {
   getEffectiveRightsForUserSnapshot,
   useEffectiveRightsForUser,
@@ -391,7 +391,7 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
               </div>
             </div>
 
-            <WorkspaceTabs tabs={userWorkspaceTabs} activeTab={activeUserTab} onChange={setActiveUserTab} />
+            <WorkspaceTabs tabs={userWorkspaceTabs} activeTab={activeUserTab} onChange={(tab: typeof activeUserTab) => setActiveUserTab(tab)} />
 
             <div className="p-5">
               {activeUserTab === 'overview' && (
@@ -513,7 +513,11 @@ export const UserPermissionsWorkflows: React.FC<UserPermissionsWorkflowsProps> =
                         <button
                           key={module.id}
                           type="button"
-                          onClick={() => onNavigate(module.id, 'push')}
+                          disabled={!moduleScreen(module.id)}
+                          onClick={() => {
+                            const screen = moduleScreen(module.id);
+                            if (screen) onNavigate(screen, 'push');
+                          }}
                           className="w-full flex items-center justify-between gap-3 rounded-[var(--hz-radius-md)] border border-[var(--hz-border)] bg-[var(--hz-surface)] px-3 py-2 text-left hover:bg-[var(--hz-hover)]"
                         >
                           <span>

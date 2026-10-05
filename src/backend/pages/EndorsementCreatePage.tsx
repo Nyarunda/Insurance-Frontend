@@ -140,7 +140,7 @@ export const EndorsementCreatePage: React.FC = () => {
       changes: { benefit, limit_amount: amount.value ?? limit.trim() },
     };
     const outcome = await create(policyId, body, etag);
-    if (outcome.ok) {
+    if (outcome.ok === true) {
       navigate(endorsementHref(view.policy_no, outcome.view.endorsement_no), {
         replace: true,
         state,

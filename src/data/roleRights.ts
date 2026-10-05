@@ -1,4 +1,4 @@
-import { UserRole } from '../types';
+import { ScreenId, UserRole } from '../types';
 
 export type ModuleId =
   | 'customers'
@@ -13,6 +13,9 @@ export type ModuleId =
   | 'intermediaries'
   | 'operations'
   | 'reporting';
+
+/** The screen a module opens, or null for a module with no screen of its own (Operations, Reporting). */
+export const moduleScreen = (id: ModuleId): ScreenId | null => (id === 'operations' || id === 'reporting' ? null : id);
 
 export const ALL_MODULE_IDS: ModuleId[] = [
   'customers',
