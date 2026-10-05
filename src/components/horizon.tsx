@@ -98,31 +98,40 @@ export function Card({
   );
 }
 
-/** A metric card (the template's section cards): icon, label, a large value, a caption. */
+/** A metric card, as the template's (16px padding and gaps, a 28px icon tile, a 30px value). */
 export function StatCard({
   icon: Icon,
   label,
   value,
   caption,
+  badge,
   testId,
 }: {
   icon: React.ElementType;
   label: string;
   value: React.ReactNode;
   caption: React.ReactNode;
+  badge?: React.ReactNode;
   testId?: string;
 }) {
   return (
-    <Card className="hz-stat-card flex flex-col gap-1">
-      <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] text-[var(--hz-text-secondary)]">
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="text-[13px] text-[var(--hz-text-muted)]">{label}</span>
-      <span className="truncate text-2xl font-semibold tabular-nums tracking-tight" data-testid={testId}>
-        {value}
-      </span>
-      <span className="truncate text-[13px] text-[var(--hz-text-muted)]">{caption}</span>
-    </Card>
+    <div className="hz-template-card hz-stat-card flex flex-col gap-4 py-4">
+      <div className="flex flex-col gap-1 px-4">
+        <span className="flex size-7 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-muted)] text-[var(--hz-text-muted)]">
+          <Icon className="size-4" />
+        </span>
+        <span className="text-sm text-[var(--hz-text-muted)]">{label}</span>
+      </div>
+      <div className="flex flex-col gap-1 px-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="truncate text-3xl font-medium leading-none tracking-tight tabular-nums text-[var(--hz-text-primary)]" data-testid={testId}>
+            {value}
+          </span>
+          {badge}
+        </div>
+        <span className="truncate text-sm text-[var(--hz-text-muted)]">{caption}</span>
+      </div>
+    </div>
   );
 }
 
@@ -619,38 +628,45 @@ export function DetailGrid({ items, columns = 3 }: { items: Array<{ label: strin
    SummaryList column. Pages compose these instead of styling their own.
    ------------------------------------------------------------------ */
 
-/** A list in one card: title and hint, a toolbar on the right, the rows, and an optional footer. */
+/**
+ * A list in one card, as the template's table card: title and hint with `actions` on the right, a
+ * `toolbar` row (search, filters), the rows in their own bordered box, and a `footer` (count, paging).
+ * `bare` drops the box, for a card whose body is not a table.
+ */
 export function ListCard({
   title,
   description,
+  actions,
   toolbar,
   footer,
   children,
+  bare = false,
   className = '',
 }: {
   title: string;
   description?: React.ReactNode;
+  actions?: React.ReactNode;
   toolbar?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
+  bare?: boolean;
   className?: string;
 }) {
   return (
-    <Card flush className={className}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--hz-border-grid)] px-4 py-3">
-        <div className="min-w-0">
-          <h2 className="text-base font-semibold text-[var(--hz-text-primary)]">{title}</h2>
-          {description && <p className="text-[13px] text-[var(--hz-text-muted)]">{description}</p>}
+    <section className={`hz-template-card flex flex-col gap-4 py-4 ${className}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="text-base font-medium leading-none text-[var(--hz-text-primary)]">{title}</h2>
+          {description && <p className="text-sm text-[var(--hz-text-muted)]">{description}</p>}
         </div>
-        {toolbar && <div className="flex flex-wrap items-center gap-2">{toolbar}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {children}
-      {footer && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hz-border-grid)] px-4 py-2.5 text-[13px] text-[var(--hz-text-muted)]">
-          {footer}
-        </div>
-      )}
-    </Card>
+      <div className="flex flex-col gap-4 px-4">
+        {toolbar && <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">{toolbar}</div>}
+        {bare ? children : <div className="hz-table-box">{children}</div>}
+        {footer && <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--hz-text-muted)]">{footer}</div>}
+      </div>
+    </section>
   );
 }
 
@@ -778,7 +794,7 @@ export function SearchField({
       <input
         id={id}
         type="search"
-        className="hz-field w-full pl-8 text-[13px]"
+        className="hz-field h-8 w-full pl-8 text-[13px]"
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}

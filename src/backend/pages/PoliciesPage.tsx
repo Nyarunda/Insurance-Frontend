@@ -93,12 +93,6 @@ export const PoliciesPage: React.FC = () => {
         description="Policies within your branch access. Open one to see its cover, premium and endorsements."
         toolbar={
           <>
-            <FilterGroup
-              label="Coverage"
-              options={COVERAGE_FILTERS}
-              value={isCoverage(coverage) ? coverage : ''}
-              onChange={(id) => update({ coverage: id || null, page: null })}
-            />
             <form
               role="search"
               className="flex items-center gap-2"
@@ -120,6 +114,12 @@ export const PoliciesPage: React.FC = () => {
                 Search
               </button>
             </form>
+            <FilterGroup
+              label="Coverage"
+              options={COVERAGE_FILTERS}
+              value={isCoverage(coverage) ? coverage : ''}
+              onChange={(id) => update({ coverage: id || null, page: null })}
+            />
           </>
         }
         footer={

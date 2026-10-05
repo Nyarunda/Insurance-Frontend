@@ -71,7 +71,7 @@ export const HomePage: React.FC = () => {
             className="xl:col-span-2"
             title="Waiting for you"
             description="The latest tasks in your work queue"
-            toolbar={
+            actions={
               <button type="button" className="hz-button hz-button-secondary" onClick={() => navigate('/my-work/list')}>
                 Open My Work Queue
                 <ArrowRight className="h-4 w-4" />
@@ -91,8 +91,8 @@ export const HomePage: React.FC = () => {
           </ListCard>
         )}
 
-        <ListCard className={canSeeTasks ? '' : 'xl:col-span-3'} title="Your access" description="What the server knows about this session">
-          <div className="space-y-4 p-4">
+        <ListCard className={canSeeTasks ? '' : 'xl:col-span-3'} title="Your access" description="What the server knows about this session" bare>
+          <div className="space-y-4">
             <DetailGrid
               columns={canSeeTasks ? 1 : 2}
               items={[
