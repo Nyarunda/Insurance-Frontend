@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router';
 import { RefreshCw } from 'lucide-react';
 import { HorizonLoader, HorizonPage, HorizonPageContent, HorizonPageTitle } from '../../components/horizon';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
-import { formatDateTime, formatMoney, humanize } from '../workflow/format';
+import { changeSummary, formatDateTime, formatMoney, humanize } from '../workflow/format';
 import { useWorkQueue } from '../workflow/queries';
 
 export const EMPTY_QUEUE_TEXT = 'Nothing is waiting for you';
@@ -83,6 +83,12 @@ export const WorkQueuePage: React.FC = () => {
                     <td>
                       {humanize(item.resource_type)}
                       {item.resource_reference ? ` ${item.resource_reference}` : ''}
+                      {/* RUP1-F1: what the change is, so two pending changes can be told apart. */}
+                      {changeSummary(item.approval_facts, item.currency) && (
+                        <span className="block text-[13px] font-semibold text-[var(--hz-text-primary)]">
+                          {changeSummary(item.approval_facts, item.currency)}
+                        </span>
+                      )}
                     </td>
                     <td>{humanize(item.definition_code)}</td>
                     <td className="text-right tabular-nums">{formatMoney(item.amount, item.currency, item.amount_reason)}</td>

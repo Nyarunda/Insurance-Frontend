@@ -479,3 +479,75 @@ describe('a reload that moves the step while the dialog is open', () => {
     expect(attempts).toBe(1);
   });
 });
+
+describe('RUP1-F1: the checker sees what they decide', () => {
+  /** The pilot's example: version 6, Windscreen 80,000 to 100,000, with the maker's reason (POLICY_ENDORSEMENT_APPROVAL/2). */
+  const v2Facts = (over: Record<string, unknown> = {}) => ({
+    ...view().approval_facts,
+    endorsement_type: 'CHANGE_LIMIT',
+    policy_no: 'POL0000001',
+    base_version_no: 6,
+    effective_date: '2026-10-05',
+    benefit: 'WINDSCREEN',
+    benefit_name: 'Windscreen',
+    previous_limit_amount: '80000.00',
+    new_limit_amount: '100000.00',
+    request_reason: 'Customer requested increased windscreen cover',
+    transaction_currency: 'KES',
+    ...over,
+  });
+
+  it('My Work tells two pending limit changes apart before either is opened', async () => {
+    const second = '12121212-1212-4121-8121-121212121212';
+    workflowBackend({
+      queue: [
+        task({ approval_facts: v2Facts() }),
+        task({
+          assignment_id: '13131313-1313-4131-8131-131313131313',
+          workflow_instance_id: second,
+          resource_reference: 'END0000002',
+          approval_facts: v2Facts({ benefit: 'RADIO', benefit_name: 'Radio cassette', previous_limit_amount: '30000.00', new_limit_amount: '40000.00' }),
+        }),
+      ],
+    });
+    renderAt('/my-work');
+    expect(await screen.findByRole('row', { name: /END0000001/ })).toHaveTextContent('Windscreen: KES 80,000.00 → KES 100,000.00');
+    expect(screen.getByRole('row', { name: /END0000002/ })).toHaveTextContent('Radio cassette: KES 30,000.00 → KES 40,000.00');
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+    expect(mainText()).not.toContain('WINDSCREEN');
+  });
+
+  it('the approval page shows the requested change before Approve and Reject, in words', async () => {
+    workflowBackend({ instance: view({ approval_facts: v2Facts() }) });
+    renderAt(`/my-work/${INSTANCE_ID}`);
+    const change = await screen.findByLabelText('Requested change');
+    const text = change.textContent ?? '';
+    for (const expected of [
+      'TypeChange limit',
+      'PolicyPOL0000001',
+      'Base versionVersion 6',
+      'BenefitWindscreen',
+      'Current limitKES 80,000.00',
+      'New limitKES 100,000.00',
+      'Effective from05 Oct 2026',
+      "Maker's reasonCustomer requested increased windscreen cover",
+    ]) {
+      expect(text).toContain(expected);
+    }
+    // The decision facts are not repeated raw among the other facts.
+    const others = screen.getByLabelText('Other approval facts').textContent ?? '';
+    expect(others).not.toContain('100000.00');
+    expect(others).not.toContain('WINDSCREEN');
+    expect(others).not.toContain('Request reason');
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it('an older approval (version 1 facts) still renders, without a change line', async () => {
+    workflowBackend({ queue: [task({ approval_facts: view().approval_facts })] });
+    renderAt('/my-work');
+    const row = await screen.findByRole('row', { name: /END0000001/ });
+    expect(row).not.toHaveTextContent('→');
+    expect(row).toHaveTextContent('Policy endorsement END0000001');
+  });
+});

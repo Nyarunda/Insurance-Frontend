@@ -85,3 +85,65 @@ export function actorLabel(entry: HistoryEntry, currentUserId: string | null | u
   if (entry.stage) return `${humanize(entry.stage)} approver`;
   return entry.action === 'SUBMIT' || entry.action === 'START' ? 'Requester' : 'Another user';
 }
+
+// ---------------------------------------------------------------------------- RUP1-F1 decision facts
+
+/** The facts the checker decides on, shown first and in words; the rest are listed after them. */
+export const DECISION_KEYS = [
+  'endorsement_type',
+  'policy_no',
+  'base_version_no',
+  'benefit',
+  'benefit_name',
+  'previous_limit_amount',
+  'new_limit_amount',
+  'effective_date',
+  'request_reason',
+] as const;
+
+const text = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value : null);
+
+/** A calendar date (`YYYY-MM-DD`) as "05 Oct 2026", never shifted by the viewer's time zone. */
+function calendarDate(value: unknown): string | null {
+  const match = typeof value === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) : null;
+  if (!match) return text(value);
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+/** Limits are in the policy's own currency, which the facts carry; the task's currency may be the base one. */
+const limitCurrency = (facts: Record<string, unknown>, fallback: string | null) => text(facts.transaction_currency) ?? fallback;
+
+const money = (amount: unknown, currency: string | null) =>
+  typeof amount === 'string' && amount !== '' ? formatMoney(amount, currency) : null;
+
+/** "Windscreen: KES 80,000.00 → KES 100,000.00", or null when the facts carry no limit change. */
+export function changeSummary(facts: Record<string, unknown> | null | undefined, fallbackCurrency: string | null): string | null {
+  if (!facts) return null;
+  const currency = limitCurrency(facts, fallbackCurrency);
+  const benefit = text(facts.benefit_name) ?? (text(facts.benefit) ? humanize(String(facts.benefit)) : null);
+  const to = money(facts.new_limit_amount, currency);
+  if (!benefit || !to) return null;
+  const from = money(facts.previous_limit_amount, currency) ?? 'No limit stated';
+  return `${benefit}: ${from} → ${to}`;
+}
+
+/** The decision block of the approval page: what was asked for, in words. Missing facts are left out. */
+export function decisionFacts(facts: Record<string, unknown> | null | undefined, fallbackCurrency: string | null): FactRow[] {
+  if (!facts) return [];
+  const currency = limitCurrency(facts, fallbackCurrency);
+  const rows: Array<[string, string | null]> = [
+    ['Type', text(facts.endorsement_type) ? humanize(String(facts.endorsement_type)) : null],
+    ['Policy', text(facts.policy_no)],
+    ['Base version', typeof facts.base_version_no === 'number' ? `Version ${facts.base_version_no}` : null],
+    ['Benefit', text(facts.benefit_name) ?? (text(facts.benefit) ? humanize(String(facts.benefit)) : null)],
+    [
+      'Current limit',
+      text(facts.new_limit_amount) ? money(facts.previous_limit_amount, currency) ?? 'No limit stated' : null,
+    ],
+    ['New limit', money(facts.new_limit_amount, currency)],
+    ['Effective from', calendarDate(facts.effective_date)],
+    ["Maker's reason", text(facts.request_reason)],
+  ];
+  return rows.filter((row): row is [string, string] => row[1] !== null).map(([label, value]) => ({ label, value }));
+}

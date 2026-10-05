@@ -27,7 +27,17 @@ import { ApiError } from '../../lib/api/errors';
 import { useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
-import { actorLabel, displayFacts, formatDateTime, formatMoney, humanize, readableReason, requiredActionText } from '../workflow/format';
+import {
+  actorLabel,
+  DECISION_KEYS,
+  decisionFacts,
+  displayFacts,
+  formatDateTime,
+  formatMoney,
+  humanize,
+  readableReason,
+  requiredActionText,
+} from '../workflow/format';
 import { useInstance, useWorkQueue } from '../workflow/queries';
 import type { ActionBody, Decision } from '../workflow/types';
 import { useDecision } from '../workflow/useDecision';
@@ -157,7 +167,14 @@ export const InstancePage: React.FC = () => {
     pageNotice?.error instanceof ApiError && typeof pageNotice.error.details.required_action === 'string'
       ? pageNotice.error.details.required_action
       : null;
-  const facts = displayFacts(view.approval_facts);
+  // RUP1-F1: what was asked for comes first, in words; the other governed facts follow.
+  const decision = decisionFacts(view.approval_facts, view.currency);
+  const rest = view.approval_facts
+    ? Object.fromEntries(
+        Object.entries(view.approval_facts).filter(([key]) => !(DECISION_KEYS as readonly string[]).includes(key)),
+      )
+    : null;
+  const facts = displayFacts(rest);
   // FI1-E: a void instance says so as a heading, with the reason recorded when it was voided.
   const voided = view.status === 'VOID' ? [...view.history].reverse().find((entry) => entry.new_status === 'VOID') : undefined;
   const voidReason = voided?.reason_text ? readableReason(voided.reason_text) : voided?.reason_code ? humanize(voided.reason_code) : null;
@@ -230,9 +247,18 @@ export const InstancePage: React.FC = () => {
           ]}
         />
 
-        {facts.length > 0 && (
+        {(decision.length > 0 || facts.length > 0) && (
           <Section title="What is being approved">
-            <KeyValueGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
+            {decision.length > 0 && (
+              <div aria-label="Requested change">
+                <KeyValueGrid items={decision.map((fact) => ({ label: fact.label, value: fact.value }))} />
+              </div>
+            )}
+            {facts.length > 0 && (
+              <div className={decision.length > 0 ? 'mt-4' : ''} aria-label="Other approval facts">
+                <KeyValueGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
+              </div>
+            )}
           </Section>
         )}
 

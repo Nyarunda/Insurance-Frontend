@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classifyCommandError } from '../../lib/api/commandErrors';
 import { ApiError } from '../../lib/api/errors';
-import { actorLabel, displayFacts, formatMoney, humanize, isUuid } from './format';
+import { actorLabel, changeSummary, decisionFacts, displayFacts, formatMoney, humanize, isUuid } from './format';
 import type { HistoryEntry } from './types';
 
 const entry = (over: Partial<HistoryEntry>): HistoryEntry => ({
@@ -83,5 +83,53 @@ describe('the §4 error contract', () => {
     [err(500, 'INTERNAL_ERROR'), 'other'],
   ])('%#: %s', (error, kind) => {
     expect(classifyCommandError(error)).toBe(kind);
+  });
+});
+
+describe('RUP1-F1 decision facts', () => {
+  const facts = {
+    endorsement_type: 'CHANGE_LIMIT',
+    policy_no: 'POL0000001',
+    base_version_no: 6,
+    effective_date: '2026-10-05',
+    benefit: 'WINDSCREEN',
+    benefit_name: 'Windscreen',
+    previous_limit_amount: '80000.00',
+    new_limit_amount: '100000.00',
+    request_reason: 'Increase windscreen cover',
+    transaction_currency: 'KES',
+  };
+
+  it('summarises a limit change in words: benefit, current and new limit', () => {
+    expect(changeSummary(facts, null)).toBe('Windscreen: KES 80,000.00 → KES 100,000.00');
+    expect(changeSummary({ ...facts, previous_limit_amount: null }, null)).toBe('Windscreen: No limit stated → KES 100,000.00');
+    expect(changeSummary({ ...facts, benefit_name: null }, null)).toBe('Windscreen: KES 80,000.00 → KES 100,000.00');
+  });
+
+  it('gives no summary for facts without a limit change (version 1, other types)', () => {
+    expect(changeSummary({ endorsement_type: 'CHANGE_LIMIT', terms_hash: 'ab' }, 'KES')).toBeNull();
+    expect(changeSummary(null, 'KES')).toBeNull();
+  });
+
+  it('lists the decision block in the order the checker reads it', () => {
+    expect(decisionFacts(facts, null)).toEqual([
+      { label: 'Type', value: 'Change limit' },
+      { label: 'Policy', value: 'POL0000001' },
+      { label: 'Base version', value: 'Version 6' },
+      { label: 'Benefit', value: 'Windscreen' },
+      { label: 'Current limit', value: 'KES 80,000.00' },
+      { label: 'New limit', value: 'KES 100,000.00' },
+      { label: 'Effective from', value: '05 Oct 2026' },
+      { label: "Maker's reason", value: 'Increase windscreen cover' },
+    ]);
+  });
+
+  it('uses the policy currency from the facts, and leaves out what an older snapshot lacks', () => {
+    expect(changeSummary({ ...facts, transaction_currency: 'USD' }, 'KES')).toBe('Windscreen: USD 80,000.00 → USD 100,000.00');
+    expect(decisionFacts({ endorsement_type: 'CHANGE_LIMIT', base_version_no: 2, effective_date: '2026-10-05' }, 'KES')).toEqual([
+      { label: 'Type', value: 'Change limit' },
+      { label: 'Base version', value: 'Version 2' },
+      { label: 'Effective from', value: '05 Oct 2026' },
+    ]);
   });
 });

@@ -203,9 +203,21 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     await page.goto(`${origin(facts().alpha.domain)}/my-work`);
     await expect(page.getByRole('row', { name: new RegExp(endorsements.first.number) })).toBeVisible();
     await expect(page.getByRole('row', { name: new RegExp(endorsements.second.number) })).toBeVisible();
+    // RUP1-F1: the two pending changes are told apart in My Work, from the governed facts.
+    await expect(page.getByRole('row', { name: new RegExp(endorsements.first.number) }))
+      .toContainText('Windscreen: KES 50,000.00 → KES 70,000.00');
+    await expect(page.getByRole('row', { name: new RegExp(endorsements.second.number) }))
+      .toContainText('Radio cassette: KES 30,000.00 → KES 40,000.00');
     await expectNoUuid(page);
     await page.getByRole('row', { name: new RegExp(endorsements.first.number) }).click();
     await expect(page.getByRole('heading', { name: `Policy endorsement ${endorsements.first.number}` })).toBeVisible();
+    // RUP1-F1: the requested change is on the approval page before the decision.
+    const change = page.getByLabel('Requested change');
+    await expect(change).toContainText('BenefitWindscreen');
+    await expect(change).toContainText('Current limitKES 50,000.00');
+    await expect(change).toContainText('New limitKES 70,000.00');
+    await expect(change).toContainText(`Policy${facts().alpha.policy.policy_no}`);
+    await expect(change).toContainText("Maker's reasonCustomer asked for a higher windscreen limit");
     await expectNoUuid(page);
 
     // The first answer is lost on the way back: the server has acted, the browser sees a network failure.

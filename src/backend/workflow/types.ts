@@ -29,6 +29,8 @@ export interface WorkQueueItem extends Money {
   acting_for_user_id: string | null;
   branch_id: string | null;
   assigned_at: string | null;
+  /** The governed facts frozen at submission (RUP1-F1), as on the instance; absent on older backends. */
+  approval_facts?: Record<string, unknown> | null;
 }
 
 export interface WorkQueue {
