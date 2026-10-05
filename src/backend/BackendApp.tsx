@@ -55,6 +55,9 @@ export const backendRoutes: RouteObject[] = [
         path: 'my-work/:instanceId',
         element: (
           <RequirePermission permission={TASK_VIEW}>
+            <div inert aria-hidden="true">
+              <WorkQueuePage />
+            </div>
             <InstancePage />
           </RequirePermission>
         ),

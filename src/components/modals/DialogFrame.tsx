@@ -34,7 +34,7 @@ const writeExpanded = (value: boolean) => {
   }
 };
 
-const WIDTH = { md: 'max-w-md', lg: 'max-w-2xl' } as const;
+const WIDTH = { md: 'max-w-md', lg: 'max-w-2xl', xl: 'max-w-5xl' } as const;
 export const DialogFrame: React.FC<{
   titleId: string;
   title: string;
@@ -72,7 +72,8 @@ export const DialogFrame: React.FC<{
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      // A dialog under another one is inert: only the topmost closes.
+      if (event.key === 'Escape' && !dialogRef.current?.closest('[inert]')) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

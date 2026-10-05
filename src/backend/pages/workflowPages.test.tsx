@@ -274,6 +274,30 @@ async function openDecision(name: 'Approve' | 'Reject') {
   return user;
 }
 
+describe('DESIGN-1: the approval as a dialog over My Work', () => {
+  it('opens over the queue with Cancel, Reject and Approve at the foot; Escape closes only the topmost dialog', async () => {
+    workflowBackend({});
+    const router = renderAt(`/my-work/${INSTANCE_ID}`);
+    const approval = await screen.findByRole('dialog', { name: 'Policy endorsement END0000001' });
+    expect(within(approval).getByRole('button', { name: 'Expand' })).toBeInTheDocument();
+    const actions = within(approval).getAllByRole('button').map((button) => button.textContent?.trim());
+    expect(actions.slice(-3)).toEqual(['Cancel', 'Reject', 'Approve']);
+
+    const user = userEvent.setup();
+    await user.click(within(approval).getByRole('button', { name: 'Reject' }));
+    expect(await screen.findByRole('dialog', { name: /^Reject/ })).toBeInTheDocument();
+    // Only the decision is exposed while it is open; the approval under it is inert.
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: /^Reject/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Policy endorsement END0000001' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(`/my-work/${INSTANCE_ID}`);
+
+    await user.keyboard('{Escape}');
+    expect(router.state.location.pathname).toBe('/my-work');
+  });
+});
+
 describe('approving', () => {
   it('sends no comment, the header ETag as If-Match, and an idempotency key; then shows the result', async () => {
     const backend = workflowBackend({
@@ -356,7 +380,9 @@ describe('approving', () => {
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     expect(await screen.findByText('This item changed: someone else acted or it is no longer pending.')).toBeInTheDocument();
     expect(screen.getByText('corr-409')).toHaveAttribute('data-correlation-id');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // The decision dialog is closed; the approval itself (a dialog over My Work since DESIGN-1) stays open.
+    expect(screen.queryByRole('dialog', { name: /^Approve/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: `Policy endorsement END0000001` })).toBeInTheDocument();
     expect(await screen.findByText('Approved')).toBeInTheDocument();
   });
 

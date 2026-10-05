@@ -8,15 +8,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Check, XCircle } from 'lucide-react';
+import { Check, ClipboardCheck, XCircle } from 'lucide-react';
 import {
   Card,
   CardHeader,
   HorizonAlert,
   HorizonLoader,
-  HorizonPage,
-  HorizonPageContent,
-  HorizonPageTitle,
   HorizonToast,
   KeyValueGrid,
   StatusBadge,
@@ -27,6 +24,7 @@ import { describeError } from '../../lib/api/errorText';
 import { ApiError } from '../../lib/api/errors';
 import { useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
+import { DialogFrame } from '../../components/modals/DialogFrame';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
 import {
   actorLabel,
@@ -52,6 +50,8 @@ const STATUS_TONE: Record<string, StatusTone> = {
 };
 
 export const VOID_HEADING = 'Void: this approval no longer applies';
+
+const TITLE_ID = 'workflow-instance-title';
 
 type PageNotice = { tone: 'warning' | 'danger'; text?: string; error?: unknown; reference?: string | null } | null;
 
@@ -92,23 +92,39 @@ export const InstancePage: React.FC = () => {
 
   const back = () => navigate('/my-work');
 
-  if (instance.isPending) return <HorizonLoader tip="Loading the approval..." />;
+  const frame = {
+    titleId: TITLE_ID,
+    onClose: back,
+    closeLabel: 'Back to My Work Queue',
+    size: 'xl' as const,
+    icon: <ClipboardCheck className="h-4 w-4" />,
+  };
+  const close = (
+    <button type="button" className="hz-button hz-button-secondary" onClick={back}>
+      Cancel
+    </button>
+  );
+
+  if (instance.isPending) {
+    return (
+      <DialogFrame {...frame} title="Approval" footer={close}>
+        <HorizonLoader tip="Loading the approval..." />
+      </DialogFrame>
+    );
+  }
   if (instance.isError) {
     const missing = instance.error instanceof ApiError && instance.error.status === 404;
     return (
-      <HorizonPage id="workflow-instance">
-        <HorizonPageTitle title="Approval" onBack={back} backLabel="Back to My Work Queue" />
-        <HorizonPageContent className="p-4">
-          {missing ? (
-            <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
-              It may have been completed, or it is not one you can see.
-              <ErrorReference reference={referenceOf(instance.error)} />
-            </HorizonAlert>
-          ) : (
-            <ApiErrorAlert error={instance.error} title="The approval could not be loaded" />
-          )}
-        </HorizonPageContent>
-      </HorizonPage>
+      <DialogFrame {...frame} title="Approval" footer={close}>
+        {missing ? (
+          <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
+            It may have been completed, or it is not one you can see.
+            <ErrorReference reference={referenceOf(instance.error)} />
+          </HorizonAlert>
+        ) : (
+          <ApiErrorAlert error={instance.error} title="The approval could not be loaded" />
+        )}
+      </DialogFrame>
     );
   }
 
@@ -183,27 +199,34 @@ export const InstancePage: React.FC = () => {
   const voidReason = voided?.reason_text ? readableReason(voided.reason_text) : voided?.reason_code ? humanize(voided.reason_code) : null;
 
   return (
-    <HorizonPage id="workflow-instance">
-      <HorizonPageTitle
+    <>
+      {/* Under the decision dialog, this one is inert: one dialog at a time is exposed. */}
+      <div inert={dialog ? true : undefined} aria-hidden={dialog ? true : undefined}>
+      <DialogFrame
+        {...frame}
         title={subject}
         subtitle={`${humanize(view.definition_code)} · version ${view.version_no}`}
-        onBack={back}
-        backLabel="Back to My Work Queue"
-        actions={
-          canAct ? (
-            <>
-              <button type="button" className="hz-button hz-button-danger" onClick={() => open('REJECT')}>
-                <XCircle className="h-3.5 w-3.5" />
-                Reject
-              </button>
-              <button type="button" className="hz-button hz-button-primary" onClick={() => open('APPROVE')}>
-                <Check className="h-3.5 w-3.5" />
-                Approve
-              </button>
-            </>
-          ) : undefined
+        expandable
+        footer={
+          <>
+            <button type="button" className="hz-button hz-button-secondary" onClick={back}>
+              {canAct ? 'Cancel' : 'Close'}
+            </button>
+            {canAct && (
+              <>
+                <button type="button" className="hz-button hz-button-danger" onClick={() => open('REJECT')}>
+                  <XCircle className="h-3.5 w-3.5" />
+                  Reject
+                </button>
+                <button type="button" className="hz-button hz-button-primary" onClick={() => open('APPROVE')}>
+                  <Check className="h-3.5 w-3.5" />
+                  Approve
+                </button>
+              </>
+            )}
+          </>
         }
-      />
+      >
 
       {pageNotice && (
         <div role="status">
@@ -313,6 +336,8 @@ export const InstancePage: React.FC = () => {
           </div>
         )}
       </Card>
+      </DialogFrame>
+      </div>
 
       {dialog && (
         <DecisionDialog
@@ -331,6 +356,6 @@ export const InstancePage: React.FC = () => {
         />
       )}
       <HorizonToast message={toast} tone="success" />
-    </HorizonPage>
+    </>
   );
 };
