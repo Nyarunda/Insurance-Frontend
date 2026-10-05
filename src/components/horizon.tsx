@@ -667,7 +667,7 @@ export function ListCard({
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
       <div className="flex flex-col gap-4 px-4">
-        {toolbar && <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">{toolbar}</div>}
+        {toolbar && <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">{toolbar}</div>}
         {bare ? children : <div className="hz-table-box">{children}</div>}
         {footer && <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--hz-text-muted)]">{footer}</div>}
       </div>

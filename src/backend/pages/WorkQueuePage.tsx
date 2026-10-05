@@ -63,10 +63,9 @@ export const TaskTable: React.FC<{ items: WorkQueueItem[]; compact?: boolean }> 
           <tr>
             <th>Record</th>
             <th>Stage</th>
-            {!compact && <th>Approval</th>}
             {!compact && <th className="text-right">Amount</th>}
-            <th>Waiting</th>
-            <th aria-hidden="true" />
+            <th className={compact ? '' : 'pl-8'}>Waiting</th>
+            <th aria-hidden="true" className="w-10" />
           </tr>
         </thead>
         <tbody>
@@ -81,10 +80,10 @@ export const TaskTable: React.FC<{ items: WorkQueueItem[]; compact?: boolean }> 
                   <DotTag label={item.stage_label} />
                   {item.acting_for_user_id && <span className="text-[13px] text-[var(--hz-text-secondary)]">for a colleague</span>}
                 </span>
+                {!compact && <span className="mt-1 block text-[13px] text-[var(--hz-text-muted)]">{humanize(item.definition_code)}</span>}
               </td>
-              {!compact && <td className="text-[var(--hz-text-secondary)]">{humanize(item.definition_code)}</td>}
               {!compact && <td className="text-right tabular-nums">{formatMoney(item.amount, item.currency, item.amount_reason)}</td>}
-              <td>
+              <td className={compact ? '' : 'pl-8'}>
                 <StackedCell value={<span className="font-medium tabular-nums">{waitingFor(item.assigned_at)}</span>} detail={formatDateTime(item.assigned_at)} />
               </td>
               <RowChevron />
@@ -157,19 +156,21 @@ export const WorkQueuePage: React.FC = () => {
         title="Tasks"
         description="Open a task to see what is being approved and decide it."
         toolbar={
-          <SearchField
-            id="task-search"
-            label="Search tasks"
-            value={search}
-            onChange={setSearch}
-            placeholder="Search record, stage or change"
-            disabled={!queue.isSuccess || items.length === 0}
-          />
-        }
-        footer={
-          queue.isSuccess && items.length > 0 ? (
-            <span>{query ? `Showing ${shown.length} of ${items.length}` : `${items.length} ${items.length === 1 ? 'task' : 'tasks'}`}</span>
-          ) : undefined
+          <>
+            <SearchField
+              id="task-search"
+              label="Search tasks"
+              value={search}
+              onChange={setSearch}
+              placeholder="Search record, stage or change"
+              disabled={!queue.isSuccess || items.length === 0}
+            />
+            {queue.isSuccess && items.length > 0 && (
+              <span className="text-[13px] text-[var(--hz-text-muted)]">
+                {query ? `Showing ${shown.length} of ${items.length}` : `${items.length} ${items.length === 1 ? 'task' : 'tasks'}`}
+              </span>
+            )}
+          </>
         }
       >
         {queue.isPending && (

@@ -695,50 +695,53 @@
   background: rgba(82, 82, 82, 0.5);
 }
 
-/* A record tab's groups (Studio Admin profile): spaced, with a rule between titled groups. */
-.hz-detail-stack > * + * {
-  margin-top: 1rem;
-}
-.hz-detail-stack > section + section {
-  border-top: 1px solid var(--hz-divider);
-  padding-top: 1rem;
-}
+/* DESIGN-1 additions, in the components layer so utility classes still override them. */
+@layer components {
+  /* A record tab's groups (Studio Admin profile): spaced, with a rule between titled groups. */
+  .hz-detail-stack > * + * {
+    margin-top: 1rem;
+  }
+  .hz-detail-stack > section + section {
+    border-top: 1px solid var(--hz-divider);
+    padding-top: 1rem;
+  }
 
-/* Tables in a record tab line up with the headings above them. */
-.hz-record-body .hz-grid th:first-child,
-.hz-record-body .hz-grid td:first-child {
-  padding-left: 0;
-}
-.hz-record-body .hz-grid th:last-child,
-.hz-record-body .hz-grid td:last-child {
-  padding-right: 0;
-}
+  /* Tables in a record tab line up with the headings above them. */
+  .hz-record-body .hz-grid th:first-child,
+  .hz-record-body .hz-grid td:first-child {
+    padding-left: 0;
+  }
+  .hz-record-body .hz-grid th:last-child,
+  .hz-record-body .hz-grid td:last-child {
+    padding-right: 0;
+  }
 
-/* DESIGN-1: the template's card (shadcn Card: 12px radius, hairline ring, 16px rhythm). */
-.hz-template-card {
-  background: var(--hz-surface-main);
-  border: 1px solid var(--hz-border-grid);
-  border-radius: 12px;
-  box-shadow: var(--hz-shadow-xs);
-  overflow: hidden;
-}
+  /* DESIGN-1: the template's card (shadcn Card: 12px radius, hairline ring, 16px rhythm). */
+  .hz-template-card {
+    background: var(--hz-surface-main);
+    border: 1px solid var(--hz-border-grid);
+    border-radius: 12px;
+    box-shadow: var(--hz-shadow-xs);
+    overflow: hidden;
+  }
 
-/* A table inside a card sits in its own bordered box, header tinted, 12px cells. */
-.hz-table-box {
-  overflow: hidden;
-  border: 1px solid var(--hz-border-grid);
-  border-radius: 10px;
-  background: var(--hz-surface-main);
-}
-.hz-table-box > .overflow-x-auto {
-  overflow-x: auto;
-}
-.hz-table-box .hz-grid thead th {
-  height: 44px;
-  padding: 0 12px;
-  background: color-mix(in srgb, var(--hz-surface-muted), transparent 50%);
-  font-weight: 500;
-}
-.hz-table-box .hz-grid tbody td {
-  padding: 12px;
+  /* A table inside a card sits in its own bordered box, header tinted, 12px cells. */
+  .hz-table-box {
+    overflow: hidden;
+    border: 1px solid var(--hz-border-grid);
+    border-radius: 10px;
+    background: var(--hz-surface-main);
+  }
+  .hz-table-box > .overflow-x-auto {
+    overflow-x: auto;
+  }
+  .hz-table-box .hz-grid thead th {
+    height: 44px;
+    padding: 0 12px;
+    background: color-mix(in srgb, var(--hz-surface-muted), transparent 50%);
+    font-weight: 500;
+  }
+  .hz-table-box .hz-grid tbody td {
+    padding: 12px;
+  }
 }
