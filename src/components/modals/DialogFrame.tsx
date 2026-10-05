@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Maximize2, Minimize2, X } from 'lucide-react';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -11,7 +11,30 @@ const FOCUSABLE =
  *
  * Focus is trapped while it is open (FI1-E, from PR #1): it moves into the dialog on opening, Tab
  * and Shift+Tab cycle within it, and it returns to what had it before when the dialog closes.
+ *
+ * `size="lg"` suits a form; `expandable` adds a toggle that grows the dialog to nearly the whole
+ * window and back, remembered per browser.
  */
+
+const EXPANDED_KEY = 'hz-dialog-expanded';
+
+const readExpanded = () => {
+  try {
+    return window.localStorage.getItem(EXPANDED_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const writeExpanded = (value: boolean) => {
+  try {
+    window.localStorage.setItem(EXPANDED_KEY, value ? '1' : '0');
+  } catch {
+    // Storage unavailable: the choice just isn't remembered.
+  }
+};
+
+const WIDTH = { md: 'max-w-md', lg: 'max-w-2xl' } as const;
 export const DialogFrame: React.FC<{
   titleId: string;
   title: string;
@@ -20,8 +43,32 @@ export const DialogFrame: React.FC<{
   dismissOnBackdrop?: boolean;
   footer: React.ReactNode;
   children: React.ReactNode;
-}> = ({ titleId, title, subtitle, onClose, dismissOnBackdrop = true, footer, children }) => {
+  size?: keyof typeof WIDTH;
+  expandable?: boolean;
+  /** Names the close button (its label and tooltip); "Close" by default. */
+  closeLabel?: string;
+  /** A small icon shown before the title. */
+  icon?: React.ReactNode;
+}> = ({
+  titleId,
+  title,
+  subtitle,
+  onClose,
+  dismissOnBackdrop = true,
+  footer,
+  children,
+  size = 'md',
+  expandable = false,
+  closeLabel = 'Close',
+  icon,
+}) => {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(() => expandable && readExpanded());
+  const toggleExpanded = () =>
+    setExpanded((value) => {
+      writeExpanded(!value);
+      return !value;
+    });
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -64,7 +111,7 @@ export const DialogFrame: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--hz-scrim)] p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--hz-scrim)] p-4 backdrop-blur-[2px]"
       onMouseDown={(event) => {
         if (dismissOnBackdrop && event.target === event.currentTarget) onClose();
       }}
@@ -76,23 +123,46 @@ export const DialogFrame: React.FC<{
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={trapTab}
-        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] shadow-xl"
+        className={`hz-dialog-enter flex w-full flex-col overflow-hidden rounded-xl border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] shadow-2xl transition-[max-width,height] duration-200 ease-out ${
+          expanded ? 'h-[calc(100vh-2rem)] max-w-[min(1280px,100%)]' : `max-h-[90vh] ${WIDTH[size]}`
+        }`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--hz-border-grid)] px-4 py-3">
-          <div className="min-w-0">
-            <h2 id={titleId} className="text-[15px] font-semibold text-[var(--hz-text-primary)]">
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--hz-border-grid)] px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            {icon && (
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] text-[var(--hz-text-secondary)]">
+                {icon}
+              </span>
+            )}
+            <div className="min-w-0">
+            <h2 id={titleId} className="text-base font-semibold text-[var(--hz-text-primary)]">
               {title}
             </h2>
-            {subtitle && <p className="mt-0.5 truncate text-[13px] text-[var(--hz-text-secondary)]">{subtitle}</p>}
+            {subtitle && <p className="mt-0.5 truncate text-[13px] text-[var(--hz-text-muted)]">{subtitle}</p>}
+            </div>
           </div>
-          <button type="button" onClick={onClose} className="hz-icon-button shrink-0" aria-label="Close">
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {expandable && (
+              <button
+                type="button"
+                onClick={toggleExpanded}
+                className="hz-icon-button"
+                aria-label={expanded ? 'Restore size' : 'Expand'}
+                aria-pressed={expanded}
+                title={expanded ? 'Restore size' : 'Expand'}
+              >
+                {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
+            )}
+            <button type="button" onClick={onClose} className="hz-icon-button" aria-label={closeLabel} title={closeLabel}>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-4 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">{children}</div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] px-4 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] px-5 py-3">
           {footer}
         </div>
       </div>

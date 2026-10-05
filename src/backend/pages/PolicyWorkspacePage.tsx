@@ -45,12 +45,13 @@ const isTab = (value: string | null): value is TabId => POLICY_TABS.some((tab) =
 
 const muted = 'text-[13px] text-[var(--hz-text-secondary)]';
 
-export const PolicyWorkspacePage: React.FC = () => {
+/** `tab` fixes the tab shown, for when the page sits behind a dialog (the new endorsement form). */
+export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }) => {
   const { policyId = '' } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
-  const tab: TabId = isTab(params.get('tab')) ? (params.get('tab') as TabId) : 'overview';
+  const tab: TabId = fixedTab ?? (isTab(params.get('tab')) ? (params.get('tab') as TabId) : 'overview');
   const policy = usePolicy(policyId);
   const versions = usePolicyVersions(policyId, tab === 'versions' && policy.isSuccess);
 

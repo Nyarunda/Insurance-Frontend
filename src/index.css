@@ -642,6 +642,29 @@
   .hz-screen-enter {
     animation: hz-screen-enter 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+
+  .hz-dialog-enter {
+    animation: hz-dialog-enter 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes hz-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hz-screen-enter,
+  .hz-dialog-enter {
+    animation: none;
+  }
 }
 
 @keyframes hz-screen-enter {

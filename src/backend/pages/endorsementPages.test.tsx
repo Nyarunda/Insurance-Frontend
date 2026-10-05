@@ -274,6 +274,36 @@ describe('creating a change-limit endorsement', () => {
     expect(screen.getByText(/Current limit: KES 75,000.00 \(Per occurrence\)/)).toBeInTheDocument();
   });
 
+  it('DESIGN-1: opens as an expandable dialog over the policy, with a preview of what the checker will see', async () => {
+    const user = userEvent.setup();
+    window.localStorage.removeItem('hz-dialog-expanded');
+    endorsementBackend();
+    const router = renderAt(NEW_PATH);
+    await screen.findByText(/prepared on version 3/);
+    const dialog = screen.getByRole('dialog', { name: 'New endorsement' });
+    expect(within(dialog).getByText(/prepared on version 3/)).toBeInTheDocument();
+    expect(within(dialog).getByText('Choose a benefit and give the new limit to see the change.')).toBeInTheDocument();
+
+    await user.selectOptions(within(dialog).getByLabelText(/Benefit/), 'WINDSCREEN');
+    await user.type(within(dialog).getByLabelText(/New limit/), '100000');
+    const preview = within(dialog).getByRole('region', { name: 'Preview of the change' });
+    expect(preview).toHaveTextContent('Windscreen cover:KES 75,000.00KES 100,000.00');
+
+    const expand = within(dialog).getByRole('button', { name: 'Expand' });
+    expect(expand).toHaveAttribute('aria-pressed', 'false');
+    await user.click(expand);
+    expect(within(dialog).getByRole('button', { name: 'Restore size' })).toHaveAttribute('aria-pressed', 'true');
+    expect(window.localStorage.getItem('hz-dialog-expanded')).toBe('1');
+    await user.click(within(dialog).getByRole('button', { name: 'Restore size' }));
+    window.localStorage.removeItem('hz-dialog-expanded');
+
+    // Something is typed, so a stray click on the backdrop keeps the form; Escape still closes it.
+    await user.click(dialog.parentElement!);
+    expect(screen.getByRole('dialog', { name: 'New endorsement' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+  });
+
   it('checks the form before sending anything', async () => {
     const user = userEvent.setup();
     const backend = endorsementBackend({ create: created });
