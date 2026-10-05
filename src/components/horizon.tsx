@@ -98,6 +98,34 @@ export function Card({
   );
 }
 
+/** A metric card (the template's section cards): icon, label, a large value, a caption. */
+export function StatCard({
+  icon: Icon,
+  label,
+  value,
+  caption,
+  testId,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: React.ReactNode;
+  caption: React.ReactNode;
+  testId?: string;
+}) {
+  return (
+    <Card className="hz-stat-card flex flex-col gap-1">
+      <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] text-[var(--hz-text-secondary)]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="text-[13px] text-[var(--hz-text-muted)]">{label}</span>
+      <span className="truncate text-2xl font-semibold tabular-nums tracking-tight" data-testid={testId}>
+        {value}
+      </span>
+      <span className="truncate text-[13px] text-[var(--hz-text-muted)]">{caption}</span>
+    </Card>
+  );
+}
+
 /** Title and description on the left, an optional action on the right; 12px body floor. */
 export function CardHeader({
   title,

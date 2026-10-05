@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowRight, Building2, FileCheck2, Inbox, UserRound } from 'lucide-react';
-import { Card, CardHeader, HorizonAlert, HorizonPage, HorizonPageContent, HorizonPageTitle, KeyValueGrid } from '../../components/horizon';
+import { Card, CardHeader, HorizonAlert, HorizonPage, HorizonPageContent, HorizonPageTitle, KeyValueGrid, StatCard } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { POLICY_VIEW, TASK_VIEW } from '../permissions';
@@ -13,24 +13,6 @@ import { changeSummary, humanize } from '../workflow/format';
 const STAT_COLUMNS: Record<number, string> = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4' };
 
 /** One metric card in the template's form: an icon chip, a label, a large figure and a caption. */
-const StatCard: React.FC<{
-  icon: React.ElementType;
-  label: string;
-  value: React.ReactNode;
-  caption: React.ReactNode;
-  testId?: string;
-}> = ({ icon: Icon, label, value, caption, testId }) => (
-  <Card className="hz-stat-card flex flex-col gap-1">
-    <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-main)] text-[var(--hz-text-secondary)]">
-      <Icon className="h-4 w-4" />
-    </span>
-    <span className="text-[13px] text-[var(--hz-text-muted)]">{label}</span>
-    <span className="truncate text-2xl font-semibold tabular-nums tracking-tight" data-testid={testId}>
-      {value}
-    </span>
-    <span className="truncate text-[13px] text-[var(--hz-text-muted)]">{caption}</span>
-  </Card>
-);
 
 /** Backend mode's landing page: who is signed in, where, and what is waiting. Every figure comes from the server. */
 export const HomePage: React.FC = () => {

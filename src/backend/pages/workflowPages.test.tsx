@@ -14,7 +14,7 @@ import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
 import { NO_REJECTION_REASONS } from '../workflow/DecisionDialog';
 import type { InstanceView, ReasonCode, WorkQueueItem } from '../workflow/types';
-import { EMPTY_QUEUE_TEXT } from './WorkQueuePage';
+import { EMPTY_QUEUE_TEXT, waitingFor } from './WorkQueuePage';
 import { VOID_HEADING } from './InstancePage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -153,6 +153,34 @@ describe('My Work Queue', () => {
     expect(row).toHaveTextContent('KES 0.00');
     expect(screen.getByText('1 task waiting for you')).toBeInTheDocument();
     expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it('narrows the listed tasks by search, and says when none match', async () => {
+    const user = userEvent.setup();
+    workflowBackend({
+      queue: [
+        task(),
+        task({ assignment_id: '13131313-1313-4131-8131-131313131313', resource_reference: 'END0000002' }),
+      ],
+    });
+    renderAt('/my-work');
+    await screen.findByRole('row', { name: /END0000002/ });
+    expect(screen.getByText('2 tasks waiting for you')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Search tasks'), 'end0000002');
+    expect(screen.queryByRole('row', { name: /END0000001/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('row', { name: /END0000002/ })).toBeInTheDocument();
+    expect(screen.getByText('Showing 1 of 2')).toBeInTheDocument();
+    await user.clear(screen.getByLabelText('Search tasks'));
+    await user.type(screen.getByLabelText('Search tasks'), 'nothing like this');
+    expect(screen.getByText('No tasks match “nothing like this”.')).toBeInTheDocument();
+  });
+
+  it('says how long a task has waited, in words', () => {
+    const now = Date.parse('2026-10-05T12:00:00Z');
+    expect(waitingFor('2026-10-05T11:48:00Z', now)).toBe('12 min');
+    expect(waitingFor('2026-10-05T07:00:00Z', now)).toBe('5 h');
+    expect(waitingFor('2026-10-02T12:00:00Z', now)).toBe('3 days');
+    expect(waitingFor(null, now)).toBe('—');
   });
 
   it('says so when nothing is waiting', async () => {
