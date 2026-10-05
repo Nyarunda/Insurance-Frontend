@@ -16,6 +16,7 @@ import { useSessionStore } from '../lib/auth/sessionStore';
 import { SignInPage } from './auth/SignInPage';
 import { HomePage, NotFoundPage } from './pages/HomePage';
 import { EndorsementCreatePage } from './pages/EndorsementCreatePage';
+import { PolicyRefRoute } from './policies/refs';
 import { EndorsementPage } from './pages/EndorsementPage';
 import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
@@ -74,7 +75,9 @@ export const backendRoutes: RouteObject[] = [
         path: 'policies/:policyId',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
-            <PolicyWorkspacePage />
+            <PolicyRefRoute>
+              <PolicyWorkspacePage />
+            </PolicyRefRoute>
           </RequirePermission>
         ),
       },
@@ -83,10 +86,12 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <RequirePermission permission={ENDORSEMENT_CREATE}>
-              <div inert aria-hidden="true">
-                <PolicyWorkspacePage tab="endorsements" />
-              </div>
-              <EndorsementCreatePage />
+              <PolicyRefRoute>
+                <div inert aria-hidden="true">
+                  <PolicyWorkspacePage tab="endorsements" />
+                </div>
+                <EndorsementCreatePage />
+              </PolicyRefRoute>
             </RequirePermission>
           </RequirePermission>
         ),
@@ -95,7 +100,9 @@ export const backendRoutes: RouteObject[] = [
         path: 'policies/:policyId/endorsements/:endorsementId',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
-            <EndorsementPage />
+            <PolicyRefRoute>
+              <EndorsementPage />
+            </PolicyRefRoute>
           </RequirePermission>
         ),
       },

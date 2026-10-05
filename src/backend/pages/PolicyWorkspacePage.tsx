@@ -8,7 +8,8 @@
  */
 
 import React from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { useRouteRefs } from '../policies/refs';
 import {
   HorizonAlert,
   HorizonLoader,
@@ -47,7 +48,7 @@ const muted = 'text-[13px] text-[var(--hz-text-secondary)]';
 
 /** `tab` fixes the tab shown, for when the page sits behind a dialog (the new endorsement form). */
 export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }) => {
-  const { policyId = '' } = useParams();
+  const { policyId } = useRouteRefs();
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();

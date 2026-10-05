@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { policyHref } from '../policies/refs';
 import { RefreshCw, Search } from 'lucide-react';
 import {
   HorizonLoader,
@@ -55,8 +56,8 @@ export const PoliciesPage: React.FC = () => {
     }
     setParams(next);
   };
-  const open = (id: string) =>
-    navigate(`/policies/${encodeURIComponent(id)}`, {
+  const open = (policyNo: string) =>
+    navigate(policyHref(policyNo), {
       state: directoryReturnState(location.pathname, location.search),
     });
 
@@ -156,9 +157,9 @@ export const PoliciesPage: React.FC = () => {
                       key={policy.id}
                       tabIndex={0}
                       className="cursor-pointer"
-                      onClick={() => open(policy.id)}
+                      onClick={() => open(policy.policy_no)}
                       onKeyDown={(event) => {
-                        if (event.key === 'Enter') open(policy.id);
+                        if (event.key === 'Enter') open(policy.policy_no);
                       }}
                     >
                       <td>

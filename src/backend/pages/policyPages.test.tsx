@@ -128,7 +128,7 @@ describe('Policy Directory', () => {
     policyBackend();
     const router = renderAt('/policies');
     await user.click(await screen.findByRole('row', { name: /POL0000001/ }));
-    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.pathname).toBe('/policies/POL0000001');
     expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
   });
 

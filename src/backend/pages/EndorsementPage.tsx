@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { RefreshCw, Send, Undo2 } from 'lucide-react';
 import {
   HorizonAlert,
@@ -39,6 +39,7 @@ import {
   isNoLongerActionable,
 } from '../endorsements/format';
 import { useEndorsement } from '../endorsements/queries';
+import { policyHref, useRouteRefs } from '../policies/refs';
 import type { EndorsementDetail } from '../endorsements/types';
 import { NO_ETAG_TEXT, useEndorsementCommands } from '../endorsements/useEndorsementCommands';
 import { WithdrawDialog } from '../endorsements/WithdrawDialog';
@@ -71,7 +72,7 @@ const requiredActionOf = (error: unknown): string | null =>
   error instanceof ApiError && typeof error.details.required_action === 'string' ? error.details.required_action : null;
 
 export const EndorsementPage: React.FC = () => {
-  const { policyId = '', endorsementId = '' } = useParams();
+  const { endorsementId, policyRef } = useRouteRefs();
   const navigate = useNavigate();
   // Carried unchanged, so the policy's Back still returns to the originating list (FI1-D-R1).
   const { state } = useLocation();
@@ -88,8 +89,10 @@ export const EndorsementPage: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const policyPath = (id: string) => `/policies/${encodeURIComponent(id)}`;
-  const back = () => navigate(`${policyPath(endorsement.data?.view.policy.id ?? policyId)}?tab=endorsements`, { state });
+  const back = () =>
+    navigate(`${endorsement.data ? policyHref(endorsement.data.view.policy.policy_no) : `/policies/${encodeURIComponent(policyRef)}`}?tab=endorsements`, {
+      state,
+    });
 
   if (endorsement.isPending) return <HorizonLoader tip="Loading the endorsement..." />;
   if (endorsement.isError) {
@@ -237,7 +240,7 @@ export const EndorsementPage: React.FC = () => {
         </div>
       )}
 
-      <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyPath(view.policy.id)} returnState={state} />
+      <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyHref(view.policy.policy_no)} returnState={state} />
 
       <HorizonPageContent className="p-5 space-y-2">
         <KeyValueGrid

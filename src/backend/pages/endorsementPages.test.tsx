@@ -201,6 +201,9 @@ function renderAt(path: string, me: Me = PREPARER) {
 const mainText = () => document.querySelector('main')?.textContent ?? '';
 const ENDORSEMENT_PATH = `/policies/${POLICY_ID}/endorsements/${ENDORSEMENT_ID}`;
 const NEW_PATH = `/policies/${POLICY_ID}/endorsements/new`;
+// RUP1 F-11: the app links by business number; addresses with IDs still open.
+const READABLE_POLICY_PATH = '/policies/POL0000001';
+const READABLE_ENDORSEMENT_PATH = '/policies/POL0000001/endorsements/END0000001';
 
 async function fillChangeLimit(user: ReturnType<typeof userEvent.setup>, overrides: { limit?: string; date?: string } = {}) {
   await user.selectOptions(await screen.findByLabelText(/Benefit/), 'WINDSCREEN');
@@ -232,7 +235,7 @@ describe('the Endorsements tab', () => {
     expect(backend.calls.some((call) => call.url.endsWith(`/policies/${POLICY_ID}/endorsements`))).toBe(true);
 
     await user.click(row);
-    expect(router.state.location.pathname).toBe(ENDORSEMENT_PATH);
+    expect(router.state.location.pathname).toBe(READABLE_ENDORSEMENT_PATH);
     expect(await screen.findByRole('heading', { name: 'END0000001' })).toBeInTheDocument();
   });
 
@@ -256,6 +259,41 @@ describe('the Endorsements tab', () => {
     renderAt(`/policies/${POLICY_ID}?tab=endorsements`);
     await screen.findByRole('row', { name: /END0000001/ });
     expect(screen.queryByRole('button', { name: 'New endorsement' })).not.toBeInTheDocument();
+  });
+});
+
+describe('RUP1 F-11: readable addresses', () => {
+  it('opens an endorsement from its policy and endorsement numbers', async () => {
+    const backend = endorsementBackend();
+    renderAt(READABLE_ENDORSEMENT_PATH);
+    expect(await screen.findByRole('heading', { name: 'END0000001' })).toBeInTheDocument();
+    const urls = backend.calls.map((call) => call.url.replace('/api/v1', ''));
+    expect(urls).toContain('/policies?q=POL0000001&page=1&page_size=5');
+    expect(urls).toContain(`/policies/${POLICY_ID}/endorsements`);
+    expect(urls).toContain(`/endorsements/${ENDORSEMENT_ID}`);
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it('a number the user cannot see is "not found", and nothing else is loaded', async () => {
+    const backend = endorsementBackend();
+    renderAt('/policies/POL9999999/endorsements/END0000001');
+    expect(await screen.findByText('The policy does not exist, or it is outside the branches you can see.')).toBeInTheDocument();
+    const urls = backend.calls.map((call) => call.url.replace('/api/v1', ''));
+    expect(urls.filter((url) => url.startsWith(`/policies/${POLICY_ID}`) || url.startsWith('/endorsements/'))).toEqual([]);
+  });
+
+  it('an endorsement number not on the policy is "not found"', async () => {
+    endorsementBackend();
+    renderAt('/policies/POL0000001/endorsements/END0009999');
+    expect(
+      await screen.findByText('The endorsement does not exist on this policy, or it is not one you can see.'),
+    ).toBeInTheDocument();
+  });
+
+  it('an old address with IDs still opens the same endorsement', async () => {
+    endorsementBackend();
+    renderAt(ENDORSEMENT_PATH);
+    expect(await screen.findByRole('heading', { name: 'END0000001' })).toBeInTheDocument();
   });
 });
 
@@ -351,7 +389,7 @@ describe('creating a change-limit endorsement', () => {
     await user.click(screen.getByRole('button', { name: 'Create endorsement' }));
 
     expect(await screen.findByRole('heading', { name: 'END0000001' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe(ENDORSEMENT_PATH);
+    expect(router.state.location.pathname).toBe(READABLE_ENDORSEMENT_PATH);
     const [post] = backend.posts(`/policies/${POLICY_ID}/endorsements`);
     expect(post.headers['if-match']).toBe(POLICY_ETAG);
     expect(post.headers['x-idempotency-key']).toMatch(UUID_IN_TEXT);
@@ -541,7 +579,7 @@ describe('the endorsement', () => {
     renderAt(ENDORSEMENT_PATH);
     await screen.findByRole('heading', { name: 'END0000001' });
     expect(mainText()).toContain('The policy is now at version 4, with the Windscreen cover limit at KES 100,000.00');
-    expect(screen.getByRole('link', { name: 'View the policy' })).toHaveAttribute('href', `/policies/${POLICY_ID}`);
+    expect(screen.getByRole('link', { name: 'View the policy' })).toHaveAttribute('href', READABLE_POLICY_PATH);
     expect(screen.queryByRole('button', { name: /Submit|Withdraw/ })).not.toBeInTheDocument();
   });
 
@@ -693,7 +731,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
     await screen.findByRole('heading', { name: 'END0000001' });
 
     await user.click(screen.getByTitle('Back to the policy'));
-    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.pathname).toBe(READABLE_POLICY_PATH);
     expect(router.state.location.search).toBe('?tab=endorsements');
     await screen.findByRole('row', { name: /END0000001/ });
     await expectDirectoryRestored(user, router);
@@ -705,7 +743,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
     const router = await intoEndorsements(user);
     await user.click(screen.getByRole('button', { name: 'New endorsement' }));
     await user.click(await screen.findByRole('button', { name: 'Cancel' }));
-    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.pathname).toBe(READABLE_POLICY_PATH);
     await expectDirectoryRestored(user, router);
   });
 
@@ -737,7 +775,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
     const router = await intoEndorsements(user);
     await user.click(screen.getByRole('row', { name: /END0000001/ }));
     await user.click(await screen.findByRole('link', { name: 'View the policy' }));
-    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.pathname).toBe(READABLE_POLICY_PATH);
     await expectDirectoryRestored(user, router);
   });
 });

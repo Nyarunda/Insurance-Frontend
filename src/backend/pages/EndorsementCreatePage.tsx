@@ -12,7 +12,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { ArrowRight, FilePen } from 'lucide-react';
 import { FieldError, HorizonAlert, HorizonLoader } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
@@ -25,6 +25,7 @@ import { parseAmount } from '../endorsements/amount';
 import type { ChangeLimitBody } from '../endorsements/types';
 import { formatDate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
+import { endorsementHref, useRouteRefs } from '../policies/refs';
 import { formatMoney, requiredActionText } from '../workflow/format';
 
 export const REASON_MAX = 500;
@@ -47,7 +48,7 @@ const FORM_ID = 'endorsement-create-form';
 const TITLE_ID = 'endorsement-create-title';
 
 export const EndorsementCreatePage: React.FC = () => {
-  const { policyId = '' } = useParams();
+  const { policyId, policyRef } = useRouteRefs();
   const navigate = useNavigate();
   // Carried unchanged, so the policy's Back still returns to the originating list (FI1-D-R1).
   const { state } = useLocation();
@@ -70,7 +71,8 @@ export const EndorsementCreatePage: React.FC = () => {
     return rows.reduce<(typeof rows)[number] | null>((top, row) => (!top || row.version_no > top.version_no ? row : top), null);
   }, [versions.data]);
 
-  const back = () => navigate(`/policies/${encodeURIComponent(policyId)}?tab=endorsements`, { state });
+  // Back to the policy as the address named it (by number, or by ID for an old link).
+  const back = () => navigate(`/policies/${encodeURIComponent(policyRef)}?tab=endorsements`, { state });
 
   const cancel = (
     <button type="button" className="hz-button hz-button-secondary" onClick={back}>
@@ -139,7 +141,7 @@ export const EndorsementCreatePage: React.FC = () => {
     };
     const outcome = await create(policyId, body, etag);
     if (outcome.ok) {
-      navigate(`/policies/${encodeURIComponent(policyId)}/endorsements/${encodeURIComponent(outcome.view.id)}`, {
+      navigate(endorsementHref(view.policy_no, outcome.view.endorsement_no), {
         replace: true,
         state,
       });

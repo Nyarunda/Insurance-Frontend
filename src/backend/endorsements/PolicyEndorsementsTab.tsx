@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { endorsementHref, policyHref } from '../policies/refs';
 import { Plus } from 'lucide-react';
 import { HorizonLoader, StatusBadge } from '../../components/horizon';
 import { hasPermission, useMe } from '../../lib/auth/me';
@@ -26,8 +27,8 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
   const me = useMe().data;
   const endorsements = usePolicyEndorsements(policy.id, true);
   const canCreate = hasPermission(me, ENDORSEMENT_CREATE) && policy.lifecycle_status === 'BOUND';
-  const base = `/policies/${encodeURIComponent(policy.id)}/endorsements`;
-  const open = (id: string) => navigate(`${base}/${encodeURIComponent(id)}`, { state });
+  const base = `${policyHref(policy.policy_no)}/endorsements`;
+  const open = (endorsementNo: string) => navigate(endorsementHref(policy.policy_no, endorsementNo), { state });
 
   return (
     <div className="space-y-3">
@@ -64,9 +65,9 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
                   key={item.id}
                   tabIndex={0}
                   className="cursor-pointer"
-                  onClick={() => open(item.id)}
+                  onClick={() => open(item.endorsement_no)}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter') open(item.id);
+                    if (event.key === 'Enter') open(item.endorsement_no);
                   }}
                 >
                   <td className="font-mono font-semibold">{item.endorsement_no}</td>
