@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertCircle, AlertTriangle, ArrowLeft, CheckCircle2, Info, Loader2, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Info, Loader2, Search, ShieldCheck, XCircle } from 'lucide-react';
 
 type FeedbackToneForSound = 'success' | 'danger' | 'warning' | 'info' | 'neutral';
 
@@ -610,6 +610,275 @@ export function DetailGrid({ items, columns = 3 }: { items: Array<{ label: strin
         </div>
       ))}
     </dl>
+  );
+}
+
+/* ------------------------------------------------------------------
+   DESIGN-1 list and record building blocks (Studio Admin): every list
+   page is a ListCard of rows, every record a set of DetailGroups with a
+   SummaryList column. Pages compose these instead of styling their own.
+   ------------------------------------------------------------------ */
+
+/** A list in one card: title and hint, a toolbar on the right, the rows, and an optional footer. */
+export function ListCard({
+  title,
+  description,
+  toolbar,
+  footer,
+  children,
+  className = '',
+}: {
+  title: string;
+  description?: React.ReactNode;
+  toolbar?: React.ReactNode;
+  footer?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card flush className={className}>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--hz-border-grid)] px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-[var(--hz-text-primary)]">{title}</h2>
+          {description && <p className="text-[13px] text-[var(--hz-text-muted)]">{description}</p>}
+        </div>
+        {toolbar && <div className="flex flex-wrap items-center gap-2">{toolbar}</div>}
+      </div>
+      {children}
+      {footer && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hz-border-grid)] px-4 py-2.5 text-[13px] text-[var(--hz-text-muted)]">
+          {footer}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/** The first cell of a list row: an icon tile, the record in bold, and one line under it. */
+export function RecordCell({
+  icon: Icon,
+  title,
+  detail,
+  mono = false,
+}: {
+  icon: React.ElementType;
+  title: React.ReactNode;
+  detail?: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] text-[var(--hz-text-secondary)]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <span className={`block font-medium text-[var(--hz-text-primary)] ${mono ? 'font-mono' : ''}`}>{title}</span>
+        {detail && <span className="block text-[13px] text-[var(--hz-text-secondary)]">{detail}</span>}
+      </div>
+    </div>
+  );
+}
+
+/** A value with a muted line under it, for list cells (a customer and their number, a time and its date). */
+export function StackedCell({ value, detail }: { value: React.ReactNode; detail?: React.ReactNode }) {
+  return (
+    <>
+      <span className="block text-[var(--hz-text-primary)]">{value}</span>
+      {detail && <span className="block text-[13px] text-[var(--hz-text-muted)]">{detail}</span>}
+    </>
+  );
+}
+
+/** The last cell of an openable row. */
+export function RowChevron() {
+  return (
+    <td className="w-8 text-right">
+      <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-[var(--hz-text-muted)] transition-transform group-hover:translate-x-0.5" />
+    </td>
+  );
+}
+
+/** Props that make a table row open something, by click or Enter. */
+export function openableRow(open: () => void) {
+  return {
+    tabIndex: 0,
+    className: 'group cursor-pointer',
+    onClick: open,
+    onKeyDown: (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter') open();
+    },
+  };
+}
+
+const dotToneClass: Record<StatusTone, string> = {
+  success: 'bg-[var(--hz-success)]',
+  warning: 'bg-[var(--hz-warning)]',
+  danger: 'bg-[var(--hz-danger)]',
+  info: 'bg-[var(--hz-info)]',
+  neutral: 'bg-[var(--hz-text-subtle)]',
+};
+
+/** An outline tag led by a coloured dot: a stage, a step. */
+export function DotTag({ label, tone = 'warning' }: { label: React.ReactNode; tone?: StatusTone }) {
+  return (
+    <span className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-[var(--hz-border)] px-2 text-[13px] font-medium whitespace-nowrap text-[var(--hz-text-primary)]">
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${dotToneClass[tone]}`} />
+      {label}
+    </span>
+  );
+}
+
+/** Nothing to list: an icon, a line, and a hint. */
+export function EmptyState({
+  icon: Icon,
+  title,
+  hint,
+  role = 'status',
+}: {
+  icon: React.ElementType;
+  title: React.ReactNode;
+  hint?: React.ReactNode;
+  role?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-6 py-12 text-center" role={role}>
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--hz-surface-muted)] text-[var(--hz-text-muted)]">
+        <Icon className="h-5 w-5" />
+      </span>
+      <p className="text-sm font-medium text-[var(--hz-text-primary)]">{title}</p>
+      {hint && <p className="max-w-md text-[13px] text-[var(--hz-text-muted)]">{hint}</p>}
+    </div>
+  );
+}
+
+/** A search box with its icon. The label is for screen readers unless `showLabel`. */
+export function SearchField({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className = 'w-full sm:w-72',
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={`relative ${className}`}>
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--hz-text-muted)]" />
+      <input
+        id={id}
+        type="search"
+        className="hz-field w-full pl-8 text-[13px]"
+        placeholder={placeholder}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+/** A segmented choice of filters (pressed buttons), the look of the segmented tabs. */
+export function FilterGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { id: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div role="group" aria-label={label} className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-[var(--hz-surface-muted)] p-[3px] text-[13px] font-medium">
+      {options.map((option) => {
+        const active = option.id === value;
+        return (
+          <button
+            key={option.id || 'all'}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(option.id)}
+            className={`h-7 rounded-md px-3 whitespace-nowrap transition-all ${
+              active ? 'bg-[var(--hz-surface-main)] text-[var(--hz-text-primary)] shadow-sm' : 'text-[var(--hz-text-muted)] hover:text-[var(--hz-text-primary)]'
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A record's side column section: a small heading over its content. */
+export function SideSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+/** Label left, value right, in a narrow column; `strong` closes the list with a total. */
+export function SummaryList({ items }: { items: Array<{ label: string; value: React.ReactNode; strong?: boolean }> }) {
+  return (
+    <dl className="flex flex-col">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className={`flex items-baseline justify-between gap-3 py-1.5 text-sm ${
+            item.strong ? 'mt-1 border-t border-[var(--hz-divider)] pt-2.5 font-semibold' : ''
+          }`}
+        >
+          <dt className={item.strong ? 'text-[var(--hz-text-primary)]' : 'text-[13px] text-[var(--hz-text-muted)]'}>{item.label}</dt>
+          <dd className="text-right tabular-nums text-[var(--hz-text-primary)]">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** The change being asked for, set apart: a small label and the change in large type. */
+export function ChangeCallout({
+  label,
+  change,
+  children,
+  ...props
+}: {
+  label: string;
+  change?: React.ReactNode;
+  children?: React.ReactNode;
+} & React.HTMLAttributes<HTMLElement>) {
+  return (
+    <section className="rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] p-4" {...props}>
+      <p className="text-[13px] text-[var(--hz-text-muted)]">{label}</p>
+      {change && <div className="mt-1 text-lg font-semibold tracking-tight text-[var(--hz-text-primary)]">{change}</div>}
+      {children && <div className={change ? 'mt-3' : 'mt-1'}>{children}</div>}
+    </section>
+  );
+}
+
+/** A record's body: the main column, a rule, and a narrow side column (stacked on small screens). */
+export function RecordColumns({ main, side }: { main: React.ReactNode; side: React.ReactNode }) {
+  return (
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_17rem]">
+      <div className="hz-record-body pb-4 lg:pb-0 lg:pr-6">{main}</div>
+      <DetailDivider vertical />
+      <div className="flex flex-col gap-4 border-t border-[var(--hz-divider)] pt-4 lg:border-t-0 lg:pt-0 lg:pl-6 [&>section+section]:border-t [&>section+section]:border-[var(--hz-divider)] [&>section+section]:pt-4">{side}</div>
+    </div>
   );
 }
 

@@ -23,7 +23,10 @@ import {
   HorizonAlert,
   HorizonLoader,
   HorizonToast,
+  RecordColumns,
+  SideSection,
   StatusBadge,
+  SummaryList,
 } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
@@ -264,32 +267,34 @@ export const EndorsementPage: React.FC = () => {
 
             <StatePanel view={view} blocked={blocked} canWithdraw={canWithdraw} policyPath={policyHref(view.policy.policy_no)} returnState={state} />
 
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_17rem]">
-              <div className="hz-record-body pb-4 lg:pb-0 lg:pr-6">
-                <DetailGroup title="Endorsement">
-                  <DetailGrid
-                    items={[
-                      { label: 'Type', value: humanize(view.endorsement_type) },
-                      { label: 'Base version', value: `Version ${view.base_version_no}` },
-                      { label: 'Effective from', value: formatDate(view.effective_date) },
-                      { label: 'Reason', value: view.reason || '—' },
-                      { label: 'Submitted', value: formatDateTime(view.submitted_at) },
-                      ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
-                      ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
-                      ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
-                    ]}
-                  />
-                </DetailGroup>
-                <DetailDivider />
-                <RequestedChange view={view} />
-              </div>
-              <DetailDivider vertical />
-              <div className="border-t border-[var(--hz-divider)] pt-4 lg:border-t-0 lg:pt-0 lg:pl-6">
-                <Financials view={view} />
-                <DetailDivider />
-                <Approval view={view} />
-              </div>
-            </div>
+            <RecordColumns
+              main={
+                <>
+                  <DetailGroup title="Endorsement">
+                    <DetailGrid
+                      items={[
+                        { label: 'Type', value: humanize(view.endorsement_type) },
+                        { label: 'Base version', value: `Version ${view.base_version_no}` },
+                        { label: 'Effective from', value: formatDate(view.effective_date) },
+                        { label: 'Reason', value: view.reason || '—' },
+                        { label: 'Submitted', value: formatDateTime(view.submitted_at) },
+                        ...(view.resulting_version_no !== null ? [{ label: 'Resulting version', value: `Version ${view.resulting_version_no}` }] : []),
+                        ...(view.decided_at ? [{ label: 'Decided', value: formatDateTime(view.decided_at) }] : []),
+                        ...(view.decision_reason ? [{ label: 'Decision reason', value: view.decision_reason }] : []),
+                      ]}
+                    />
+                  </DetailGroup>
+                  <DetailDivider />
+                  <RequestedChange view={view} />
+                </>
+              }
+              side={
+                <>
+                  <Financials view={view} />
+                  <Approval view={view} />
+                </>
+              }
+            />
           </div>
         </DialogFrame>
       </div>
@@ -451,28 +456,10 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
   );
 };
 
-/** Label left, value right, in a narrow column; `strong` closes the list with a total. */
-const SummaryList: React.FC<{ items: Array<{ label: string; value: React.ReactNode; strong?: boolean }> }> = ({ items }) => (
-  <dl className="flex flex-col">
-    {items.map((item) => (
-      <div
-        key={item.label}
-        className={`flex items-baseline justify-between gap-3 py-1.5 text-sm ${
-          item.strong ? 'mt-1 border-t border-[var(--hz-divider)] pt-2.5 font-semibold' : ''
-        }`}
-      >
-        <dt className={item.strong ? 'text-[var(--hz-text-primary)]' : 'text-[13px] text-[var(--hz-text-muted)]'}>{item.label}</dt>
-        <dd className="text-right tabular-nums text-[var(--hz-text-primary)]">{item.value}</dd>
-      </div>
-    ))}
-  </dl>
-);
-
 const Financials: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
   const { currency } = view.financial;
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Premium</h2>
+    <SideSection title="Premium">
       <SummaryList
         items={[
           { label: 'Annual premium before', value: formatMoney(view.old_annual.total_premium, currency) },
@@ -485,13 +472,12 @@ const Financials: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
           { label: 'Annual premium after', value: formatMoney(view.new_annual.total_premium, currency), strong: true },
         ]}
       />
-    </section>
+    </SideSection>
   );
 };
 
 const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
-  <section className="flex flex-col gap-2">
-    <h2 className="text-sm font-medium text-[var(--hz-text-primary)]">Approval</h2>
+  <SideSection title="Approval">
     {view.workflow ? (
       <SummaryList
         items={[
@@ -505,5 +491,5 @@ const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
         {view.requires_check ? 'Not sent for approval yet.' : 'This change needs no approval.'}
       </p>
     )}
-  </section>
+  </SideSection>
 );

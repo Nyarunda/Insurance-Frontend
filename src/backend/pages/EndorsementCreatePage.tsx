@@ -14,7 +14,7 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { ArrowRight, FilePen } from 'lucide-react';
-import { FieldError, HorizonAlert, HorizonLoader } from '../../components/horizon';
+import { ChangeCallout, DetailDivider, DetailGrid, DetailGroup, FieldError, HorizonAlert, HorizonLoader } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { ApiError } from '../../lib/api/errors';
@@ -199,19 +199,18 @@ export const EndorsementCreatePage: React.FC = () => {
         </>
       }
     >
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] p-4 text-[13px] sm:grid-cols-4">
-        {[
-          ['Policy', view.policy_no],
-          ['Customer', view.customer.display_name],
-          ['Version', `Version ${latest.version_no}`],
-          ['Period', `${formatDate(latest.inception_date)} – ${formatDate(latest.expiry_date)}`],
-        ].map(([term, value]) => (
-          <div key={term} className="min-w-0">
-            <dt className="text-[var(--hz-text-muted)]">{term}</dt>
-            <dd className="mt-0.5 font-medium break-words">{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <DetailGroup title="Policy">
+        <DetailGrid
+          columns={2}
+          items={[
+            { label: 'Policy', value: view.policy_no },
+            { label: 'Customer', value: view.customer.display_name },
+            { label: 'Version', value: `Version ${latest.version_no}` },
+            { label: 'Period', value: `${formatDate(latest.inception_date)} – ${formatDate(latest.expiry_date)}` },
+          ]}
+        />
+      </DetailGroup>
+      <DetailDivider />
 
       {notice && (
         <div role="status">
@@ -230,6 +229,7 @@ export const EndorsementCreatePage: React.FC = () => {
         </div>
       )}
 
+      <h2 className="text-base font-medium leading-tight text-[var(--hz-text-primary)]">Change</h2>
       <form id={FORM_ID} noValidate onSubmit={(event) => void onSubmit(event)} className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
         <div>
           <label htmlFor="endorsement-benefit" className={label}>
@@ -316,19 +316,24 @@ export const EndorsementCreatePage: React.FC = () => {
         )}
       </form>
 
-      <section aria-label="Preview of the change" className="rounded-lg border border-dashed border-[var(--hz-border-strong)] p-4">
-        <p className="text-[13px] text-[var(--hz-text-muted)]">What the checker will see</p>
-        {preview && chosen ? (
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-base font-semibold tracking-tight">
-            <span>{chosen.name}:</span>
-            <span>{preview.from}</span>
-            <ArrowRight className="h-4 w-4 text-[var(--hz-text-muted)]" aria-label="to" />
-            <span>{preview.to}</span>
-          </p>
-        ) : (
-          <p className="mt-1 text-[13px] text-[var(--hz-text-muted)]">Choose a benefit and give the new limit to see the change.</p>
+      <ChangeCallout
+        aria-label="Preview of the change"
+        label="What the checker will see"
+        change={
+          preview && chosen ? (
+            <span className="flex flex-wrap items-center gap-2">
+              <span>{chosen.name}:</span>
+              <span>{preview.from}</span>
+              <ArrowRight className="h-4 w-4 text-[var(--hz-text-muted)]" aria-label="to" />
+              <span>{preview.to}</span>
+            </span>
+          ) : undefined
+        }
+      >
+        {!(preview && chosen) && (
+          <p className="text-[13px] text-[var(--hz-text-muted)]">Choose a benefit and give the new limit to see the change.</p>
         )}
-      </section>
+      </ChangeCallout>
     </DialogFrame>
   );
 };

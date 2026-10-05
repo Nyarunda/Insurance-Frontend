@@ -508,12 +508,12 @@ const Versions: React.FC<{ versions: PolicyVersion[]; inForce: number; currency:
               Version {version.version_no}
               {version.version_no === inForce && (
                 <span className="ml-2">
-                  <StatusBadge label="In force" tone="success" />
+                  <StatusBadge square label="In force" tone="success" />
                 </span>
               )}
               {version.terminated && (
                 <span className="ml-2">
-                  <StatusBadge label="Terminated" tone="danger" />
+                  <StatusBadge square label="Terminated" tone="danger" />
                 </span>
               )}
             </td>

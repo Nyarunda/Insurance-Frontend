@@ -4,20 +4,27 @@
  *
  * APPROVE and REJECT are offered only while the instance is PENDING_APPROVAL and the caller's queue
  * holds its current step. Hiding the buttons is a convenience; the backend decides every action.
+ *
+ * DESIGN-1: the record layout, as the endorsement: status beside the title, the requested change set
+ * apart, the other facts and the history on the left, the approval's standing in a side column.
  */
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Check, ClipboardCheck, XCircle } from 'lucide-react';
 import {
-  Card,
-  CardHeader,
+  ChangeCallout,
+  DetailDivider,
+  DetailGrid,
+  DetailGroup,
   HorizonAlert,
   HorizonLoader,
   HorizonToast,
-  KeyValueGrid,
+  RecordColumns,
+  SideSection,
   StatusBadge,
   StatusTone,
+  SummaryList,
 } from '../../components/horizon';
 import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { describeError } from '../../lib/api/errorText';
@@ -206,6 +213,7 @@ export const InstancePage: React.FC = () => {
         {...frame}
         title={subject}
         subtitle={`${humanize(view.definition_code)} · version ${view.version_no}`}
+        badge={<StatusBadge square label={humanize(view.status)} tone={STATUS_TONE[view.status] ?? 'neutral'} />}
         expandable
         footer={
           <>
@@ -255,87 +263,85 @@ export const InstancePage: React.FC = () => {
         <HorizonAlert tone="info">This approval is not in your queue, so there is nothing for you to decide.</HorizonAlert>
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader title="What is being approved" description="The facts frozen when the request was submitted" />
-          {decision.length > 0 && (
-            <div
-              aria-label="Requested change"
-              className="rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] p-4"
-            >
-              {summary && <p className="mb-3 text-lg font-semibold tracking-tight">{summary}</p>}
-              <KeyValueGrid items={decision.map((fact) => ({ label: fact.label, value: fact.value }))} />
-            </div>
-          )}
-          {facts.length > 0 && (
-            <div className={decision.length > 0 ? 'mt-4' : ''} aria-label="Other approval facts">
-              <KeyValueGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
-            </div>
-          )}
-          {decision.length === 0 && facts.length === 0 && (
-            <p className="text-[13px] text-[var(--hz-text-muted)]">No approval facts were recorded.</p>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader title="Status" />
-          <KeyValueGrid
-            columns=""
-            items={[
-              {
-                label: 'Status',
-                value: <StatusBadge label={humanize(view.status)} tone={STATUS_TONE[view.status] ?? 'neutral'} />,
-              },
-              { label: 'Stage', value: view.stage_label || humanize(view.stage) || '—' },
-              {
-                label: 'Approvals',
-                value: view.quorum ? `${view.quorum.counted} of ${view.quorum.required}` : '—',
-              },
-              { label: 'Amount', value: formatMoney(view.amount, view.currency, view.amount_reason) },
-              { label: 'Submitted', value: formatDateTime(view.submitted_at) },
-              { label: 'Completed', value: formatDateTime(view.completed_at) },
-            ]}
-          />
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader title="History" description="Every action on this approval, oldest first" />
-          {view.history.length === 0 ? (
-          <p className="text-[13px] text-[var(--hz-text-secondary)]">No actions yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="hz-grid w-full" aria-label="Workflow history">
-              <thead>
-                <tr>
-                  <th>When</th>
-                  <th>Action</th>
-                  <th>By</th>
-                  <th>Outcome</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {view.history.map((entry, index) => (
-                  <tr key={`${entry.occurred_at}-${index}`}>
-                    <td>{formatDateTime(entry.occurred_at)}</td>
-                    <td>{humanize(entry.action)}</td>
-                    <td>{actorLabel(entry, me?.user.id)}</td>
-                    <td>{humanize(entry.new_status) || '—'}</td>
-                    <td>
-                      {entry.reason_code ? humanize(entry.reason_code) : ''}
-                      {entry.reason_text && (
-                        <span className="block text-[13px] text-[var(--hz-text-secondary)]">{readableReason(entry.reason_text)}</span>
-                      )}
-                      {!entry.reason_code && !entry.reason_text && '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      <RecordColumns
+        main={
+          <>
+            <DetailGroup title="What is being approved" description="The facts frozen when the request was submitted">
+              {decision.length > 0 && (
+                <ChangeCallout aria-label="Requested change" label="Requested change" change={summary}>
+                  <DetailGrid items={decision.map((fact) => ({ label: fact.label, value: fact.value }))} />
+                </ChangeCallout>
+              )}
+              {facts.length > 0 && (
+                <div className={decision.length > 0 ? 'mt-4' : ''} aria-label="Other approval facts">
+                  <DetailGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
+                </div>
+              )}
+              {decision.length === 0 && facts.length === 0 && (
+                <p className="text-[13px] text-[var(--hz-text-muted)]">No approval facts were recorded.</p>
+              )}
+            </DetailGroup>
+            <DetailDivider />
+            <DetailGroup title="History" description="Every action on this approval, oldest first">
+              {view.history.length === 0 ? (
+                <p className="text-[13px] text-[var(--hz-text-secondary)]">No actions yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="hz-grid w-full" aria-label="Workflow history">
+                    <thead>
+                      <tr>
+                        <th>When</th>
+                        <th>Action</th>
+                        <th>By</th>
+                        <th>Outcome</th>
+                        <th>Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {view.history.map((entry, index) => (
+                        <tr key={`${entry.occurred_at}-${index}`}>
+                          <td className="whitespace-nowrap">{formatDateTime(entry.occurred_at)}</td>
+                          <td>{humanize(entry.action)}</td>
+                          <td>{actorLabel(entry, me?.user.id)}</td>
+                          <td>{humanize(entry.new_status) || '—'}</td>
+                          <td>
+                            {entry.reason_code ? humanize(entry.reason_code) : ''}
+                            {entry.reason_text && (
+                              <span className="block text-[13px] text-[var(--hz-text-secondary)]">{readableReason(entry.reason_text)}</span>
+                            )}
+                            {!entry.reason_code && !entry.reason_text && '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </DetailGroup>
+          </>
+        }
+        side={
+          <>
+            <SideSection title="Standing">
+              <SummaryList
+                items={[
+                  { label: 'Stage', value: view.stage_label || humanize(view.stage) || '—' },
+                  { label: 'Approvals', value: view.quorum ? `${view.quorum.counted} of ${view.quorum.required}` : '—' },
+                  { label: 'Amount', value: formatMoney(view.amount, view.currency, view.amount_reason) },
+                ]}
+              />
+            </SideSection>
+            <SideSection title="Dates">
+              <SummaryList
+                items={[
+                  { label: 'Submitted', value: formatDateTime(view.submitted_at) },
+                  { label: 'Completed', value: formatDateTime(view.completed_at) },
+                ]}
+              />
+            </SideSection>
+          </>
+        }
+      />
       </DialogFrame>
       </div>
 

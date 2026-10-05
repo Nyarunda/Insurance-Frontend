@@ -8,8 +8,21 @@
 
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ChevronRight, Clock3, FileText, Inbox, RefreshCw, Search, UsersRound } from 'lucide-react';
-import { Card, HorizonLoader, HorizonPage, HorizonPageTitle, StatCard } from '../../components/horizon';
+import { Clock3, FileText, Inbox, RefreshCw, UsersRound } from 'lucide-react';
+import {
+  DotTag,
+  EmptyState,
+  HorizonLoader,
+  HorizonPage,
+  HorizonPageTitle,
+  ListCard,
+  openableRow,
+  RecordCell,
+  RowChevron,
+  SearchField,
+  StackedCell,
+  StatCard,
+} from '../../components/horizon';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { changeSummary, formatDateTime, formatMoney, humanize } from '../workflow/format';
 import { useWorkQueue } from '../workflow/queries';
@@ -37,14 +50,57 @@ const matches = (item: WorkQueueItem, query: string) =>
     .toLowerCase()
     .includes(query);
 
+const instanceHref = (item: WorkQueueItem) => `/my-work/list/${encodeURIComponent(item.workflow_instance_id)}`;
+
+/** The task rows, as on My Work Queue; `compact` (Home) leaves out the approval and amount. */
+export const TaskTable: React.FC<{ items: WorkQueueItem[]; compact?: boolean }> = ({ items, compact = false }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="overflow-x-auto">
+      <table className="hz-grid w-full" aria-label="Tasks">
+        <thead>
+          <tr>
+            <th>Record</th>
+            <th>Stage</th>
+            {!compact && <th>Approval</th>}
+            {!compact && <th className="text-right">Amount</th>}
+            <th>Waiting</th>
+            <th aria-hidden="true" />
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.assignment_id} {...openableRow(() => navigate(instanceHref(item)))}>
+              <td>
+                {/* RUP1-F1: what the change is, so two pending changes can be told apart. */}
+                <RecordCell icon={FileText} title={recordOf(item)} detail={changeSummary(item.approval_facts, item.currency)} />
+              </td>
+              <td>
+                <span className="inline-flex flex-wrap items-center gap-1.5">
+                  <DotTag label={item.stage_label} />
+                  {item.acting_for_user_id && <span className="text-[13px] text-[var(--hz-text-secondary)]">for a colleague</span>}
+                </span>
+              </td>
+              {!compact && <td className="text-[var(--hz-text-secondary)]">{humanize(item.definition_code)}</td>}
+              {!compact && <td className="text-right tabular-nums">{formatMoney(item.amount, item.currency, item.amount_reason)}</td>}
+              <td>
+                <StackedCell value={<span className="font-medium tabular-nums">{waitingFor(item.assigned_at)}</span>} detail={formatDateTime(item.assigned_at)} />
+              </td>
+              <RowChevron />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 export const WorkQueuePage: React.FC = () => {
   const queue = useWorkQueue();
-  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const items = useMemo(() => queue.data?.results ?? [], [queue.data]);
   const query = search.trim().toLowerCase();
   const shown = query ? items.filter((item) => matches(item, query)) : items;
-  const open = (item: WorkQueueItem) => navigate(`/my-work/list/${encodeURIComponent(item.workflow_instance_id)}`);
 
   const oldest = items.reduce<WorkQueueItem | null>(
     (first, item) => (item.assigned_at && (!first?.assigned_at || item.assigned_at < first.assigned_at) ? item : first),
@@ -88,26 +144,25 @@ export const WorkQueuePage: React.FC = () => {
         </div>
       )}
 
-      <Card flush>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--hz-border-grid)] px-4 py-3">
-          <div>
-            <h2 className="text-base font-semibold text-[var(--hz-text-primary)]">Tasks</h2>
-            <p className="text-[13px] text-[var(--hz-text-muted)]">Open a task to see what is being approved and decide it.</p>
-          </div>
-          <label className="relative w-full sm:w-72">
-            <span className="sr-only">Search tasks</span>
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--hz-text-muted)]" />
-            <input
-              type="search"
-              className="hz-field w-full pl-8"
-              placeholder="Search record, stage or change"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              disabled={!queue.isSuccess || items.length === 0}
-            />
-          </label>
-        </div>
-
+      <ListCard
+        title="Tasks"
+        description="Open a task to see what is being approved and decide it."
+        toolbar={
+          <SearchField
+            id="task-search"
+            label="Search tasks"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search record, stage or change"
+            disabled={!queue.isSuccess || items.length === 0}
+          />
+        }
+        footer={
+          queue.isSuccess && items.length > 0 ? (
+            <span>{query ? `Showing ${shown.length} of ${items.length}` : `${items.length} ${items.length === 1 ? 'task' : 'tasks'}`}</span>
+          ) : undefined
+        }
+      >
         {queue.isPending && (
           <div className="p-6">
             <HorizonLoader tip="Loading your tasks..." />
@@ -119,90 +174,13 @@ export const WorkQueuePage: React.FC = () => {
           </div>
         )}
         {queue.isSuccess && items.length === 0 && (
-          <div className="flex flex-col items-center gap-2 px-6 py-12 text-center" role="status">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--hz-surface-muted)] text-[var(--hz-text-muted)]">
-              <Inbox className="h-5 w-5" />
-            </span>
-            <p className="text-sm font-medium text-[var(--hz-text-primary)]">{EMPTY_QUEUE_TEXT}</p>
-            <p className="text-[13px] text-[var(--hz-text-muted)]">New approvals assigned to you appear here.</p>
-          </div>
+          <EmptyState icon={Inbox} title={EMPTY_QUEUE_TEXT} hint="New approvals assigned to you appear here." />
         )}
         {queue.isSuccess && items.length > 0 && shown.length === 0 && (
-          <p className="px-4 py-8 text-center text-[13px] text-[var(--hz-text-muted)]" role="status">
-            No tasks match “{search.trim()}”.
-          </p>
+          <EmptyState icon={Inbox} title={`No tasks match “${search.trim()}”.`} hint="Try a policy or endorsement number, a stage, or a benefit." />
         )}
-        {shown.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="hz-grid w-full" aria-label="Tasks">
-              <thead>
-                <tr>
-                  <th>Record</th>
-                  <th>Stage</th>
-                  <th>Approval</th>
-                  <th className="text-right">Amount</th>
-                  <th>Waiting</th>
-                  <th aria-hidden="true" className="w-8" />
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((item) => {
-                  // RUP1-F1: what the change is, so two pending changes can be told apart.
-                  const change = changeSummary(item.approval_facts, item.currency);
-                  return (
-                    <tr
-                      key={item.assignment_id}
-                      tabIndex={0}
-                      className="group cursor-pointer"
-                      onClick={() => open(item)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') open(item);
-                      }}
-                    >
-                      <td>
-                        <div className="flex items-start gap-3">
-                          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--hz-border-grid)] bg-[var(--hz-surface-subtle)] text-[var(--hz-text-secondary)]">
-                            <FileText className="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0">
-                            <span className="block font-medium text-[var(--hz-text-primary)]">{recordOf(item)}</span>
-                            {change && <span className="block text-[13px] text-[var(--hz-text-secondary)]">{change}</span>}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="inline-flex flex-wrap items-center gap-1.5">
-                          <span className="inline-flex h-[22px] items-center gap-1.5 rounded-sm border border-[var(--hz-border)] px-2 text-[13px] font-medium whitespace-nowrap text-[var(--hz-text-primary)]">
-                            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--hz-warning)]" />
-                            {item.stage_label}
-                          </span>
-                          {item.acting_for_user_id && (
-                            <span className="text-[13px] text-[var(--hz-text-secondary)]">for a colleague</span>
-                          )}
-                        </span>
-                      </td>
-                      <td className="text-[var(--hz-text-secondary)]">{humanize(item.definition_code)}</td>
-                      <td className="text-right tabular-nums">{formatMoney(item.amount, item.currency, item.amount_reason)}</td>
-                      <td>
-                        <span className="block font-medium tabular-nums text-[var(--hz-text-primary)]">{waitingFor(item.assigned_at)}</span>
-                        <span className="block text-[13px] text-[var(--hz-text-muted)]">{formatDateTime(item.assigned_at)}</span>
-                      </td>
-                      <td className="text-right">
-                        <ChevronRight className="ml-auto h-4 w-4 text-[var(--hz-text-muted)] transition-transform group-hover:translate-x-0.5" />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {queue.isSuccess && items.length > 0 && (
-          <div className="border-t border-[var(--hz-border-grid)] px-4 py-2.5 text-[13px] text-[var(--hz-text-muted)]">
-            {query ? `Showing ${shown.length} of ${items.length}` : `${items.length} ${items.length === 1 ? 'task' : 'tasks'}`}
-          </div>
-        )}
-      </Card>
+        {shown.length > 0 && <TaskTable items={shown} />}
+      </ListCard>
     </HorizonPage>
   );
 };

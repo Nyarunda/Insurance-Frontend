@@ -7,8 +7,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { endorsementHref, policyHref } from '../policies/refs';
-import { Plus } from 'lucide-react';
-import { DetailGroup, HorizonLoader, StatusBadge } from '../../components/horizon';
+import { FilePen, FileText, Plus } from 'lucide-react';
+import { DetailGroup, EmptyState, HorizonLoader, openableRow, RecordCell, RowChevron, StatusBadge } from '../../components/horizon';
 import { hasPermission, useMe } from '../../lib/auth/me';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { ENDORSEMENT_CREATE } from '../permissions';
@@ -46,9 +46,11 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
       {endorsements.isPending && <HorizonLoader tip="Loading the endorsements..." />}
       {endorsements.isError && <ApiErrorAlert error={endorsements.error} title="The endorsements could not be loaded" />}
       {endorsements.isSuccess && endorsements.data.results.length === 0 && (
-        <p className="text-[13px] text-[var(--hz-text-secondary)]" role="status">
-          {NO_ENDORSEMENTS_TEXT}
-        </p>
+        <EmptyState
+          icon={FilePen}
+          title={NO_ENDORSEMENTS_TEXT}
+          hint={canCreate ? 'Use New endorsement to change a limit on this policy.' : undefined}
+        />
       )}
       {endorsements.isSuccess && endorsements.data.results.length > 0 && (
         <div className="overflow-x-auto">
@@ -56,30 +58,24 @@ export const PolicyEndorsementsTab: React.FC<{ policy: PolicyDetail }> = ({ poli
             <thead>
               <tr>
                 <th>Endorsement</th>
-                <th>Type</th>
                 <th>Effective from</th>
                 <th className="text-right">Premium change</th>
                 <th>Status</th>
+                <th aria-hidden="true" />
               </tr>
             </thead>
             <tbody>
               {endorsements.data.results.map((item) => (
-                <tr
-                  key={item.id}
-                  tabIndex={0}
-                  className="cursor-pointer"
-                  onClick={() => open(item.endorsement_no)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') open(item.endorsement_no);
-                  }}
-                >
-                  <td className="font-mono font-semibold">{item.endorsement_no}</td>
-                  <td>{humanize(item.endorsement_type)}</td>
+                <tr key={item.id} {...openableRow(() => open(item.endorsement_no))}>
+                  <td>
+                    <RecordCell icon={FileText} mono title={item.endorsement_no} detail={humanize(item.endorsement_type)} />
+                  </td>
                   <td>{formatDate(item.effective_date)}</td>
                   <td className="text-right tabular-nums">{formatDelta(item.premium_delta, policy.currency)}</td>
                   <td>
-                    <StatusBadge label={ENDORSEMENT_STATUS_LABEL[item.status] ?? humanize(item.status)} tone={ENDORSEMENT_TONE[item.status] ?? 'neutral'} />
+                    <StatusBadge square label={ENDORSEMENT_STATUS_LABEL[item.status] ?? humanize(item.status)} tone={ENDORSEMENT_TONE[item.status] ?? 'neutral'} />
                   </td>
+                  <RowChevron />
                 </tr>
               ))}
             </tbody>

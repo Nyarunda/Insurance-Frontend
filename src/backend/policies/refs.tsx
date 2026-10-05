@@ -11,7 +11,8 @@
 import React, { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { HorizonAlert, HorizonLoader, HorizonPage, HorizonPageContent, HorizonPageTitle } from '../../components/horizon';
+import { SearchX } from 'lucide-react';
+import { Card, EmptyState, HorizonLoader, HorizonPage, HorizonPageTitle } from '../../components/horizon';
 import { NOT_FOUND_TEXT } from '../../lib/api/commandErrors';
 import { api } from '../../lib/api/instance';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
@@ -64,13 +65,18 @@ function usePolicyIdByNumber(ref: string) {
 const NotFound: React.FC<{ what: 'policy' | 'endorsement' }> = ({ what }) => (
   <HorizonPage id="not-found">
     <HorizonPageTitle title={what === 'policy' ? 'Policy' : 'Endorsement'} />
-    <HorizonPageContent className="p-4">
-      <HorizonAlert tone="warning" title={NOT_FOUND_TEXT}>
-        {what === 'policy'
-          ? 'The policy does not exist, or it is outside the branches you can see.'
-          : 'The endorsement does not exist on this policy, or it is not one you can see.'}
-      </HorizonAlert>
-    </HorizonPageContent>
+    <Card flush>
+      <EmptyState
+        icon={SearchX}
+        role="alert"
+        title={NOT_FOUND_TEXT}
+        hint={
+          what === 'policy'
+            ? 'The policy does not exist, or it is outside the branches you can see.'
+            : 'The endorsement does not exist on this policy, or it is not one you can see.'
+        }
+      />
+    </Card>
   </HorizonPage>
 );
 
