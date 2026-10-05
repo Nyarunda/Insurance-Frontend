@@ -1,6 +1,6 @@
 /**
- * Readable addresses (RUP1 F-11): `/policies/POL0000001/endorsements/END0000001` instead of
- * internal IDs. An address may carry either; old links with IDs keep working.
+ * Readable addresses (RUP1 F-11): `/policies/list/POL0000001/endorsements/END0000001` instead of
+ * internal IDs. A record sits under its list. An address may carry either; old links with IDs keep working.
  *
  * A policy number is resolved through `GET /policies?q=` (an exact match, within the user's
  * branch access); an endorsement number through the policy's endorsement list. A number the user
@@ -21,7 +21,7 @@ import type { PolicyPage } from './types';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isId = (ref: string) => UUID.test(ref);
 
-export const policyHref = (policyNo: string) => `/policies/${encodeURIComponent(policyNo)}`;
+export const policyHref = (policyRef: string) => `/policies/list/${encodeURIComponent(policyRef)}`;
 export const endorsementHref = (policyNo: string, endorsementNo: string) =>
   `${policyHref(policyNo)}/endorsements/${encodeURIComponent(endorsementNo)}`;
 

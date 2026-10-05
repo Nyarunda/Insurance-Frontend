@@ -69,9 +69,9 @@ export const WorkQueuePage: React.FC = () => {
                     key={item.assignment_id}
                     tabIndex={0}
                     className="cursor-pointer"
-                    onClick={() => navigate(`/my-work/${encodeURIComponent(item.workflow_instance_id)}`)}
+                    onClick={() => navigate(`/my-work/list/${encodeURIComponent(item.workflow_instance_id)}`)}
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter') navigate(`/my-work/${encodeURIComponent(item.workflow_instance_id)}`);
+                      if (event.key === 'Enter') navigate(`/my-work/list/${encodeURIComponent(item.workflow_instance_id)}`);
                     }}
                   >
                     <td className="font-semibold">

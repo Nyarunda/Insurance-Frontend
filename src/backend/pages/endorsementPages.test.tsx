@@ -199,11 +199,11 @@ function renderAt(path: string, me: Me = PREPARER) {
 }
 
 const mainText = () => document.querySelector('main')?.textContent ?? '';
-const ENDORSEMENT_PATH = `/policies/${POLICY_ID}/endorsements/${ENDORSEMENT_ID}`;
-const NEW_PATH = `/policies/${POLICY_ID}/endorsements/new`;
+const ENDORSEMENT_PATH = `/policies/list/${POLICY_ID}/endorsements/${ENDORSEMENT_ID}`;
+const NEW_PATH = `/policies/list/${POLICY_ID}/endorsements/new`;
 // RUP1 F-11: the app links by business number; addresses with IDs still open.
-const READABLE_POLICY_PATH = '/policies/POL0000001';
-const READABLE_ENDORSEMENT_PATH = '/policies/POL0000001/endorsements/END0000001';
+const READABLE_POLICY_PATH = '/policies/list/POL0000001';
+const READABLE_ENDORSEMENT_PATH = '/policies/list/POL0000001/endorsements/END0000001';
 
 async function fillChangeLimit(user: ReturnType<typeof userEvent.setup>, overrides: { limit?: string; date?: string } = {}) {
   await user.selectOptions(await screen.findByLabelText(/Benefit/), 'WINDSCREEN');
@@ -225,7 +225,7 @@ describe('the Endorsements tab', () => {
   it('lists GET /policies/{id}/endorsements and opens one', async () => {
     const user = userEvent.setup();
     const backend = endorsementBackend({ list: [endorsementSummary({ status: 'REFERRED', premium_delta: '1250.00' })] });
-    const router = renderAt(`/policies/${POLICY_ID}?tab=endorsements`);
+    const router = renderAt(`/policies/list/${POLICY_ID}?tab=endorsements`);
     const row = await screen.findByRole('row', { name: /END0000001/ });
     expect(row).toHaveTextContent('Change limit');
     expect(row).toHaveTextContent('15 Nov 2026');
@@ -241,13 +241,13 @@ describe('the Endorsements tab', () => {
 
   it('says so when there are none', async () => {
     endorsementBackend({ list: [] });
-    renderAt(`/policies/${POLICY_ID}?tab=endorsements`);
+    renderAt(`/policies/list/${POLICY_ID}?tab=endorsements`);
     expect(await screen.findByText(NO_ENDORSEMENTS_TEXT)).toBeInTheDocument();
   });
 
   it('offers "New endorsement" only with policies.endorsement.create, on a bound policy', async () => {
     endorsementBackend({ me: MAKER });
-    renderAt(`/policies/${POLICY_ID}?tab=endorsements`, MAKER);
+    renderAt(`/policies/list/${POLICY_ID}?tab=endorsements`, MAKER);
     await screen.findByRole('row', { name: /END0000001/ });
     expect(screen.queryByRole('button', { name: 'New endorsement' })).not.toBeInTheDocument();
   });
@@ -256,7 +256,7 @@ describe('the Endorsements tab', () => {
     endorsementBackend({
       policy: () => json(200, detail({ lifecycle_status: 'CANCELLED', coverage_status: 'CANCELLED' }), { ETag: POLICY_ETAG }),
     });
-    renderAt(`/policies/${POLICY_ID}?tab=endorsements`);
+    renderAt(`/policies/list/${POLICY_ID}?tab=endorsements`);
     await screen.findByRole('row', { name: /END0000001/ });
     expect(screen.queryByRole('button', { name: 'New endorsement' })).not.toBeInTheDocument();
   });
@@ -276,7 +276,7 @@ describe('RUP1 F-11: readable addresses', () => {
 
   it('a number the user cannot see is "not found", and nothing else is loaded', async () => {
     const backend = endorsementBackend();
-    renderAt('/policies/POL9999999/endorsements/END0000001');
+    renderAt('/policies/list/POL9999999/endorsements/END0000001');
     expect(await screen.findByText('The policy does not exist, or it is outside the branches you can see.')).toBeInTheDocument();
     const urls = backend.calls.map((call) => call.url.replace('/api/v1', ''));
     expect(urls.filter((url) => url.startsWith(`/policies/${POLICY_ID}`) || url.startsWith('/endorsements/'))).toEqual([]);
@@ -284,7 +284,7 @@ describe('RUP1 F-11: readable addresses', () => {
 
   it('an endorsement number not on the policy is "not found"', async () => {
     endorsementBackend();
-    renderAt('/policies/POL0000001/endorsements/END0009999');
+    renderAt('/policies/list/POL0000001/endorsements/END0009999');
     expect(
       await screen.findByText('The endorsement does not exist on this policy, or it is not one you can see.'),
     ).toBeInTheDocument();
@@ -339,7 +339,7 @@ describe('creating a change-limit endorsement', () => {
     await user.click(dialog.parentElement!);
     expect(screen.getByRole('dialog', { name: 'New endorsement' })).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    expect(router.state.location.pathname).toBe(`/policies/${POLICY_ID}`);
+    expect(router.state.location.pathname).toBe(`/policies/list/${POLICY_ID}`);
   });
 
   it('checks the form before sending anything', async () => {

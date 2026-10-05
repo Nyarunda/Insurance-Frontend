@@ -187,7 +187,7 @@ describe('My Work Queue', () => {
     workflowBackend({});
     const router = renderAt('/my-work');
     await user.click(await screen.findByRole('row', { name: /Endorsement check/ }));
-    expect(router.state.location.pathname).toBe(`/my-work/${INSTANCE_ID}`);
+    expect(router.state.location.pathname).toBe(`/my-work/list/${INSTANCE_ID}`);
     expect(await screen.findByRole('heading', { name: 'Policy endorsement END0000001' })).toBeInTheDocument();
   });
 
@@ -202,7 +202,7 @@ describe('My Work Queue', () => {
 describe('the instance', () => {
   it('shows status, stage, quorum, readable facts and history, without identifiers or hashes', async () => {
     workflowBackend({});
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     await screen.findByRole('heading', { name: 'Policy endorsement END0000001' });
     expect(screen.getAllByText('Pending approval').length).toBeGreaterThan(0); // status and history
     expect(screen.getByText('0 of 1')).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe('the instance', () => {
 
   it('offers decisions only when the caller’s queue holds the current step', async () => {
     workflowBackend({ queue: [] });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     expect(await screen.findByText(/This approval is not in your queue/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument();
@@ -242,7 +242,7 @@ describe('the instance', () => {
         ],
       }),
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     // FI1-E: a VOID heading with the void's reason from history, the code read as words.
     const heading = await screen.findByText(VOID_HEADING);
     const panel = heading.closest('[data-slot="alert"]') as HTMLElement;
@@ -262,7 +262,7 @@ describe('the instance', () => {
           : json(200, CHECKER),
     );
     vi.stubGlobal('fetch', network.fn);
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     expect(await screen.findByText('Not found or not available to you.')).toBeInTheDocument();
     expect(screen.getByText('corr-404')).toHaveAttribute('data-correlation-id');
   });
@@ -277,7 +277,7 @@ async function openDecision(name: 'Approve' | 'Reject') {
 describe('DESIGN-1: the approval as a dialog over My Work', () => {
   it('opens over the queue with Cancel, Reject and Approve at the foot; Escape closes only the topmost dialog', async () => {
     workflowBackend({});
-    const router = renderAt(`/my-work/${INSTANCE_ID}`);
+    const router = renderAt(`/my-work/list/${INSTANCE_ID}`);
     const approval = await screen.findByRole('dialog', { name: 'Policy endorsement END0000001' });
     expect(within(approval).getByRole('button', { name: 'Expand' })).toBeInTheDocument();
     const actions = within(approval).getAllByRole('button').map((button) => button.textContent?.trim());
@@ -291,7 +291,7 @@ describe('DESIGN-1: the approval as a dialog over My Work', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog', { name: /^Reject/ })).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Policy endorsement END0000001' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe(`/my-work/${INSTANCE_ID}`);
+    expect(router.state.location.pathname).toBe(`/my-work/list/${INSTANCE_ID}`);
 
     await user.keyboard('{Escape}');
     expect(router.state.location.pathname).toBe('/my-work/list');
@@ -308,7 +308,7 @@ describe('approving', () => {
         return json(200, backend.state.instance, { ETag: '"wf-v2"' });
       },
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument(); // no comment is collected
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
@@ -335,7 +335,7 @@ describe('approving', () => {
         return json(200, view({ status: 'APPROVED', step_id: null }), { ETag: '"wf-v2"' });
       },
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     expect(await screen.findByText(/This record changed since you opened it/)).toBeInTheDocument();
@@ -358,7 +358,7 @@ describe('approving', () => {
         return json(200, view({ status: 'APPROVED', step_id: null }), { ETag: '"wf-v2"', 'Idempotency-Replayed': 'true' });
       },
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     await screen.findByText('Approved: Policy endorsement END0000001', {}, { timeout: 5000 });
@@ -375,7 +375,7 @@ describe('approving', () => {
         return envelope(409, 'WORKFLOW_STEP_NOT_CURRENT', 'the step is not current', {}, 'corr-409');
       },
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     expect(await screen.findByText('This item changed: someone else acted or it is no longer pending.')).toBeInTheDocument();
@@ -390,7 +390,7 @@ describe('approving', () => {
     const backend = workflowBackend({
       act: () => envelope(403, 'SOD_MAKER_CANNOT_APPROVE', 'the maker cannot approve their own request', {}, 'corr-sod'),
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     const alert = await screen.findByRole('alert');
@@ -405,7 +405,7 @@ describe('rejecting', () => {
     const backend = workflowBackend({
       act: () => json(200, view({ status: 'REJECTED', step_id: null }), { ETag: '"wf-v2"' }),
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Reject');
     const select = await screen.findByLabelText(/Reason/);
     expect(within(select as HTMLElement).getAllByRole('option').map((option) => option.textContent)).toEqual([
@@ -435,7 +435,7 @@ describe('rejecting', () => {
 
   it('is unavailable, and says why, when the tenant has no rejection reasons', async () => {
     workflowBackend({ reasons: [] });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     await openDecision('Reject');
     expect(await screen.findByText(NO_REJECTION_REASONS)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm rejection' })).toBeDisabled();
@@ -445,7 +445,7 @@ describe('rejecting', () => {
     workflowBackend({
       act: () => envelope(422, 'WORKFLOW_REASON_REQUIRED', 'reason text is required for this reason code', {}, 'corr-422'),
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Reject');
     await user.selectOptions(await screen.findByLabelText(/Reason/), 'OUT_OF_APPETITE');
     await user.click(screen.getByRole('button', { name: 'Confirm rejection' }));
@@ -460,7 +460,7 @@ describe('rejecting', () => {
           ? envelope(422, 'WORKFLOW_REASON_REQUIRED', 'needs text')
           : json(200, view({ status: 'REJECTED', step_id: null }), { ETag: '"wf-v2"' }),
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Reject');
     const select = await screen.findByLabelText(/Reason/);
     await user.selectOptions(select, 'OUT_OF_APPETITE');
@@ -476,7 +476,7 @@ describe('rejecting', () => {
 
   it('does not lose typed text on a backdrop click', async () => {
     workflowBackend({});
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Reject');
     await user.type(await screen.findByLabelText(/Explanation/), 'Work in progress');
     await user.pointer({ keys: '[MouseLeft]', target: screen.getByRole('dialog').parentElement! });
@@ -497,7 +497,7 @@ describe('a reload that moves the step while the dialog is open', () => {
         return envelope(412, 'CONCURRENCY_CONFLICT', 'the record changed');
       },
     });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Confirm approval' })).toBeDisabled());
@@ -545,7 +545,7 @@ describe('RUP1-F1: the checker sees what they decide', () => {
 
   it('the approval page shows the requested change before Approve and Reject, in words', async () => {
     workflowBackend({ instance: view({ approval_facts: v2Facts() }) });
-    renderAt(`/my-work/${INSTANCE_ID}`);
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
     const change = await screen.findByLabelText('Requested change');
     const text = change.textContent ?? '';
     for (const expected of [

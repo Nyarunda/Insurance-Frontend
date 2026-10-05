@@ -129,7 +129,7 @@ async function person(browser: Browser, email: string, host = facts().alpha.doma
   return { context, page, tracked };
 }
 
-const policyPath = () => `/policies/${facts().alpha.policy.id}`;
+const policyPath = () => `/policies/list/${facts().alpha.policy.id}`;
 const benefitName = (code: string) => facts().alpha.policy.benefits.find((benefit) => benefit.code === code)!.name;
 
 /** Fills the change-limit form; the effective date stays at its default (today). */

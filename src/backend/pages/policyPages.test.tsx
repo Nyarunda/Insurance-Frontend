@@ -123,16 +123,21 @@ describe('Policy Directory', () => {
     );
   });
 
-  it('lives at /policies/list; the old address and a record under the list redirect, keeping the query', async () => {
+  it('the list is /policies/list and a record sits under it; older addresses move there, keeping the query', async () => {
     policyBackend();
     const old = renderAt('/policies?coverage=ACTIVE&page=2');
     await waitFor(() => expect(old.state.location.pathname).toBe('/policies/list'));
     expect(old.state.location.search).toBe('?coverage=ACTIVE&page=2');
     cleanup();
-    const nested = renderAt('/policies/list/POL0000001?tab=coverage');
-    await waitFor(() => expect(nested.state.location.pathname).toBe('/policies/POL0000001'));
-    expect(nested.state.location.search).toBe('?tab=coverage');
+    const outside = renderAt('/policies/POL0000001?tab=coverage');
+    await waitFor(() => expect(outside.state.location.pathname).toBe('/policies/list/POL0000001'));
+    expect(outside.state.location.search).toBe('?tab=coverage');
     expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
+    cleanup();
+    // Unmatched under a list: not found, and never moved again.
+    const unknown = renderAt('/policies/list/POL0000001/nothing/here');
+    expect(await screen.findByText('Not found or not available to you')).toBeInTheDocument();
+    expect(unknown.state.location.pathname).toBe('/policies/list/POL0000001/nothing/here');
   });
 
   it('opens a policy from its row', async () => {
@@ -140,7 +145,7 @@ describe('Policy Directory', () => {
     policyBackend();
     const router = renderAt('/policies');
     await user.click(await screen.findByRole('row', { name: /POL0000001/ }));
-    expect(router.state.location.pathname).toBe('/policies/POL0000001');
+    expect(router.state.location.pathname).toBe('/policies/list/POL0000001');
     expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
   });
 
@@ -182,7 +187,7 @@ describe('Policy Directory', () => {
   it('Back from a policy opened directly goes to the plain directory', async () => {
     const user = userEvent.setup();
     policyBackend();
-    const router = renderAt(`/policies/${POLICY_ID}`);
+    const router = renderAt(`/policies/list/${POLICY_ID}`);
     await user.click(await screen.findByTitle('Back to Policy Directory'));
     expect(router.state.location.pathname).toBe('/policies/list');
     expect(router.state.location.search).toBe('');
@@ -221,7 +226,7 @@ describe('Policy Directory', () => {
 describe('the policy workspace', () => {
   it('shows the policy in force, with no identifiers, and keeps the header ETag', async () => {
     policyBackend();
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     expect(await screen.findByRole('heading', { name: 'POL0000001' })).toBeInTheDocument();
     const text = mainText();
     for (const expected of [
@@ -247,14 +252,14 @@ describe('the policy workspace', () => {
 
   it('never rebuilds the ETag when the header is missing', async () => {
     policyBackend({ detail: () => json(200, detail()) });
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await screen.findByRole('heading', { name: 'POL0000001' });
     expect(queryClient.getQueryData<LoadedPolicy>(POLICY_KEYS.detail(POLICY_ID))?.etag).toBeNull();
   });
 
   it('offers only the sections the backend provides (endorsements since FI1-D)', async () => {
     policyBackend();
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     const tabs = within(await screen.findByRole('tablist', { name: 'Policy sections' })).getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual([
       'Overview',
@@ -272,7 +277,7 @@ describe('the policy workspace', () => {
   it('shows the risk schedule without identifiers', async () => {
     const user = userEvent.setup();
     policyBackend();
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await user.click(await screen.findByRole('tab', { name: 'Risk Schedule' }));
     const text = mainText();
     for (const expected of ['Sum insured', '2500000.00', 'Private use', 'Toyota', 'Prado', 'Registration number', 'KDA 123A', 'Box trailer', 'ZD 4411']) {
@@ -286,7 +291,7 @@ describe('the policy workspace', () => {
   it('shows the cover, benefits and limits of the version in force', async () => {
     const user = userEvent.setup();
     policyBackend();
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await user.click(await screen.findByRole('tab', { name: 'Coverage' }));
     const benefits = screen.getByRole('table', { name: 'Benefits and limits' });
     const windscreen = within(benefits).getByRole('row', { name: /Windscreen cover/ });
@@ -303,7 +308,7 @@ describe('the policy workspace', () => {
   it('shows the premium and levies, and commission only when the backend sends it', async () => {
     const user = userEvent.setup();
     policyBackend();
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await user.click(await screen.findByRole('tab', { name: 'Premium & Levies' }));
     const levies = screen.getByRole('table', { name: 'Levies' });
     expect(within(levies).getByRole('row', { name: /Training levy/ })).toHaveTextContent('0.2%');
@@ -317,7 +322,7 @@ describe('the policy workspace', () => {
     const withCommission = version();
     withCommission.annual_premium = { ...withCommission.annual_premium, commission: '5000.00' };
     policyBackend({ detail: () => json(200, detail({ current_version: withCommission }), { ETag: POLICY_ETAG }) });
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await user.click(await screen.findByRole('tab', { name: 'Premium & Levies' }));
     expect(mainText()).toContain('CommissionKES 5,000.00');
   });
@@ -325,7 +330,7 @@ describe('the policy workspace', () => {
   it('loads the versions from /versions only when that tab opens', async () => {
     const user = userEvent.setup();
     const backend = policyBackend();
-    const router = renderAt(`/policies/${POLICY_ID}`);
+    const router = renderAt(`/policies/list/${POLICY_ID}`);
     await screen.findByRole('heading', { name: 'POL0000001' });
     expect(backend.paths()).not.toContain(`/policies/${POLICY_ID}/versions`);
 
@@ -345,7 +350,7 @@ describe('the policy workspace', () => {
 
   it('says a policy out of scope is not found or not available, with its Reference and no record', async () => {
     policyBackend({ detail: () => envelope(404, 'POLICY_NOT_FOUND', 'policy not found', {}, 'corr-404') });
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     expect(await screen.findByText(NOT_FOUND_TEXT)).toBeInTheDocument();
     expect(mainText()).toContain('Reference corr-404');
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
@@ -354,7 +359,7 @@ describe('the policy workspace', () => {
 
   it('shows other load errors with their Reference', async () => {
     policyBackend({ detail: () => envelope(403, 'PERMISSION_DENIED', 'You may not view this policy.', {}, 'corr-403') });
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('The policy could not be loaded');
     expect(alert).toHaveTextContent('Reference corr-403');
@@ -373,7 +378,7 @@ describe('the policy workspace', () => {
           { ETag: POLICY_ETAG },
         ),
     });
-    renderAt(`/policies/${POLICY_ID}`);
+    renderAt(`/policies/list/${POLICY_ID}`);
     await screen.findByRole('heading', { name: 'POL0000001' });
     expect(mainText()).toContain('Cancelled from01 Jul 2026');
     expect(mainText()).toContain('Vehicle sold');

@@ -90,7 +90,7 @@ export const EndorsementPage: React.FC = () => {
   }, [toast]);
 
   const back = () =>
-    navigate(`${endorsement.data ? policyHref(endorsement.data.view.policy.policy_no) : `/policies/${encodeURIComponent(policyRef)}`}?tab=endorsements`, {
+    navigate(`${policyHref(endorsement.data ? endorsement.data.view.policy.policy_no : policyRef)}?tab=endorsements`, {
       state,
     });
 

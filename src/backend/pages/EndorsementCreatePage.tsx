@@ -25,7 +25,7 @@ import { parseAmount } from '../endorsements/amount';
 import type { ChangeLimitBody } from '../endorsements/types';
 import { formatDate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
-import { endorsementHref, useRouteRefs } from '../policies/refs';
+import { endorsementHref, policyHref, useRouteRefs } from '../policies/refs';
 import { formatMoney, requiredActionText } from '../workflow/format';
 
 export const REASON_MAX = 500;
@@ -72,7 +72,7 @@ export const EndorsementCreatePage: React.FC = () => {
   }, [versions.data]);
 
   // Back to the policy as the address named it (by number, or by ID for an old link).
-  const back = () => navigate(`/policies/${encodeURIComponent(policyRef)}?tab=endorsements`, { state });
+  const back = () => navigate(`${policyHref(policyRef)}?tab=endorsements`, { state });
 
   const cancel = (
     <button type="button" className="hz-button hz-button-secondary" onClick={back}>

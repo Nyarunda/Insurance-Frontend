@@ -46,6 +46,8 @@ export const backendRoutes: RouteObject[] = [
       { index: true, element: <HomePage /> },
       // Lists live at `/<module>/list`; the module's own address and the old ones lead there.
       { path: 'my-work', element: <ToList to="/my-work/list" /> },
+      // A record outside its list (`/my-work/<id>`, an older address) moves under it.
+      { path: 'my-work/:record/*', element: <IntoList /> },
       {
         path: 'my-work/list',
         element: (
@@ -55,7 +57,7 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'my-work/:instanceId',
+        path: 'my-work/list/:instanceId',
         element: (
           <RequirePermission permission={TASK_VIEW}>
             <div inert aria-hidden="true">
@@ -66,8 +68,8 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       { path: 'policies', element: <ToList to="/policies/list" /> },
-      // A record addressed under the list (`/policies/list/POL0000001/…`) is the record itself.
-      { path: 'policies/list/*', element: <OutOfList /> },
+      // A record outside its list (`/policies/POL0000001/…`, an older address) moves under it.
+      { path: 'policies/:record/*', element: <IntoList /> },
       {
         path: 'policies/list',
         element: (
@@ -77,7 +79,7 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'policies/:policyId',
+        path: 'policies/list/:policyId',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <PolicyRefRoute>
@@ -87,7 +89,7 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'policies/:policyId/endorsements/new',
+        path: 'policies/list/:policyId/endorsements/new',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <RequirePermission permission={ENDORSEMENT_CREATE}>
@@ -102,7 +104,7 @@ export const backendRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'policies/:policyId/endorsements/:endorsementId',
+        path: 'policies/list/:policyId/endorsements/:endorsementId',
         element: (
           <RequirePermission permission={POLICY_VIEW}>
             <PolicyRefRoute>
@@ -122,10 +124,12 @@ function ToList({ to }: { to: string }) {
   return <Navigate to={{ pathname: to, search }} replace />;
 }
 
-/** `/policies/list/POL0000001/endorsements/…` → `/policies/POL0000001/endorsements/…`. */
-function OutOfList() {
+/** `/policies/POL0000001/endorsements/…` → `/policies/list/POL0000001/endorsements/…`. */
+function IntoList() {
   const { pathname, search } = useLocation();
-  return <Navigate to={{ pathname: pathname.replace(/^\/(\w[\w-]*)\/list\//, '/$1/'), search }} replace />;
+  // Already under a list and still unmatched: not a page, and never moved again (no redirect loop).
+  if (pathname.split('/')[2] === 'list') return <NotFoundPage />;
+  return <Navigate to={{ pathname: pathname.replace(/^\/([\w-]+)\//, '/$1/list/'), search }} replace />;
 }
 
 const router = createBrowserRouter(backendRoutes);
