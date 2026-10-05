@@ -153,7 +153,8 @@ export const InstancePage: React.FC = () => {
       action: dialog.decision,
       step_id: view.step_id,
       ...(myTask.slot_no != null ? { slot_no: myTask.slot_no } : {}),
-      ...(dialog.decision === 'REJECT' ? { reason_code: reasonCode, ...(reasonText ? { reason_text: reasonText } : {}) } : {}),
+      ...(dialog.decision === 'REJECT' ? { reason_code: reasonCode } : {}),
+      ...(reasonText ? { reason_text: reasonText } : {}),
     };
     const outcome = await submit(body, etag);
     if (outcome.ok === true) {

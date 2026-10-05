@@ -2,7 +2,8 @@
  * The workflow decision dialog in backend mode (FI1-B; the FI1-E gaps from PR #1 that concern the
  * decision rules are applied here, because this is where they are decided):
  *
- * - APPROVE needs no comment: none is collected and none is sent.
+ * - APPROVE takes an optional comment, sent as `reason_text` only when given and kept on the
+ *   approval in the workflow history (the backend's approve keeps it from APPROVE-COMMENT on).
  * - REJECT needs one of the tenant's reason codes, from the backend, never invented. When the code
  *   `requires_text`, the text is required; otherwise it is optional. The text is sent as
  *   `reason_text` and kept in the workflow history.
@@ -78,7 +79,7 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
   const confirm = () => {
     setAttempted(true);
     if (blocked || codeError || textError) return;
-    onConfirm(rejecting ? { reasonCode, reasonText: reasonText.trim() || undefined } : {});
+    onConfirm(rejecting ? { reasonCode, reasonText: reasonText.trim() || undefined } : { reasonText: reasonText.trim() || undefined });
   };
 
   const title = `${rejecting ? 'Reject' : 'Approve'}${stageLabel ? ` — ${stageLabel}` : ''}`;
@@ -118,9 +119,27 @@ export const DecisionDialog: React.FC<DecisionDialogProps> = ({
       {error ? <ApiErrorAlert error={error} /> : null}
 
       {!rejecting && (
-        <p className="text-[13px] text-[var(--hz-text-secondary)]">
-          Approving records your decision at this stage. No comment is needed.
-        </p>
+        <>
+          <p className="text-[13px] text-[var(--hz-text-secondary)]">Approving records your decision at this stage.</p>
+          <div>
+            <label htmlFor="workflow-approve-comment" className="mb-1 block text-[13px] font-semibold text-[var(--hz-text-primary)]">
+              Comment <span className="font-normal text-[var(--hz-text-secondary)]">(optional)</span>
+            </label>
+            <textarea
+              id="workflow-approve-comment"
+              rows={4}
+              maxLength={REASON_TEXT_MAX}
+              value={reasonText}
+              placeholder="For example, what you checked before approving"
+              onChange={(event) => setReasonText(event.target.value)}
+              className="hz-field w-full resize-none p-2 text-[13px]"
+            />
+            <div className="flex items-start justify-between gap-3">
+              <p className="mt-1 text-[13px] text-[var(--hz-text-secondary)]">The comment is kept in the approval's history.</p>
+              <CharacterCounter current={reasonText.length} max={REASON_TEXT_MAX} />
+            </div>
+          </div>
+        </>
       )}
 
       {rejecting && reasons.isPending && <HorizonLoader tip="Loading rejection reasons..." />}

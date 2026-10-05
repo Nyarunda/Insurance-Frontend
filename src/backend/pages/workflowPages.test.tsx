@@ -327,7 +327,7 @@ describe('DESIGN-1: the approval as a dialog over My Work', () => {
 });
 
 describe('approving', () => {
-  it('sends no comment, the header ETag as If-Match, and an idempotency key; then shows the result', async () => {
+  it("sends the approver's comment, trimmed, as reason_text and no reason code", async () => {
     const backend = workflowBackend({
       act: (_call, state) => {
         backend.state.instance = view({ status: 'APPROVED', step_id: null, quorum: null, completed_at: '2026-10-04T10:00:00Z' });
@@ -338,7 +338,26 @@ describe('approving', () => {
     });
     renderAt(`/my-work/list/${INSTANCE_ID}`);
     const user = await openDecision('Approve');
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument(); // no comment is collected
+    await user.type(screen.getByLabelText(/Comment/), '  Checked the valuation report.  ');
+    await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
+
+    expect(await screen.findByText('Approved: Policy endorsement END0000001')).toBeInTheDocument();
+    const [action] = backend.actions();
+    expect(action.body).toEqual({ action: 'APPROVE', step_id: STEP_1, slot_no: 1, reason_text: 'Checked the valuation report.' });
+  });
+
+  it('without a comment sends none, the header ETag as If-Match, and an idempotency key; then shows the result', async () => {
+    const backend = workflowBackend({
+      act: (_call, state) => {
+        backend.state.instance = view({ status: 'APPROVED', step_id: null, quorum: null, completed_at: '2026-10-04T10:00:00Z' });
+        backend.state.queue = [];
+        state.etag = '"wf-v2"';
+        return json(200, backend.state.instance, { ETag: '"wf-v2"' });
+      },
+    });
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
+    const user = await openDecision('Approve');
+    expect(screen.getByLabelText(/Comment/)).toHaveValue(''); // optional, left empty
     await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
 
     expect(await screen.findByText('Approved: Policy endorsement END0000001')).toBeInTheDocument();

@@ -233,7 +233,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
       await route.continue();
     });
     await page.getByRole('button', { name: 'Approve' }).click();
-    await expect(page.getByRole('dialog')).toContainText('No comment is needed.');
+    await expect(page.getByRole('dialog')).toContainText('Approving records your decision at this stage.');
     await page.getByRole('button', { name: 'Confirm approval' }).click();
     await expect(page.getByText(`Approved: Policy endorsement ${endorsements.first.number}`)).toBeVisible();
     await page.unroute('**/api/v1/workflows/instances/*/actions');
