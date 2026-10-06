@@ -198,6 +198,37 @@ describe('New customer', () => {
     expect(create.headers['if-match']).toBeUndefined();
   });
 
+  it('a bad identifier is shown on the identifier, in words; a bad phone on the mobile number; a bad e-mail on the e-mail', async () => {
+    const user = userEvent.setup();
+    let answer = envelope(422, 'IDENTIFIER_INVALID', 'KRA_PIN must be A or P, nine digits and a letter', { field: 'value' });
+    customerBackend({ create: () => answer });
+    renderAt('/customers/list/new');
+    const dialog = await screen.findByRole('dialog', { name: 'New customer' });
+    await user.type(within(dialog).getByLabelText(/First name/), 'Wanjiku');
+    await user.type(within(dialog).getByLabelText(/Last name/), 'Kamau');
+    await user.type(within(dialog).getByLabelText('Mobile number'), '0728299199');
+    await user.selectOptions(within(dialog).getByLabelText('Primary identifier'), 'KRA_PIN');
+    expect(within(dialog).getByLabelText('Identifier number')).toHaveAttribute('placeholder', 'A012345678Z');
+    await user.type(within(dialog).getByLabelText('Identifier number'), 'A1234');
+    await user.click(within(dialog).getByRole('button', { name: 'Create customer' }));
+    const identifier = within(dialog).getByLabelText('Identifier number');
+    await waitFor(() => expect(identifier).toHaveAttribute('aria-invalid', 'true'));
+    expect(within(dialog).getByText(/KRA PIN must be A or P, nine digits and a letter/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/KRA_PIN/)).not.toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Mobile number')).not.toHaveAttribute('aria-invalid', 'true');
+
+    answer = envelope(422, 'CONTACT_INVALID', 'not a valid phone number', { field: 'value' });
+    await user.click(within(dialog).getByRole('button', { name: 'Create customer' }));
+    await waitFor(() => expect(within(dialog).getByLabelText('Mobile number')).toHaveAttribute('aria-invalid', 'true'));
+    expect(within(dialog).getByLabelText('Identifier number')).not.toHaveAttribute('aria-invalid', 'true');
+
+    answer = envelope(422, 'CONTACT_INVALID', 'not a valid e-mail address', { field: 'value' });
+    await user.type(within(dialog).getByLabelText('E-mail'), 'x@y');
+    await user.click(within(dialog).getByRole('button', { name: 'Create customer' }));
+    await waitFor(() => expect(within(dialog).getByLabelText('E-mail')).toHaveAttribute('aria-invalid', 'true'));
+    expect(within(dialog).getByLabelText('Mobile number')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('shows a duplicate, needs an acknowledgement with a reason, and resends it under a new key', async () => {
     const user = userEvent.setup();
     let attempts = 0;
