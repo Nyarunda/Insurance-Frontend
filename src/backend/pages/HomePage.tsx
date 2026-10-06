@@ -37,7 +37,22 @@ import {
 } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
-import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, PROPOSAL_CREATE, QUOTATION_CREATE, TASK_VIEW } from '../permissions';
+import {
+  CUSTOMER_CREATE,
+  CUSTOMER_VIEW,
+  ENDORSEMENT_CREATE,
+  KYC_VERIFY,
+  POLICY_VIEW,
+  PROPOSAL_CREATE,
+  PROPOSAL_VIEW,
+  QUOTATION_CHECK,
+  QUOTATION_CREATE,
+  QUOTATION_VIEW,
+  TASK_VIEW,
+} from '../permissions';
+import { useCustomers } from '../customers/queries';
+import { useProposals } from '../proposals/queries';
+import { useQuotations } from '../quotations/queries';
 import { COVERAGE_TONE } from '../policies/format';
 import { usePolicies } from '../policies/queries';
 import { policyHref } from '../policies/refs';
@@ -50,6 +65,9 @@ import { TaskTable, waitingFor } from './WorkQueuePage';
 const PROFILES: { permission: string; label: string }[] = [
   { permission: TASK_VIEW, label: 'Approver' },
   { permission: ENDORSEMENT_CREATE, label: 'Endorsement maker' },
+  { permission: QUOTATION_CREATE, label: 'New business maker' },
+  { permission: KYC_VERIFY, label: 'KYC checker' },
+  { permission: QUOTATION_CHECK, label: 'Quotation checker' },
   { permission: POLICY_VIEW, label: 'Policy viewer' },
 ];
 
@@ -81,6 +99,17 @@ export const HomePage: React.FC = () => {
   const queue = useWorkQueue(canDecide);
   const policies = usePolicies({ page: 1 }, canSeePolicies);
   const active = usePolicies({ coverage_status: 'ACTIVE', page: 1 }, canSeePolicies);
+  // New business (NEW-BUSINESS-1): each figure is the server's count for one filtered list, only
+  // for a person who may see that list; nothing is counted in the browser.
+  const canSeeQuotations = usePermission(QUOTATION_VIEW);
+  const canSeeProposals = usePermission(PROPOSAL_VIEW);
+  const customers = useCustomers({ page: 1 }, canSeeCustomers);
+  const awaitingKyc = useCustomers({ kyc_status: 'PENDING_VERIFICATION', page: 1 }, canSeeCustomers);
+  const quotations = useQuotations({ page: 1 }, canSeeQuotations);
+  const offers = useQuotations({ status: 'ISSUED', page: 1 }, canSeeQuotations);
+  const proposals = useProposals({ page: 1 }, canSeeProposals);
+  const referred = useProposals({ status: 'REFERRED', page: 1 }, canSeeProposals);
+  const ready = useProposals({ status: 'READY_TO_BIND', page: 1 }, canSeeProposals);
   if (!me) return null;
 
   const activeBranch = branches.find((branch) => branch.id === activeBranchId);
@@ -141,6 +170,24 @@ export const HomePage: React.FC = () => {
     cards.push(<StatCard key="me" icon={UserRound} label="Signed in as" value={name} caption={me.user.email} />);
   }
 
+  const business: React.ReactNode[] = [];
+  if (canSeeCustomers) {
+    business.push(
+      <StatCard key="customers" icon={UsersRound} label="Customers" value={count(customers)} caption={`${count(awaitingKyc)} awaiting KYC verification`} testId="metric-customers" />,
+    );
+  }
+  if (canSeeQuotations) {
+    business.push(
+      <StatCard key="quotations" icon={FileText} label="Quotations" value={count(quotations)} caption={`${count(offers)} offers with the customer`} testId="metric-quotations" />,
+    );
+  }
+  if (canSeeProposals) {
+    business.push(
+      <StatCard key="proposals" icon={ClipboardList} label="Proposals" value={count(proposals)} caption={`${count(referred)} referred for approval`} testId="metric-proposals" />,
+      <StatCard key="ready" icon={ClipboardCheck} label="Ready to bind" value={count(ready)} caption="Proposals with nothing outstanding" testId="metric-ready" />,
+    );
+  }
+
   const shortcuts: Shortcut[] = [
     ...(canDecide
       ? [{ id: 'decide', icon: ClipboardCheck, title: 'Decide approvals', text: 'Review what is asked and approve or reject it.', to: '/my-work/list' }]
@@ -188,6 +235,12 @@ export const HomePage: React.FC = () => {
       />
 
       <StatGrid>{cards.slice(0, 4)}</StatGrid>
+      {business.length > 0 && (
+        <section aria-label="New business" className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium text-[var(--hz-text-muted)]">New business</h2>
+          <StatGrid>{business}</StatGrid>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">

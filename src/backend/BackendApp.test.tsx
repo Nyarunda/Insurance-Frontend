@@ -284,6 +284,41 @@ describe('the shell in backend mode', () => {
     expect(screen.getByText('9')).toBeInTheDocument();
   });
 
+  it('shows new-business figures from the server, each only with its view permission', async () => {
+    signedInAs({ ...ME, permissions: ['clients.customer.view', 'clients.customer.create', 'quotations.quotation.view', 'quotations.quotation.create', 'underwriting.proposal.view'] });
+    const network = backend((call) => {
+      const count = (n: number) => json(200, { results: [], count: n, page: 1, page_size: 25 });
+      if (call.url.includes('/clients?')) return count(call.url.includes('kyc_status=PENDING_VERIFICATION') ? 2 : 41);
+      if (call.url.includes('/quotations?')) return count(call.url.includes('status=ISSUED') ? 3 : 17);
+      if (call.url.includes('/underwriting/proposals?')) {
+        return count(call.url.includes('status=REFERRED') ? 1 : call.url.includes('status=READY_TO_BIND') ? 4 : 6);
+      }
+      return json(200, ME);
+    });
+    renderAt('/');
+    const business = await screen.findByRole('region', { name: 'New business' });
+    await waitFor(() => expect(within(business).getByTestId('metric-customers')).toHaveTextContent('41'));
+    expect(business).toHaveTextContent('2 awaiting KYC verification');
+    expect(within(business).getByTestId('metric-quotations')).toHaveTextContent('17');
+    expect(business).toHaveTextContent('3 offers with the customer');
+    expect(within(business).getByTestId('metric-proposals')).toHaveTextContent('6');
+    expect(business).toHaveTextContent('1 referred for approval');
+    expect(within(business).getByTestId('metric-ready')).toHaveTextContent('4');
+    expect(screen.getByLabelText('What you can do')).toHaveTextContent('New business maker');
+    expect(network.calls.some((call) => call.url.includes('/policies?'))).toBe(false);
+    cleanup();
+    queryClient.clear();
+
+    signedInAs({ ...ME, permissions: ['clients.customer.view'] });
+    const only = backend((call) => (call.url.includes('/clients?') ? json(200, { results: [], count: 5, page: 1, page_size: 25 }) : json(200, ME)));
+    renderAt('/');
+    const section = await screen.findByRole('region', { name: 'New business' });
+    await waitFor(() => expect(within(section).getByTestId('metric-customers')).toHaveTextContent('5'));
+    expect(within(section).queryByTestId('metric-quotations')).not.toBeInTheDocument();
+    expect(within(section).queryByTestId('metric-proposals')).not.toBeInTheDocument();
+    expect(only.calls.some((call) => /\/(quotations|underwriting\/proposals)\?/.test(call.url))).toBe(false);
+  });
+
   it('a user with no work permission is told so, with no work cards', async () => {
     signedInAs({ ...ME, permissions: [] });
     backend(() => json(200, ME));
