@@ -83,6 +83,9 @@ describe('route protection', () => {
     expect(await screen.findByText('You do not have access to this screen')).toBeInTheDocument();
     expect(screen.queryByText('Queue screen')).not.toBeInTheDocument();
     expect(screen.getByText('workflow.task.view')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Ask your administrator');
+    expect(screen.getByRole('button', { name: 'Go to Home' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeInTheDocument();
   });
 
   it('shows the screen when the permission is held', async () => {

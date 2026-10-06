@@ -240,16 +240,90 @@ export function HorizonAlert({
   const Icon = feedbackIcons[tone];
 
   return (
-    <div data-slot="alert" className={`rounded-lg border px-4 py-3 text-[13px] ${feedbackToneClass[tone]}`}>
-      <div className="flex items-start gap-2">
-        <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+    <div
+      data-slot="alert"
+      data-tone={tone}
+      className={`rounded-lg border bg-[var(--hz-surface-main)] px-4 py-3 text-sm ${alertBorderClass[tone]}`}
+    >
+      <div className="flex items-start gap-3">
+        <Icon aria-hidden="true" className={`mt-0.5 size-4 shrink-0 ${alertAccentClass[tone]}`} />
         <div className="min-w-0 flex-1">
-          {title && <div className="font-medium text-[var(--hz-text-primary)]">{title}</div>}
-          <div className={title ? 'mt-0.5' : ''}>{children}</div>
+          {title && <div className={`font-medium leading-5 tracking-tight ${alertAccentClass[tone]}`}>{title}</div>}
+          <div className={`leading-5 ${tone === 'danger' ? 'text-[var(--hz-danger-text)]' : 'text-[var(--hz-text-secondary)]'} ${title ? 'mt-0.5' : ''}`}>
+            {children}
+          </div>
         </div>
-        {action}
+        {action && <div className="shrink-0 self-center">{action}</div>}
       </div>
     </div>
+  );
+}
+
+const alertAccentClass: Record<FeedbackTone, string> = {
+  success: 'text-[var(--hz-success-text)]',
+  danger: 'text-[var(--hz-danger-text)]',
+  warning: 'text-[var(--hz-warning-text)]',
+  info: 'text-[var(--hz-info-text)]',
+  neutral: 'text-[var(--hz-text-primary)]',
+};
+
+const alertBorderClass: Record<FeedbackTone, string> = {
+  success: 'border-[var(--hz-success-border)]',
+  danger: 'border-[var(--hz-danger-border)]',
+  warning: 'border-[var(--hz-warning-border)]',
+  info: 'border-[var(--hz-info-border)]',
+  neutral: 'border-[var(--hz-border-grid)]',
+};
+
+const statusToneClass: Record<FeedbackTone, string> = {
+  success: 'bg-[var(--hz-success-bg)] text-[var(--hz-success-text)]',
+  danger: 'bg-[var(--hz-danger-bg)] text-[var(--hz-danger-text)]',
+  warning: 'bg-[var(--hz-warning-bg)] text-[var(--hz-warning-text)]',
+  info: 'bg-[var(--hz-info-bg)] text-[var(--hz-info-text)]',
+  neutral: 'bg-[var(--hz-surface-muted)] text-[var(--hz-text-muted)]',
+};
+
+/**
+ * A whole screen that cannot be shown (no access, not found, could not load): one centred card with
+ * a tinted icon, the title, what it means, an optional detail (a permission, a reference), and the
+ * ways out.
+ */
+export function StatusScreen({
+  icon: Icon,
+  tone = 'neutral',
+  title,
+  description,
+  detail,
+  actions,
+  role = 'alert',
+}: {
+  icon: React.ElementType;
+  tone?: FeedbackTone;
+  title: string;
+  description?: React.ReactNode;
+  detail?: React.ReactNode;
+  actions?: React.ReactNode;
+  role?: string;
+}) {
+  return (
+    <section className="hz-template-card flex flex-col items-center px-6 py-14 text-center" role={role}>
+      <span className={`flex size-12 items-center justify-center rounded-full ${statusToneClass[tone]}`}>
+        <Icon aria-hidden="true" className="size-6" />
+      </span>
+      <h2 className="mt-4 text-base font-medium tracking-tight text-[var(--hz-text-primary)]">{title}</h2>
+      {description && <p className="mt-1 max-w-md text-sm text-[var(--hz-text-muted)]">{description}</p>}
+      {detail && <div className="mt-4">{detail}</div>}
+      {actions && <div className="mt-6 flex flex-wrap items-center justify-center gap-2">{actions}</div>}
+    </section>
+  );
+}
+
+/** A code-like value set apart (a permission name, a reference). */
+export function CodeChip({ children }: { children: React.ReactNode }) {
+  return (
+    <code className="inline-flex items-center rounded-md border border-[var(--hz-border-grid)] bg-[var(--hz-surface-muted)] px-2 py-0.5 font-mono text-[13px] text-[var(--hz-text-primary)]">
+      {children}
+    </code>
   );
 }
 

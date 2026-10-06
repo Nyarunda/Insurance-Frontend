@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { TaskTable } from './WorkQueuePage';
-import { ArrowRight, Building2, FileCheck2, Inbox, SearchX, UserRound } from 'lucide-react';
-import { Card, DetailGrid, EmptyState, HorizonAlert, HorizonPage, HorizonPageTitle, ListCard, StatCard, StatGrid } from '../../components/horizon';
+import { ArrowRight, Building2, FileCheck2, House, Inbox, SearchX, UserRound } from 'lucide-react';
+import { DetailGrid, EmptyState, HorizonAlert, HorizonPage, HorizonPageTitle, ListCard, StatCard, StatGrid, StatusScreen } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { POLICY_VIEW, TASK_VIEW } from '../permissions';
@@ -117,11 +117,22 @@ export const HomePage: React.FC = () => {
   );
 };
 
-export const NotFoundPage: React.FC = () => (
-  <HorizonPage id="not-found">
-    <HorizonPageTitle title="Page not found" />
-    <Card flush>
-      <EmptyState icon={SearchX} role="alert" title="Not found or not available to you" hint="Use the navigation to open a screen." />
-    </Card>
-  </HorizonPage>
-);
+export const NotFoundPage: React.FC = () => {
+  const navigate = useNavigate();
+  return (
+    <HorizonPage id="not-found">
+      <HorizonPageTitle title="Page not found" />
+      <StatusScreen
+        icon={SearchX}
+        title="Not found or not available to you"
+        description="The address does not lead to a screen you can open. Use the navigation, or start from Home."
+        actions={
+          <button type="button" className="hz-button hz-button-primary" onClick={() => navigate('/')}>
+            <House className="h-3.5 w-3.5" />
+            Go to Home
+          </button>
+        }
+      />
+    </HorizonPage>
+  );
+};

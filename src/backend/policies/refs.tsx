@@ -11,8 +11,9 @@
 import React, { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { SearchX } from 'lucide-react';
-import { Card, EmptyState, HorizonLoader, HorizonPage, HorizonPageTitle } from '../../components/horizon';
+import { ArrowLeft, SearchX } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { HorizonLoader, HorizonPage, HorizonPageTitle, StatusScreen } from '../../components/horizon';
 import { NOT_FOUND_TEXT } from '../../lib/api/commandErrors';
 import { api } from '../../lib/api/instance';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
@@ -62,23 +63,29 @@ function usePolicyIdByNumber(ref: string) {
   });
 }
 
-const NotFound: React.FC<{ what: 'policy' | 'endorsement' }> = ({ what }) => (
-  <HorizonPage id="not-found">
-    <HorizonPageTitle title={what === 'policy' ? 'Policy' : 'Endorsement'} />
-    <Card flush>
-      <EmptyState
+const NotFound: React.FC<{ what: 'policy' | 'endorsement' }> = ({ what }) => {
+  const navigate = useNavigate();
+  return (
+    <HorizonPage id="not-found">
+      <HorizonPageTitle title={what === 'policy' ? 'Policy' : 'Endorsement'} />
+      <StatusScreen
         icon={SearchX}
-        role="alert"
         title={NOT_FOUND_TEXT}
-        hint={
+        description={
           what === 'policy'
             ? 'The policy does not exist, or it is outside the branches you can see.'
             : 'The endorsement does not exist on this policy, or it is not one you can see.'
         }
+        actions={
+          <button type="button" className="hz-button hz-button-secondary" onClick={() => navigate('/policies/list')}>
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Policy Directory
+          </button>
+        }
       />
-    </Card>
-  </HorizonPage>
-);
+    </HorizonPage>
+  );
+};
 
 /** Resolves the address's policy and endorsement references, then renders the page with their IDs. */
 export const PolicyRefRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
