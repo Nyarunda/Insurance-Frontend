@@ -3,3 +3,11 @@
 export const TASK_VIEW = 'workflow.task.view';
 export const POLICY_VIEW = 'policies.policy.view';
 export const ENDORSEMENT_CREATE = 'policies.endorsement.create';
+
+// NB1-A: customers (CLIENTS-1). The backend judges each at the customer's home branch.
+export const CUSTOMER_VIEW = 'clients.customer.view';
+export const CUSTOMER_CREATE = 'clients.customer.create';
+export const CUSTOMER_EDIT = 'clients.customer.edit';
+export const KYC_VIEW = 'clients.kyc.view';
+export const KYC_MANAGE = 'clients.kyc.manage';
+export const KYC_VERIFY = 'clients.kyc.verify';

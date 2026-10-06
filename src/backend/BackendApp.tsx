@@ -22,7 +22,11 @@ import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
-import { ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from './permissions';
+import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from './permissions';
+import { CustomerRefRoute } from './customers/refs';
+import { CustomerCreatePage } from './pages/CustomerCreatePage';
+import { CustomerPage } from './pages/CustomerPage';
+import { CustomersPage } from './pages/CustomersPage';
 import { RequirePermission, RequireSession, SignedOutOnly } from './routing';
 import { BackendShell } from './shell/BackendShell';
 
@@ -64,6 +68,40 @@ export const backendRoutes: RouteObject[] = [
               <WorkQueuePage />
             </div>
             <InstancePage />
+          </RequirePermission>
+        ),
+      },
+      // NB1-A: customers, as policies: the list, the new-customer dialog over it, and the record by number.
+      { path: 'customers', element: <ToList to="/customers/list" /> },
+      { path: 'customers/:record/*', element: <IntoList /> },
+      {
+        path: 'customers/list',
+        element: (
+          <RequirePermission permission={CUSTOMER_VIEW}>
+            <CustomersPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'customers/list/new',
+        element: (
+          <RequirePermission permission={CUSTOMER_VIEW}>
+            <RequirePermission permission={CUSTOMER_CREATE}>
+              <div inert aria-hidden="true">
+                <CustomersPage />
+              </div>
+              <CustomerCreatePage />
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'customers/list/:customerId',
+        element: (
+          <RequirePermission permission={CUSTOMER_VIEW}>
+            <CustomerRefRoute>
+              <CustomerPage />
+            </CustomerRefRoute>
           </RequirePermission>
         ),
       },

@@ -13,7 +13,9 @@ import {
   Search,
   SearchX,
   ShieldCheck,
+  UserPlus,
   UserRound,
+  UsersRound,
 } from 'lucide-react';
 import {
   DetailGrid,
@@ -33,7 +35,7 @@ import {
 } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
-import { ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from '../permissions';
+import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from '../permissions';
 import { COVERAGE_TONE } from '../policies/format';
 import { usePolicies } from '../policies/queries';
 import { policyHref } from '../policies/refs';
@@ -70,6 +72,8 @@ export const HomePage: React.FC = () => {
   const canDecide = usePermission(TASK_VIEW);
   const canSeePolicies = usePermission(POLICY_VIEW);
   const canPrepare = usePermission(ENDORSEMENT_CREATE);
+  const canSeeCustomers = usePermission(CUSTOMER_VIEW);
+  const canAddCustomer = usePermission(CUSTOMER_CREATE);
   const queue = useWorkQueue(canDecide);
   const policies = usePolicies({ page: 1 }, canSeePolicies);
   const active = usePolicies({ coverage_status: 'ACTIVE', page: 1 }, canSeePolicies);
@@ -139,6 +143,12 @@ export const HomePage: React.FC = () => {
       : []),
     ...(canPrepare && canSeePolicies
       ? [{ id: 'change', icon: FilePen, title: 'Change a policy', text: 'Open an active policy, then New endorsement on its Endorsements tab.', to: '/policies/list?coverage=ACTIVE' }]
+      : []),
+    ...(canAddCustomer
+      ? [{ id: 'new-customer', icon: UserPlus, title: 'Add a customer', text: 'Create a customer, then complete their KYC.', to: '/customers/list/new' }]
+      : []),
+    ...(canSeeCustomers
+      ? [{ id: 'customers', icon: UsersRound, title: 'Find a customer', text: 'Search customers by name, number, phone or e-mail.', to: '/customers/list' }]
       : []),
     ...(canSeePolicies
       ? [{ id: 'find', icon: Search, title: 'Find a policy', text: 'Search the policies in your branches by number.', to: '/policies/list' }]
