@@ -20,7 +20,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { FileText, Pencil, RefreshCw, RotateCcw, Send, Undo2 } from 'lucide-react';
+import { Check, FileText, Pencil, RefreshCw, RotateCcw, Send, Undo2 } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -404,7 +404,7 @@ const StatePanel: React.FC<{
     case 'REFERRED':
       return view.workflow?.status === 'PENDING_APPROVAL' ? (
         <HorizonAlert tone="info" title={SENT_FOR_APPROVAL}>
-          Waiting at the {humanize(view.workflow.stage) || 'approval'} stage. The approver decides it from their work queue.
+          Waiting at the {view.workflow.stage_label || humanize(view.workflow.stage) || 'approval'} stage. The approver decides it from their work queue.
         </HorizonAlert>
       ) : (
         <HorizonAlert tone="info" title="Waiting for approval">
@@ -526,14 +526,76 @@ const Financials: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
   );
 };
 
-const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
+const STEP_DOT: Record<string, string> = {
+  DONE: 'border-[var(--hz-success)] bg-[var(--hz-success)] text-white',
+  CURRENT: 'border-[var(--hz-warning)] bg-[var(--hz-warning-bg)] text-[var(--hz-warning-text)]',
+  NEXT: 'border-[var(--hz-border-strong)] bg-[var(--hz-surface-main)] text-[var(--hz-text-muted)]',
+  NOT_REACHED: 'border-[var(--hz-border-grid)] bg-[var(--hz-surface-muted)] text-[var(--hz-text-disabled)]',
+};
+
+/** One step of the approval path: a marker on the line, the step's name, and a line under it. */
+const PathStep: React.FC<{ state: string; title: string; detail: React.ReactNode; last?: boolean }> = ({ state, title, detail, last }) => (
+  <li className="relative flex gap-3 pb-4 last:pb-0">
+    {!last && <span aria-hidden="true" className="absolute top-6 bottom-0 left-[11px] w-px bg-[var(--hz-divider)]" />}
+    <span
+      aria-hidden="true"
+      className={`relative z-[1] flex size-6 shrink-0 items-center justify-center rounded-full border ${STEP_DOT[state] ?? STEP_DOT.NEXT}`}
+    >
+      {state === 'DONE' ? <Check className="size-3.5" strokeWidth={3} /> : state === 'CURRENT' ? <span className="size-2 rounded-full bg-current" /> : null}
+    </span>
+    <div className="min-w-0 pt-0.5">
+      <p className={`text-sm font-medium leading-5 ${state === 'NOT_REACHED' ? 'text-[var(--hz-text-muted)]' : 'text-[var(--hz-text-primary)]'}`}>{title}</p>
+      <p className="text-[13px] text-[var(--hz-text-muted)]">{detail}</p>
+    </div>
+  </li>
+);
+
+const STATE_TEXT: Record<string, string> = { DONE: 'Approved', NEXT: 'Next', NOT_REACHED: 'Not reached' };
+
+/**
+ * Where the approval stands: submitted, then each stage of the frozen path, done, current or next.
+ * The current stage says which role decides it (by name, never a person); an older backend without
+ * the path gets the plain facts.
+ */
+const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
+  const workflow = view.workflow;
+  const path = workflow?.path ?? [];
+  if (workflow && path.length > 0) {
+    const waiting = workflow.waiting_on ?? [];
+    return (
+      <SideSection title="Approval">
+        <div className="flex items-center gap-2">
+          <StatusBadge square label={humanize(workflow.status)} tone={workflow.status === 'APPROVED' ? 'success' : workflow.status === 'PENDING_APPROVAL' ? 'warning' : workflow.status === 'REJECTED' ? 'danger' : 'neutral'} />
+        </div>
+        <ol aria-label="Approval path" className="mt-2">
+          <PathStep state="DONE" title="Submitted" detail={formatDateTime(view.submitted_at)} />
+          {path.map((stage, index) => (
+            <PathStep
+              key={stage.code}
+              state={stage.state}
+              title={stage.name}
+              last={index === path.length - 1}
+              detail={
+                stage.state === 'CURRENT'
+                  ? waiting.length > 0
+                    ? `Waiting for: ${waiting.join(', ')}`
+                    : 'Waiting for an approver'
+                  : STATE_TEXT[stage.state] ?? humanize(stage.state)
+              }
+            />
+          ))}
+        </ol>
+      </SideSection>
+    );
+  }
+  return (
   <SideSection title="Approval">
-    {view.workflow ? (
+    {workflow ? (
       <SummaryList
         items={[
-          { label: 'Approval', value: humanize(view.workflow.definition_code) },
-          { label: 'Approval status', value: humanize(view.workflow.status) },
-          { label: 'Stage', value: humanize(view.workflow.stage) || '—' },
+          { label: 'Approval', value: humanize(workflow.definition_code) },
+          { label: 'Approval status', value: humanize(workflow.status) },
+          { label: 'Stage', value: workflow.stage_label || humanize(workflow.stage) || '—' },
         ]}
       />
     ) : (
@@ -542,4 +604,5 @@ const Approval: React.FC<{ view: EndorsementDetail }> = ({ view }) => (
       </p>
     )}
   </SideSection>
-);
+  );
+};

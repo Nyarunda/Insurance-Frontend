@@ -26,6 +26,17 @@ export interface WorkflowBlock {
   status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'VOID' | string;
   stage: string | null;
   lock_version: number;
+  /** DESIGN-1 (backend approve-comment branch on): the stage's name, the path, and the roles it waits for. */
+  stage_label?: string | null;
+  path?: ApprovalPathStage[];
+  waiting_on?: string[];
+}
+
+/** One stage of the frozen approval path, by name only. */
+export interface ApprovalPathStage {
+  code: string;
+  name: string;
+  state: 'DONE' | 'CURRENT' | 'NEXT' | 'NOT_REACHED' | string;
 }
 
 /** PTH1-D4: why a referred endorsement can no longer be approved, and what to do next. */

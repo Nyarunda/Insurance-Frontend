@@ -533,6 +533,29 @@ describe('the endorsement', () => {
     expect(within(dialog).queryByRole('button', { name: 'Prepare again' })).not.toBeInTheDocument();
   });
 
+  it('shows the approval path, and the role the current stage waits for, never a person', async () => {
+    const base = pending();
+    endorsementBackend({
+      endorsement: pending({
+        workflow: {
+          ...base.workflow!,
+          stage_label: 'Endorsement check',
+          path: [
+            { code: 'ENDORSEMENT_CHECK', name: 'Endorsement check', state: 'CURRENT' },
+            { code: 'HEAD_OF_INSURANCE', name: 'Head of insurance', state: 'NEXT' },
+          ],
+          waiting_on: ['Underwriting Manager'],
+        },
+      }),
+    });
+    renderAt(ENDORSEMENT_PATH);
+    const steps = within(await screen.findByRole('list', { name: 'Approval path' })).getAllByRole('listitem');
+    expect(steps).toHaveLength(3);
+    expect(steps[0]).toHaveTextContent(/^Submitted04 Oct 2026/);
+    expect(steps[1]).toHaveTextContent('Endorsement checkWaiting for: Underwriting Manager');
+    expect(steps[2]).toHaveTextContent('Head of insuranceNext');
+  });
+
   it('waiting for approval it can only be withdrawn, and says how to change it', async () => {
     endorsementBackend({ endorsement: pending() });
     renderAt(ENDORSEMENT_PATH);
