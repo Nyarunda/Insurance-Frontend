@@ -83,7 +83,8 @@ export function actorLabel(entry: HistoryEntry, currentUserId: string | null | u
   if (entry.actor_kind === 'SYSTEM' || !entry.actor_user_id) return 'System';
   if (currentUserId && entry.actor_user_id === currentUserId) return entry.acting_for_user_id ? 'You, for a colleague' : 'You';
   if (entry.stage) return `${humanize(entry.stage)} approver`;
-  return entry.action === 'SUBMIT' || entry.action === 'START' ? 'Requester' : 'Another user';
+  if (entry.action === 'SUBMIT' || entry.action === 'START') return entry.actor_email ? `${entry.actor_email} (requester)` : 'Requester';
+  return 'Another user';
 }
 
 // ---------------------------------------------------------------------------- RUP1-F1 decision facts

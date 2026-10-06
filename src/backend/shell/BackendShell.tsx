@@ -13,7 +13,10 @@ import { userInitials } from '../../components/GlobalTopBar';
 import { readDensity, readPreference, writePreference } from '../../store/preferences';
 import type { DensityMode, ScreenId } from '../../types';
 import { useBranchStore } from '../../lib/context/branchStore';
-import { ME_QUERY_KEY, useMe } from '../../lib/auth/me';
+import { hasPermission, ME_QUERY_KEY, useMe } from '../../lib/auth/me';
+import { TASK_VIEW } from '../permissions';
+import { useWorkQueue } from '../workflow/queries';
+import { ApprovalReminder } from './ApprovalReminder';
 import { signOut } from '../../lib/auth/session';
 import { queryClient } from '../../lib/query/queryClient';
 import { BACKEND_NAV, pathForScreen, screenForPath, visibleNav } from '../navigation';
@@ -59,6 +62,10 @@ export const BackendShell: React.FC = () => {
     if (path) navigate(path);
   };
 
+  // An approver's queue is checked every minute: the navigation counts it and new tasks are announced.
+  const canDecide = hasPermission(me.data, TASK_VIEW);
+  const queue = useWorkQueue(canDecide, true);
+
   const toggleSidebar = () => {
     const next = !sidebarCollapsed;
     setSidebarCollapsed(next);
@@ -93,7 +100,9 @@ export const BackendShell: React.FC = () => {
         onToggleCollapse={toggleSidebar}
         brand={{ title: 'Insurance Cloud', subtitle: meData.tenant.name }}
         footer={(rail) => <SidebarUser email={meData.user.email} branch={activeBranch?.name} rail={rail} />}
+        counters={canDecide && queue.data ? { pending_tasks: queue.data.results.length } : undefined}
       />
+      {canDecide && <ApprovalReminder tasks={queue.data?.results} />}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <GlobalTopBar

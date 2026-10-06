@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertCircle, AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Info, Loader2, Search, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Info, Loader2, Search, ShieldCheck, X, XCircle } from 'lucide-react';
 
 type FeedbackToneForSound = 'success' | 'danger' | 'warning' | 'info' | 'neutral';
 
@@ -430,6 +430,72 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
   );
 }
 
+const toastToneClass: Record<FeedbackTone, string> = {
+  success: 'bg-[var(--hz-success)] text-white',
+  danger: 'bg-[var(--hz-danger)] text-white',
+  warning: 'bg-[var(--hz-warning)] text-white',
+  info: 'bg-[var(--hz-info)] text-white',
+  neutral: 'bg-[var(--hz-text-primary)] text-[var(--hz-surface-main)]',
+};
+
+/**
+ * The one toast (DESIGN-1): a card in its tone's colour, top or bottom right, with an icon, a title,
+ * a message, an optional action and a Dismiss button. `sound` plays the tone's sound when it shows.
+ */
+export function ToastCard({
+  tone = 'success',
+  icon,
+  title,
+  children,
+  action,
+  onClose,
+  position = 'top',
+  sound = false,
+  role,
+}: {
+  tone?: FeedbackTone;
+  icon?: React.ElementType;
+  title?: React.ReactNode;
+  children?: React.ReactNode;
+  action?: React.ReactNode;
+  onClose?: () => void;
+  position?: 'top' | 'bottom';
+  sound?: boolean;
+  role?: string;
+}) {
+  useEffect(() => {
+    if (sound) playToastSound(tone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const Icon = icon ?? feedbackIcons[tone];
+  return (
+    <div
+      role={role ?? (tone === 'danger' ? 'alert' : 'status')}
+      className={`hz-toast-enter fixed right-4 left-4 z-50 ml-auto flex max-w-sm items-start gap-3 rounded-lg px-4 py-3 text-sm shadow-lg sm:left-auto ${
+        position === 'top' ? 'top-4' : 'bottom-4'
+      } ${toastToneClass[tone]}`}
+    >
+      <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+      <div className="min-w-0 flex-1 leading-5">
+        {title && <p className="font-medium">{title}</p>}
+        {children && <div className={title ? 'opacity-90' : ''}>{children}</div>}
+      </div>
+      {action && <div className="shrink-0 self-center">{action}</div>}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Dismiss"
+          className="-mr-1 rounded-md p-1 opacity-80 transition hover:bg-white/15 hover:opacity-100"
+        >
+          <X aria-hidden="true" className="size-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** A short confirmation (or warning) after an action, with its sound; the caller clears `message`. */
 export function HorizonToast({
   message,
   tone = 'success',
@@ -437,22 +503,11 @@ export function HorizonToast({
   message: string | null;
   tone?: FeedbackTone;
 }) {
-  useEffect(() => {
-    if (message) {
-      playToastSound(tone);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message]);
-
   if (!message) return null;
-
-  const Icon = feedbackIcons[tone];
-
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center gap-3 rounded-lg border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-4 py-3 text-[13px] text-[var(--hz-text-primary)] shadow-lg">
-      <Icon className={`h-5 w-5 shrink-0 ${tone === 'success' ? 'text-[var(--hz-success)]' : tone === 'danger' ? 'text-[var(--hz-danger)]' : tone === 'warning' ? 'text-[var(--hz-warning)]' : 'text-[var(--hz-info)]'}`} />
-      <span>{message}</span>
-    </div>
+    <ToastCard key={message} tone={tone} sound>
+      {message}
+    </ToastCard>
   );
 }
 

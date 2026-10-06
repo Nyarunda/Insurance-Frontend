@@ -1,6 +1,6 @@
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -139,11 +139,27 @@ const mainText = () => document.querySelector('main')?.textContent ?? '';
 beforeEach(() => {
   queryClient.clear();
   useBranchStore.getState().reset();
+  window.sessionStorage.clear(); // the approvals reminder shows once per session
 });
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('My Work Queue', () => {
+  it('reminds an approver of waiting approvals once a session, and counts them in the navigation', async () => {
+    workflowBackend({});
+    renderAt('/');
+    const reminder = await screen.findByText('1 approval is waiting for you');
+    expect(reminder.closest('[role="status"]')).toHaveTextContent('Open My Work Queue to decide them.');
+    expect(screen.getByRole('button', { name: /^My Work Queue/ })).toHaveTextContent('1');
+    cleanup();
+    queryClient.clear();
+    workflowBackend({});
+    renderAt('/');
+    await screen.findByRole('heading', { name: 'Home' });
+    await screen.findAllByText('Endorsement check');
+    expect(screen.queryByText('1 approval is waiting for you')).not.toBeInTheDocument(); // not again this session
+  });
+
   it('lists only what /work-queue returns, in words, with no identifiers', async () => {
     workflowBackend({});
     renderAt('/my-work');
@@ -614,6 +630,16 @@ describe('RUP1-F1: the checker sees what they decide', () => {
     expect(others).not.toContain('Request reason');
     expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
     expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it("the history names the requester by email and shows the requester's reason on the Submit row", async () => {
+    const submitted = { ...view().history[0], actor_email: 'maker@acme.test' };
+    workflowBackend({ instance: view({ approval_facts: v2Facts(), history: [submitted] }) });
+    renderAt(`/my-work/list/${INSTANCE_ID}`);
+    const history = await screen.findByRole('table', { name: 'Workflow history' });
+    const row = within(history).getByRole('row', { name: /Submit/ });
+    expect(row).toHaveTextContent('maker@acme.test (requester)');
+    expect(row).toHaveTextContent('Customer requested increased windscreen cover');
   });
 
   it('an older approval (version 1 facts) still renders, without a change line', async () => {

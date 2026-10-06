@@ -8,7 +8,7 @@
 
 import { FileCheck2, Inbox, LayoutDashboard, type LucideIcon } from 'lucide-react';
 import { POLICY_VIEW, TASK_VIEW } from './permissions';
-import type { NavGroup } from '../data/navigation';
+import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
 export interface BackendNavItem {
@@ -18,6 +18,8 @@ export interface BackendNavItem {
   /** The permission code the screen needs; none for screens every signed-in user has. */
   permission?: string;
   icon?: LucideIcon;
+  /** The counter shown beside the item (the shell supplies the number). */
+  counter?: keyof NavigationCountersResponse;
 }
 
 export interface BackendNavGroup {
@@ -34,7 +36,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: LayoutDashboard,
     items: [
       { screen: 'dashboard', label: 'Home', path: '/', icon: LayoutDashboard },
-      { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', permission: TASK_VIEW, icon: Inbox },
+      { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', permission: TASK_VIEW, icon: Inbox, counter: 'pending_tasks' },
     ],
   },
   {
@@ -54,7 +56,7 @@ export function visibleNav(registry: BackendNavGroup[], permissions: readonly st
       icon: group.icon,
       items: group.items
         .filter((item) => !item.permission || permissions.includes(item.permission))
-        .map((item) => ({ id: item.screen, label: item.label, icon: item.icon })),
+        .map((item) => ({ id: item.screen, label: item.label, icon: item.icon, counter: item.counter })),
     }))
     .filter((group) => group.items.length > 0);
 }

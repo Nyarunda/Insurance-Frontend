@@ -202,6 +202,8 @@ export const InstancePage: React.FC = () => {
     : null;
   const facts = displayFacts(rest);
   const summary = changeSummary(view.approval_facts, view.currency);
+  // The requester's reason, frozen with the request: shown on the history's Submit row.
+  const requestReason = typeof view.approval_facts?.request_reason === 'string' ? view.approval_facts.request_reason : null;
   // FI1-E: a void instance says so as a heading, with the reason recorded when it was voided.
   const voided = view.status === 'VOID' ? [...view.history].reverse().find((entry) => entry.new_status === 'VOID') : undefined;
   const voidReason = voided?.reason_text ? readableReason(voided.reason_text) : voided?.reason_code ? humanize(voided.reason_code) : null;
@@ -305,12 +307,14 @@ export const InstancePage: React.FC = () => {
                           <td>{humanize(entry.action)}</td>
                           <td>{actorLabel(entry, me?.user.id)}</td>
                           <td>{humanize(entry.new_status) || '—'}</td>
-                          <td>
+                          <td className="whitespace-normal">
                             {entry.reason_code ? humanize(entry.reason_code) : ''}
-                            {entry.reason_text && (
+                            {entry.reason_text ? (
                               <span className="block text-[13px] text-[var(--hz-text-secondary)]">{readableReason(entry.reason_text)}</span>
-                            )}
-                            {!entry.reason_code && !entry.reason_text && '—'}
+                            ) : entry.action === 'SUBMIT' && requestReason ? (
+                              <span className="block text-[13px] text-[var(--hz-text-secondary)]">{requestReason}</span>
+                            ) : null}
+                            {!entry.reason_code && !entry.reason_text && !(entry.action === 'SUBMIT' && requestReason) && '—'}
                           </td>
                         </tr>
                       ))}

@@ -14,12 +14,16 @@ export const WORKFLOW_KEYS = {
   reasonCodes: (action: Decision) => ['workflow', 'reason-codes', action] as const,
 };
 
-export function useWorkQueue(enabled = true) {
+/** How often the shell checks the queue for new approvals (DESIGN-1 reminder). */
+export const QUEUE_POLL_MS = 60_000;
+
+export function useWorkQueue(enabled = true, poll = false) {
   return useQuery({
     queryKey: WORKFLOW_KEYS.queue,
     queryFn: async () => (await api.request<WorkQueue>('/work-queue')).data,
     enabled,
     staleTime: 0, // refreshed whenever the user comes back to the tab
+    refetchInterval: poll ? QUEUE_POLL_MS : false,
   });
 }
 
