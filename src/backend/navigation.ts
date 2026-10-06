@@ -6,8 +6,8 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { ClipboardList, FileCheck2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
-import { CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_VIEW, TASK_VIEW } from './permissions';
+import { ClipboardList, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
+import { CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, TASK_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -50,6 +50,8 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     title: 'Sales',
     icon: FileText,
     items: [
+      // NB1-D: the guide through the steps; for those who can start one (a quotation's maker).
+      { screen: 'quote-workspace', label: 'New policy', path: '/new-policy', permission: QUOTATION_CREATE, icon: FilePlus2 },
       { screen: 'quotations', label: 'Quotations', path: '/quotations/list', permission: QUOTATION_VIEW, icon: FileText },
       { screen: 'applications', label: 'Proposals', path: '/proposals/list', permission: PROPOSAL_VIEW, icon: ClipboardList },
     ],

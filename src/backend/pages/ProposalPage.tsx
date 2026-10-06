@@ -12,12 +12,16 @@
  * - Exceptions: an underwriter's referral (with a reason); approval by someone who did not prepare
  *   the proposal, in My Work Queue when the tenant governs it, or here otherwise (the server refuses
  *   a contributor). Reopen (approvals lapse), check again, decline and cancel (with a reason).
+ * - Bind (NB1-D): a READY_TO_BIND proposal is bound into a policy with its ETag and an optional
+ *   insurer policy number; the new policy opens in the policy workspace. The re-checks the server
+ *   makes at bind (still bindable, KYC verified, inception not passed without an approved
+ *   backdating, still ready) are shown as its answers in words.
  * Actions show only to users whose permissions could use them; the server decides every one.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { ArrowLeft, ClipboardList, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ClipboardList, FileCheck2, Plus, Trash2 } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -45,12 +49,16 @@ import { usePermission } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { customerHref } from '../customers/refs';
 import {
+  POLICY_BIND,
+  POLICY_VIEW,
   PROPOSAL_CANCEL,
   PROPOSAL_DECLINE,
   PROPOSAL_EDIT,
   PROPOSAL_EXCEPTION_APPROVE,
   TASK_VIEW,
 } from '../permissions';
+import { policyHref } from '../policies/refs';
+import { useBindCommand } from '../proposals/useBindCommand';
 import { formatDate } from '../policies/format';
 import { blockerText, exceptionLabel, OPEN_WORKFLOW, PROPOSAL_STATUS_LABEL, PROPOSAL_TONE } from '../proposals/format';
 import { useAgreements, useProposal } from '../proposals/queries';
@@ -66,7 +74,7 @@ import { proposalsFrom } from './ProposalsPage';
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 
-type Dialog = 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | { approve: ProposalException } | null;
+type Dialog = 'bind' | 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | { approve: ProposalException } | null;
 
 const OPEN_STATUSES = ['DRAFT', 'UNDER_REVIEW', 'REFERRED'];
 const SUBMITTED_STATUSES = ['UNDER_REVIEW', 'REFERRED'];
@@ -103,6 +111,8 @@ export const ProposalPage: React.FC = () => {
   const canCancel = usePermission(PROPOSAL_CANCEL);
   const canApprove = usePermission(PROPOSAL_EXCEPTION_APPROVE);
   const canSeeTasks = usePermission(TASK_VIEW);
+  const canBind = usePermission(POLICY_BIND);
+  const canSeePolicies = usePermission(POLICY_VIEW);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ error: unknown; title: string } | null>(null);
@@ -190,6 +200,14 @@ export const ProposalPage: React.FC = () => {
       </button>,
     );
   }
+  if (view.status === 'READY_TO_BIND' && canBind) {
+    actions.push(
+      <button key="bind" type="button" className="hz-button hz-button-primary" onClick={() => setDialog('bind')}>
+        <FileCheck2 className="h-3.5 w-3.5" />
+        Bind
+      </button>,
+    );
+  }
   if (draft && canEdit) {
     actions.push(
       <button key="submit" type="button" className="hz-button hz-button-primary" disabled={commands.pending}
@@ -231,7 +249,11 @@ export const ProposalPage: React.FC = () => {
         </div>
       )}
       {failure && <CommandFailure error={failure.error} title={failure.title} />}
-      <StateNotice view={view} onCustomer={() => navigate(customerHref(view.customer.customer_no))} />
+      <StateNotice
+        view={view}
+        onCustomer={() => navigate(customerHref(view.customer.customer_no))}
+        onPolicy={canSeePolicies && view.policy_no ? () => navigate(policyHref(view.policy_no as string)) : undefined}
+      />
 
       <div className="hz-record-body">
         <RecordColumns
@@ -285,6 +307,10 @@ export const ProposalPage: React.FC = () => {
         />
       </div>
 
+      {dialog === 'bind' && etag && (
+        <BindDialog view={view} etag={etag} onClose={() => setDialog(null)}
+          onBound={(policyNo) => navigate(canSeePolicies ? policyHref(policyNo) : proposalsFrom(location.state))} />
+      )}
       {(dialog === 'refer' || dialog === 'decline' || dialog === 'cancel') && etag && (
         <ReasonDialog kind={dialog} view={view} etag={etag} onClose={() => setDialog(null)}
           onDone={(after) => { setDialog(null); setToast(dialog === 'refer' ? `Referred: ${view.proposal_no}` : settled(after)); }} />
@@ -302,7 +328,7 @@ export const ProposalPage: React.FC = () => {
 };
 
 /** Where the proposal stands, in one line, and what it still waits for. */
-const StateNotice: React.FC<{ view: ProposalDetail; onCustomer: () => void }> = ({ view, onCustomer }) => {
+const StateNotice: React.FC<{ view: ProposalDetail; onCustomer: () => void; onPolicy?: () => void }> = ({ view, onCustomer, onPolicy }) => {
   if (view.status === 'DRAFT') {
     return <HorizonAlert banner tone="info" title="Draft">Complete the terms, then submit. The system checks the inception, the agreement and the sum insured, and refers what needs approval.</HorizonAlert>;
   }
@@ -326,10 +352,24 @@ const StateNotice: React.FC<{ view: ProposalDetail; onCustomer: () => void }> = 
     );
   }
   if (view.status === 'READY_TO_BIND') {
-    return <HorizonAlert banner tone="success" title="Ready to bind">Nothing is outstanding{view.ready_at ? ` since ${formatDateTime(view.ready_at)}` : ''}.</HorizonAlert>;
+    return (
+      <HorizonAlert banner tone="success" title="Ready to bind">
+        Nothing is outstanding{view.ready_at ? ` since ${formatDateTime(view.ready_at)}` : ''}. Binding makes it a policy; the server checks it again first.
+      </HorizonAlert>
+    );
   }
   if (view.status === 'BOUND') {
-    return <HorizonAlert banner tone="success" title="Bound">{view.policy_no ? `Policy ${view.policy_no}` : ''}{view.bound_at ? `, ${formatDateTime(view.bound_at)}` : ''}</HorizonAlert>;
+    return (
+      <HorizonAlert
+        banner
+        tone="success"
+        title="Bound"
+        action={onPolicy ? <button type="button" className="hz-button hz-button-secondary" onClick={onPolicy}>Open the policy</button> : undefined}
+      >
+        {view.policy_no ? `Policy ${view.policy_no}` : ''}
+        {view.bound_at ? `, ${formatDateTime(view.bound_at)}` : ''}
+      </HorizonAlert>
+    );
   }
   return <HorizonAlert banner tone="neutral" title={view.status === 'DECLINED' ? 'Declined' : 'Cancelled'}>{view.decision_reason || '—'}</HorizonAlert>;
 };
@@ -908,6 +948,94 @@ const ApproveDialog: React.FC<{ view: ProposalDetail; exception: ProposalExcepti
           </label>
           <textarea id="proposal-approve-note" rows={2} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} className="hz-field w-full px-3 py-2 text-sm" />
         </div>
+      </form>
+    </DialogFrame>
+  );
+};
+
+/** The server's refusals at bind, in words (NB1-D); anything else as the backend's error. */
+const BIND_REFUSALS: Record<string, (error: ApiError) => string> = {
+  POLICY_INCEPTION_PASSED: () =>
+    'The inception date has passed and no backdating was approved. Cancel this proposal and prepare it again with a new inception date.',
+  PROPOSAL_NOT_READY_TO_BIND: (error) =>
+    `The proposal is no longer ready to bind${typeof error.details.status === 'string' ? `: it is ${humanize(error.details.status).toLowerCase()}` : ''}. It has been reloaded.`,
+};
+
+const BindDialog: React.FC<{ view: ProposalDetail; etag: string; onClose: () => void; onBound: (policyNo: string) => void }> = ({ view, etag, onClose, onBound }) => {
+  const { bind, pending } = useBindCommand();
+  const [insurerNo, setInsurerNo] = useState('');
+  const [failure, setFailure] = useState<unknown>(null);
+  const [fields, setFields] = useState<Record<string, string>>({});
+  const [stale, setStale] = useState(false);
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFailure(null);
+    setFields({});
+    setStale(false);
+    const outcome = await bind(view.id, etag, insurerNo.trim());
+    if (outcome.ok === true) return onBound(outcome.policy.policy_no);
+    if (outcome.kind === 'stale') return setStale(true);
+    const found = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
+    if (found.insurer_policy_no) setFields(found);
+    else setFailure(outcome.error);
+  };
+  const refusal = failure instanceof ApiError && BIND_REFUSALS[failure.code] ? BIND_REFUSALS[failure.code](failure) : null;
+  return (
+    <DialogFrame
+      titleId="proposal-bind-title"
+      title="Bind into a policy"
+      subtitle={`${view.proposal_no} · ${view.customer.display_name}`}
+      onClose={onClose}
+      size="md"
+      footer={
+        <>
+          <button type="button" className="hz-button hz-button-secondary" onClick={onClose} disabled={pending}>
+            Cancel
+          </button>
+          <button type="submit" form="proposal-bind-form" className="hz-button hz-button-primary" disabled={pending}>
+            {pending ? 'Binding…' : 'Bind'}
+          </button>
+        </>
+      }
+    >
+      {stale && (
+        <div role="status">
+          <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
+        </div>
+      )}
+      {refusal ? (
+        <div role="alert">
+          <HorizonAlert tone="warning" title="The policy was not bound">
+            {refusal}
+            <ErrorReference reference={referenceOf(failure)} />
+          </HorizonAlert>
+        </div>
+      ) : (
+        failure !== null && <CommandFailure error={failure} title="The policy was not bound" />
+      )}
+      <form id="proposal-bind-form" noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-4">
+        <DetailGrid
+          dense
+          columns={2}
+          items={[
+            { label: 'Product', value: `${view.product.name} · ${view.insurer.name}` },
+            { label: 'Cover', value: view.proposed_inception_date ? `${formatDate(view.proposed_inception_date)} – ${formatDate(view.proposed_expiry_date)}` : 'Not set' },
+            { label: 'Agreement', value: view.agreement ? `${humanize(view.agreement.agreement_type)} · ${view.agreement.reference_no}` : '—' },
+            { label: 'Total premium', value: formatMoney(view.total_premium, view.currency) },
+          ]}
+        />
+        <div>
+          <label htmlFor="proposal-insurer-policy-no" className={label}>
+            Insurer policy number
+          </label>
+          <input id="proposal-insurer-policy-no" value={insurerNo} maxLength={64} onChange={(event) => setInsurerNo(event.target.value)}
+            aria-invalid={!!fields.insurer_policy_no} className={field(!!fields.insurer_policy_no)} />
+          {!fields.insurer_policy_no && <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Optional. It can be recorded on the policy later.</p>}
+          <FieldError message={fields.insurer_policy_no} />
+        </div>
+        <p className="text-sm text-[var(--hz-text-secondary)]">
+          The policy is made from this proposal exactly as it stands: the accepted premium, the risk and the cover. The server checks it is still ready first.
+        </p>
       </form>
     </DialogFrame>
   );

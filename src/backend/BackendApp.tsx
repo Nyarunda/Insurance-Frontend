@@ -37,6 +37,7 @@ import { ProposalRefRoute } from './proposals/refs';
 import { ProposalCreatePage } from './pages/ProposalCreatePage';
 import { ProposalPage } from './pages/ProposalPage';
 import { ProposalsPage } from './pages/ProposalsPage';
+import { NewPolicyPage } from './pages/NewPolicyPage';
 import { QuotationRefRoute } from './quotations/refs';
 import { QuotationCreatePage } from './pages/QuotationCreatePage';
 import { QuotationPage } from './pages/QuotationPage';
@@ -154,6 +155,15 @@ export const backendRoutes: RouteObject[] = [
             <QuotationRefRoute>
               <QuotationPage />
             </QuotationRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // NB1-D: the New policy guide (NB-D2); it holds no state, each step is the record's own screen.
+      {
+        path: 'new-policy',
+        element: (
+          <RequirePermission permission={QUOTATION_CREATE}>
+            <NewPolicyPage />
           </RequirePermission>
         ),
       },

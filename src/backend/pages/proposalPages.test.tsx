@@ -27,6 +27,7 @@ const BINDER_ID = 'bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc';
 const EXCEPTION_ID = 'efefefef-efef-4fef-8fef-efefefefefef';
 const BRANCH = { id: '77777777-7777-4777-8777-777777777777', code: 'NBO', name: 'Nairobi', scope: 'BRANCH' };
 const ETAG = `"proposal-${P_ID}-v3"`;
+const POLICY_ID = '34343434-3434-4434-8434-343434343434';
 
 const person = (permissions: string[]): Me => ({
   user: { id: '11111111-1111-4111-8111-111111111111', email: 'maker@acme.test' },
@@ -40,6 +41,12 @@ const MAKER = person([
   'underwriting.proposal.cancel', 'quotations.quotation.view', 'quotations.quotation.create', 'quotations.quotation.decide',
   'insurers.insurer.view', 'clients.customer.view',
 ]);
+/** As NEW_BUSINESS_MAKER in full: with policies.policy.view and policies.policy.bind (NB1-D). */
+const BINDER = person([...[
+  'underwriting.proposal.view', 'underwriting.proposal.create', 'underwriting.proposal.edit', 'underwriting.proposal.decline',
+  'underwriting.proposal.cancel', 'quotations.quotation.view', 'quotations.quotation.create', 'quotations.quotation.decide',
+  'insurers.insurer.view', 'clients.customer.view', 'clients.customer.create',
+], 'policies.policy.view', 'policies.policy.bind']);
 /** As NEW_BUSINESS_CHECKER: view and approve exceptions, nothing else here. */
 const CHECKER = person(['underwriting.proposal.view', 'underwriting.exception.approve', 'quotations.quotation.view']);
 
@@ -129,6 +136,8 @@ interface Options {
   views?: { view: ProposalDetail; etag: string }[];
   accepted?: Partial<QuotationDetail>[];
   command?: (call: FakeCall, action: string) => Response | null;
+  /** The answer to `POST /policies` (bind); by default the new policy POL0000009. */
+  bind?: (call: FakeCall) => Response;
 }
 
 function proposalBackend(options: Options = {}) {
@@ -159,6 +168,10 @@ function proposalBackend(options: Options = {}) {
     if (path === `/quotations/${Q_ID}` && call.method === 'GET') {
       return json(200, quotationAccepted(), { ETag: `"quotation-${Q_ID}-v9"` });
     }
+    if (path === '/policies' && call.method === 'POST') {
+      return options.bind ? options.bind(call) : json(201, { id: POLICY_ID, policy_no: 'POL0000009' }, { ETag: `"policy-${POLICY_ID}-v1"` });
+    }
+    if (path.startsWith('/policies?')) return json(200, { results: [], count: 0, page: 1, page_size: 25 });
     throw new Error(`unexpected ${call.method} ${call.url}`);
   });
   vi.stubGlobal('fetch', network.fn);
@@ -518,6 +531,131 @@ describe('Submitted', () => {
     renderAt(`/proposals/list/${P_ID}`);
     expect(await screen.findByText(/Policy POL0000009/)).toBeInTheDocument();
     expect(screen.queryByRole('group', { name: 'Proposal actions' })).not.toBeInTheDocument();
+  });
+});
+
+describe('NB1-D: bind', () => {
+  const ready = () => detail({ status: 'READY_TO_BIND', submitted_at: '2026-10-06T12:00:00Z', ready_at: '2026-10-06T14:00:00Z' });
+  const bindCalls = (backend: ReturnType<typeof proposalBackend>) => backend.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/policies'));
+
+  it('binds a ready proposal with its ETag and the insurer policy number, then opens the new policy by number', async () => {
+    const user = userEvent.setup();
+    const backend = proposalBackend({ view: ready() });
+    const router = renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Bind' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Bind into a policy' });
+    expect(dialog).toHaveTextContent('KES');
+    expect(dialog).toHaveTextContent('AG-001');
+    await user.type(within(dialog).getByLabelText('Insurer policy number'), ' JUB/MP/2026/77 ');
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/policies/list/POL0000009'));
+    const [bind] = bindCalls(backend);
+    expect(bind.body).toEqual({ proposal_id: P_ID, insurer_policy_no: 'JUB/MP/2026/77' });
+    expect(bind.headers['if-match']).toBe(ETAG);
+    expect(bind.headers['x-idempotency-key']).toBeTruthy();
+  });
+
+  it('without an insurer number the body is the proposal alone; a checker is never offered Bind', async () => {
+    const user = userEvent.setup();
+    const backend = proposalBackend({ view: ready() });
+    renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Bind' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Bind into a policy' });
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    await waitFor(() => expect(bindCalls(backend)).toHaveLength(1));
+    expect(bindCalls(backend)[0].body).toEqual({ proposal_id: P_ID });
+
+    cleanup();
+    queryClient.clear();
+    proposalBackend({ view: ready() });
+    renderAt(`/proposals/list/${P_ID}`, CHECKER);
+    expect(await screen.findByText(/Nothing is outstanding since/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Bind' })).not.toBeInTheDocument();
+  });
+
+  it("the server's re-checks at bind are shown in words: the passed inception, and what stops it now", async () => {
+    const user = userEvent.setup();
+    let answer = envelope(409, 'POLICY_INCEPTION_PASSED', 'the inception date has passed without an approved backdating; cancel the proposal and prepare it again');
+    proposalBackend({ view: ready(), bind: () => answer });
+    renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Bind' }));
+    let dialog = await screen.findByRole('dialog', { name: 'Bind into a policy' });
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    expect(await within(dialog).findByText(/The inception date has passed and no backdating was approved/)).toBeInTheDocument();
+
+    answer = envelope(409, 'PROPOSAL_NOT_BINDABLE', 'the proposal can no longer be bound as it stands', {
+      problems: [{ code: 'CUSTOMER_KYC_NOT_VERIFIED', message: "the customer's KYC is pending_verification" }],
+    });
+    dialog = screen.getByRole('dialog', { name: 'Bind into a policy' });
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    expect(await within(dialog).findByRole('list', { name: 'What stops it' })).toHaveTextContent("The customer's KYC is pending_verification.");
+
+    answer = envelope(409, 'PROPOSAL_NOT_READY_TO_BIND', 'a referred proposal cannot be bound', { status: 'REFERRED' });
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    expect(await within(dialog).findByText(/no longer ready to bind: it is referred/)).toBeInTheDocument();
+  });
+
+  it('a stale bind keeps the same key and retries under the refreshed proposal ETag', async () => {
+    const user = userEvent.setup();
+    const NEWER = `"proposal-${P_ID}-v4"`;
+    let binds = 0;
+    const backend = proposalBackend({
+      views: [{ view: ready(), etag: ETAG }, { view: { ...ready(), row_version: 4 }, etag: NEWER }],
+      bind: () => {
+        binds += 1;
+        return binds === 1 ? envelope(412, 'CONCURRENCY_CONFLICT', 'the proposal was changed') : json(201, { id: POLICY_ID, policy_no: 'POL0000009' });
+      },
+    });
+    const router = renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Bind' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Bind into a policy' });
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));
+    expect(await within(dialog).findByText(STALE_TEXT)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Bind' }));                    // the dialog stays open after a 412
+    await waitFor(() => expect(router.state.location.pathname).toBe('/policies/list/POL0000009'));
+    const [first, second] = bindCalls(backend);
+    expect(first.headers['if-match']).toBe(ETAG);
+    expect(second.headers['if-match']).toBe(NEWER);
+    expect(second.body).toEqual(first.body);
+    expect(second.headers['x-idempotency-key']).toBe(first.headers['x-idempotency-key']);
+  });
+
+  it('a bound proposal opens its policy', async () => {
+    const user = userEvent.setup();
+    proposalBackend({ view: detail({ status: 'BOUND', policy_no: 'POL0000009', bound_at: '2026-10-06T15:00:00Z' }) });
+    const router = renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Open the policy' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/policies/list/POL0000009'));
+  });
+});
+
+describe('NB1-D: the New policy guide', () => {
+  it('walks the four steps with the screens these permissions open, and lists what the server says is waiting', async () => {
+    const user = userEvent.setup();
+    const backend = proposalBackend({ list: [summary({ status: 'READY_TO_BIND' })] });
+    const router = renderAt('/new-policy', BINDER);
+    const steps = await screen.findByRole('list', { name: 'Steps' });
+    expect(within(steps).getAllByRole('listitem').map((item) => item.getAttribute('aria-label'))).toEqual([
+      'Step 1: Customer', 'Step 2: Quotation', 'Step 3: Proposal', 'Step 4: Bind',
+    ]);
+    expect(within(screen.getByRole('listitem', { name: 'Step 1: Customer' })).getByRole('button', { name: 'Add a customer' })).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: 'Accepted quotations' })).toHaveTextContent('QUO0000001');
+    expect(await screen.findByRole('table', { name: 'Ready to bind' })).toHaveTextContent('UWP0000001');
+    expect(backend.calls.map((call) => call.url)).toContainEqual(expect.stringContaining('/quotations?page=1&page_size=25&status=ACCEPTED'));
+    expect(backend.calls.map((call) => call.url)).toContainEqual(expect.stringContaining('/underwriting/proposals?page=1&page_size=25&status=READY_TO_BIND'));
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+    await user.click(screen.getByRole('row', { name: /UWP0000001/ }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/proposals/list/UWP0000001'));
+  });
+
+  it('without bind the last step says so and no ready list is asked for', async () => {
+    const backend = proposalBackend();
+    renderAt('/new-policy', MAKER);
+    const bindStep = await screen.findByRole('listitem', { name: 'Step 4: Bind' });
+    expect(within(bindStep).queryByRole('button', { name: 'Ready to bind' })).toBeInTheDocument();     // the list is still open to a viewer
+    expect(screen.queryByRole('table', { name: 'Ready to bind' })).not.toBeInTheDocument();
+    expect(backend.calls.some((call) => call.url.includes('status=READY_TO_BIND'))).toBe(false);
+    expect(within(screen.getByRole('listitem', { name: 'Step 1: Customer' })).queryByRole('button', { name: 'Add a customer' })).not.toBeInTheDocument();
   });
 });
 

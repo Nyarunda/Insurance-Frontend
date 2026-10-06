@@ -51,11 +51,12 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/my-work/list/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toBe('my-work');
   });
 
-  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view) and the Policy Directory (policies.policy.view)', () => {
+  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view) and the Policy Directory (policies.policy.view)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', 'workflow.task.view'],
       ['customers', 'clients.customer.view'],
+      ['quote-workspace', 'quotations.quotation.create'],
       ['quotations', 'quotations.quotation.view'],
       ['applications', 'underwriting.proposal.view'],
       ['policies', 'policies.policy.view'],
