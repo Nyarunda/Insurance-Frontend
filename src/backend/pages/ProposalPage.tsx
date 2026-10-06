@@ -35,6 +35,7 @@ import {
   SideSection,
   StatusBadge,
   SummaryList,
+  type StatusTone,
 } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
@@ -651,6 +652,35 @@ const RequirementsSection: React.FC<{ view: ProposalDetail; canRecord: boolean; 
   </DetailGroup>
 );
 
+/**
+ * Where one exception stands (NB1-C-R1, C1). An OPEN row alone does not mean "awaiting approval":
+ * when the tenant governs it, the decision lives in its workflow block, and a governed rejection
+ * declines the proposal while the row stays OPEN. So:
+ *   APPROVED                         approved
+ *   OPEN, no workflow                awaiting approval; the lightweight approval may be offered
+ *   OPEN, workflow still open        waiting in My Work Queue; never approved inline
+ *   OPEN, workflow closed            the workflow's own outcome (rejected, void, cancelled, expired);
+ *                                    never approved inline, never a My Work Queue link
+ */
+type ExceptionState =
+  | { kind: 'approved' | 'lightweight' | 'waiting'; label: string; tone: StatusTone }
+  | { kind: 'decided'; label: string; tone: StatusTone; note: string };
+
+const DECIDED: Record<string, { label: string; tone: StatusTone; note: string }> = {
+  REJECTED: { label: 'Rejected', tone: 'danger', note: 'Rejected in My Work Queue.' },
+  VOID: { label: 'Void', tone: 'neutral', note: 'Its approval in My Work Queue was voided.' },
+  CANCELLED: { label: 'Cancelled', tone: 'neutral', note: 'Its approval in My Work Queue was cancelled.' },
+  EXPIRED: { label: 'Expired', tone: 'neutral', note: 'Its approval in My Work Queue expired.' },
+  APPROVED: { label: 'Approved', tone: 'success', note: 'Approved in My Work Queue.' },
+};
+
+export function exceptionState(item: ProposalException): ExceptionState {
+  if (item.status === 'APPROVED') return { kind: 'approved', label: 'Approved', tone: 'success' };
+  if (!item.workflow) return { kind: 'lightweight', label: 'Awaiting approval', tone: 'warning' };
+  if (OPEN_WORKFLOW.includes(item.workflow.status)) return { kind: 'waiting', label: 'Awaiting approval', tone: 'warning' };
+  return { kind: 'decided', ...(DECIDED[item.workflow.status] ?? { label: humanize(item.workflow.status), tone: 'neutral', note: 'Its approval in My Work Queue is closed.' }) };
+}
+
 const ExceptionsSection: React.FC<{
   view: ProposalDetail;
   canApprove: boolean;
@@ -666,7 +696,8 @@ const ExceptionsSection: React.FC<{
       ) : (
         <ul aria-label="Exceptions" className="flex flex-col divide-y divide-[var(--hz-divider)] rounded-lg border border-[var(--hz-border-grid)]">
           {shown.map((item) => {
-            const waiting = item.status === 'OPEN' && item.workflow && OPEN_WORKFLOW.includes(item.workflow.status) ? item.workflow : null;
+            const state = exceptionState(item);
+            const waiting = state.kind === 'waiting' ? item.workflow : null;
             return (
               <li key={item.id} aria-label={exceptionLabel(item.code)} className="flex flex-wrap items-start justify-between gap-3 px-3 py-2.5">
                 <div className="min-w-0 flex-1">
@@ -684,15 +715,16 @@ const ExceptionsSection: React.FC<{
                       {waiting.stage_label ? ` (${waiting.stage_label})` : ''}, in My Work Queue.
                     </p>
                   )}
+                  {state.kind === 'decided' && <p className="text-[13px] text-[var(--hz-text-secondary)]">{state.note}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusBadge square label={item.status === 'OPEN' ? 'Awaiting approval' : humanize(item.status)} tone={item.status === 'APPROVED' ? 'success' : 'warning'} />
+                  <StatusBadge square label={state.label} tone={state.tone} />
                   {waiting && canSeeTasks && (
                     <button type="button" className="hz-button hz-button-secondary" onClick={() => onTask(waiting.instance_id)}>
                       Open in My Work Queue
                     </button>
                   )}
-                  {item.status === 'OPEN' && !waiting && canApprove && (
+                  {state.kind === 'lightweight' && canApprove && (
                     <button type="button" className="hz-button hz-button-primary" onClick={() => onApprove(item)} aria-label={`Approve: ${exceptionLabel(item.code)}`}>
                       Approve
                     </button>

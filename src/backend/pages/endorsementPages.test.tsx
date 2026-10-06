@@ -928,7 +928,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
   });
 });
 
-describe('the lightweight approval path', () => {
+describe('the lightweight approval path (endorsements never; one sanctioned underwriting route)', () => {
   const sources = (dir: string): string[] =>
     readdirSync(dir).flatMap((name) => {
       const path = join(dir, name);
@@ -936,7 +936,7 @@ describe('the lightweight approval path', () => {
       return /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
     });
 
-  it('is never called: no backend-mode source names /approve or /decline', () => {
+  it('stays forbidden for endorsements: only the sanctioned underwriting exception route names /approve, once', () => {
     const root = resolve(__dirname, '..', '..');
     const files = [...sources(join(root, 'backend')), ...sources(join(root, 'lib'))];
     expect(files.length).toBeGreaterThan(20);
@@ -945,12 +945,18 @@ describe('the lightweight approval path', () => {
       readFileSync(file, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/^\s*\/\/.*$/gm, '');
-    // NB1-C: the one sanctioned exception. Underwriting exceptions are approved here when the tenant
-    // does not govern them (NEW-BUSINESS-1 NB-D5, the scope's "lightweight path"); endorsements never are.
-    const sanctioned = [join(root, 'backend', 'proposals', 'useProposalCommands.ts')];
-    const offenders = files.filter((file) => !sanctioned.includes(file) && /\/(approve|decline)\b/.test(code(file)));
+    const literals = (text: string) => text.match(/\/(approve|decline)\b/g) ?? [];
+    // NB1-C (ruling NB1-C-R1, C2): one sanctioned lightweight route. An underwriting exception the
+    // tenant does not govern is approved on its proposal (NEW-BUSINESS-1 NB-D5). Every other source
+    // keeps the original scan; the sanctioned file holds exactly that one literal and nothing else.
+    const sanctioned = join(root, 'backend', 'proposals', 'useProposalCommands.ts');
+    const offenders = files.filter((file) => file !== sanctioned && literals(code(file)).length > 0);
     expect(offenders).toEqual([]);
-    expect(code(sanctioned[0])).not.toMatch(/endorsement/i);
+    const proposals = code(sanctioned);
+    expect(literals(proposals)).toEqual(['/approve']);
+    expect(proposals.split('`exceptions/${encodeURIComponent(exceptionId)}/approve`')).toHaveLength(2);
+    expect(proposals).toMatch(/`\/underwriting\/proposals\/\$\{encodeURIComponent\(id\)\}/);
+    expect(proposals).not.toMatch(/endorsement/i);
     // The scan itself works: the rule is written down where the commands are.
     expect(readFileSync(join(root, 'backend', 'endorsements', 'useEndorsementCommands.ts'), 'utf8')).toMatch(/\/approve/);
   });

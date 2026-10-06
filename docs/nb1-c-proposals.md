@@ -2,7 +2,7 @@
 
 **Slice of:** NEW-BUSINESS-1 (`backend/docs/specs/new-business-1-scope.md`).
 **Branch:** `nb1-c` from `main` `5124d90` (NB1-B merged). Frontend only; no backend change (NB-D1).
-**Status:** built, awaiting review.
+**Status:** NB1-C (`cd17ffd`) reviewed: REQUEST CHANGES (C1 blocker, C2 required). NB1-C-R1 makes those corrections; see *NB1-C-R1*.
 
 ## What it adds
 
@@ -108,3 +108,20 @@ The 16 new tests:
 16. A number the user cannot see is "not found".
 
 The real-backend journey is NB1-E's.
+
+## NB1-C-R1
+
+| Finding | Correction |
+| :--- | :--- |
+| **C1** (blocker): a governed exception whose workflow had ended (a rejection that declined the proposal, say) still read "Awaiting approval", because the row stays `OPEN`. | `exceptionState` judges the row from its status **and** its workflow block. `APPROVED` reads approved. `OPEN` with no workflow reads awaiting approval, and only there is the inline approval offered. `OPEN` with an open workflow reads waiting in My Work Queue, with the link and no inline approval. `OPEN` with a closed workflow shows the workflow's outcome (Rejected, Void, Cancelled or Expired, with a line saying so), with no inline approval and no My Work Queue link. |
+| **C2** (required): the FI1 guard excluded the whole of `useProposalCommands.ts`. | Every other source keeps the original scan. The sanctioned file must hold exactly one `/approve` or `/decline` literal: `/approve`, in the template `exceptions/${encodeURIComponent(exceptionId)}/approve` on the `/underwriting/proposals/${…}` builder. It must name no endorsement. Any other literal fails. The test is renamed: the lightweight path stays forbidden for endorsements, and only the sanctioned underwriting route is allowed. |
+
+**R1 evidence:** three new tests.
+1. A `DECLINED` proposal whose exception is `OPEN` with workflow `REJECTED` reads Rejected, not Awaiting approval. It has no Approve and no My Work Queue button, even for a holder of `workflow.task.view`.
+2. A `REFERRED` proposal whose exception is `OPEN` with workflow `VOID` reads Void. It has no inline approval and no My Work Queue link.
+3. `exceptionState` covers each case: none, pending, returned, rejected, void, cancelled, expired and approved.
+
+| Check | Result |
+| :--- | :--- |
+| `tsc --noEmit`, `build`, `build:backend` | Pass |
+| Vitest | **295/295** (292 + 3 new) |
