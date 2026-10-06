@@ -149,16 +149,23 @@ export const HomePage: React.FC = () => {
 
   return (
     <HorizonPage id="backend-home">
-      <div className="flex flex-col gap-2">
-        <HorizonPageTitle title="Home" subtitle={`Welcome, ${name} · ${me.tenant.name}`} />
-        {profiles.length > 0 && (
-          <div className="flex flex-wrap gap-2" aria-label="What you can do">
-            {profiles.map((profile) => (
-              <OutlineTag key={profile.permission}>{profile.label}</OutlineTag>
-            ))}
-          </div>
-        )}
-      </div>
+      <HorizonPageTitle
+        title="Home"
+        subtitle={
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span>
+              Welcome, {name} · {me.tenant.name}
+            </span>
+            {profiles.length > 0 && (
+              <span className="flex flex-wrap gap-1.5" aria-label="What you can do">
+                {profiles.map((profile) => (
+                  <OutlineTag key={profile.permission}>{profile.label}</OutlineTag>
+                ))}
+              </span>
+            )}
+          </span>
+        }
+      />
 
       <StatGrid>{cards.slice(0, 4)}</StatGrid>
 

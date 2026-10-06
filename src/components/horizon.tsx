@@ -563,7 +563,8 @@ export function HorizonPageTitle({
   actions,
 }: {
   title: string;
-  subtitle?: string;
+  /** A line under the title; text is truncated, richer content (tags) wraps. */
+  subtitle?: React.ReactNode;
   backLabel?: string;
   onBack?: () => void;
   actions?: React.ReactNode;
@@ -578,7 +579,12 @@ export function HorizonPageTitle({
         )}
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold leading-8 tracking-tight text-[var(--hz-text-primary)]">{title}</h1>
-          {subtitle && <div className="truncate text-sm text-[var(--hz-text-muted)]">{subtitle}</div>}
+          {subtitle &&
+            (typeof subtitle === 'string' ? (
+              <div className="truncate text-sm text-[var(--hz-text-muted)]">{subtitle}</div>
+            ) : (
+              <div className="mt-1 text-sm text-[var(--hz-text-muted)]">{subtitle}</div>
+            ))}
         </div>
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
