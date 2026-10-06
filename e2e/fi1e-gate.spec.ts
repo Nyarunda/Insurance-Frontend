@@ -246,7 +246,8 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     const answered = tracked.matching(/\/actions$/).responses();
     expect(answered.at(-1)!.headers()['idempotency-replayed']).toBe('true');
     // The instance's status (the badge in the Status row) and its history both say so.
-    await expect(page.locator('dd').filter({ hasText: /^Approved$/ })).toBeVisible();
+    // DESIGN-1: the status is the badge beside the dialog's title.
+    await expect(page.getByRole('dialog').locator('h2 ~ span', { hasText: /^Approved$/ })).toBeVisible();
     await expect(page.getByRole('table', { name: 'Workflow history' })).toContainText('Approved');
   });
 
@@ -409,7 +410,8 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     const home = direct(`${origin(facts().alpha.domain)}/api/v1/auth/me`);
     const live = await maker.page.request.get(home.url, { headers: { Host: home.host, Authorization: token! } });
     expect(live.status(), 'the token is live at its own tenant').toBe(200);
-    for (const path of ['/auth/me', '/policies', `${policyPath()}`, '/work-queue']) {
+    // API paths (the policy's resource, not its screen address under /policies/list).
+    for (const path of ['/auth/me', '/policies', `/policies/${facts().alpha.policy.id}`, '/work-queue']) {
       const target = direct(`${origin(beta)}/api/v1${path}`);
       const response = await maker.page.request.get(target.url, { headers: { Host: target.host, Authorization: token! } });
       // The gateway recognises another tenant's token and refuses it before any data is read.
