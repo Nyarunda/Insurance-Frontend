@@ -267,15 +267,15 @@ export const InstancePage: React.FC = () => {
       <RecordColumns
         main={
           <>
-            <DetailGroup title="What is being approved" description="The facts frozen when the request was submitted">
+            <DetailGroup title="What is being approved">
               {decision.length > 0 && (
                 <ChangeCallout aria-label="Requested change" label="Requested change" change={summary}>
-                  <DetailGrid items={decision.map((fact) => ({ label: fact.label, value: fact.value }))} />
+                  <DetailGrid dense items={decision.map((fact) => ({ label: fact.label, value: fact.value }))} />
                 </ChangeCallout>
               )}
               {facts.length > 0 && (
                 <div className={decision.length > 0 ? 'mt-4' : ''} aria-label="Other approval facts">
-                  <DetailGrid items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
+                  <DetailGrid dense items={facts.map((fact) => ({ label: fact.label, value: fact.value }))} />
                 </div>
               )}
               {decision.length === 0 && facts.length === 0 && (
@@ -283,7 +283,7 @@ export const InstancePage: React.FC = () => {
               )}
             </DetailGroup>
             <DetailDivider />
-            <DetailGroup title="History" description="Every action on this approval, oldest first">
+            <DetailGroup title="History">
               {view.history.length === 0 ? (
                 <p className="text-[13px] text-[var(--hz-text-secondary)]">No actions yet.</p>
               ) : (

@@ -322,6 +322,7 @@ export const EndorsementPage: React.FC = () => {
                 <>
                   <DetailGroup title="Endorsement">
                     <DetailGrid
+                      dense
                       items={[
                         { label: 'Type', value: humanize(view.endorsement_type) },
                         { label: 'Base version', value: `Version ${view.base_version_no}` },
@@ -383,7 +384,7 @@ const StatePanel: React.FC<{
   if (blocked) {
     const action = view.blocker?.required_action;
     return (
-      <HorizonAlert tone="warning" title={NO_LONGER_ACTIONABLE}>
+      <HorizonAlert banner tone="warning" title={NO_LONGER_ACTIONABLE}>
         {view.blocker?.message ?? 'Its approval was cancelled, so it can no longer be approved.'}
         {action && <span className="mt-1 block">Required action: {requiredActionText(action)}</span>}
         <span className="mt-1 block text-[13px] text-[var(--hz-text-secondary)]">
@@ -395,7 +396,7 @@ const StatePanel: React.FC<{
   switch (view.status) {
     case 'DRAFT':
       return (
-        <HorizonAlert tone="info" title="Draft">
+        <HorizonAlert banner tone="info" title="Draft">
           {view.requires_check
             ? 'This change needs approval: submitting sends it for approval.'
             : 'This change needs no approval: submitting applies it to the policy at once.'}
@@ -403,18 +404,18 @@ const StatePanel: React.FC<{
       );
     case 'REFERRED':
       return view.workflow?.status === 'PENDING_APPROVAL' ? (
-        <HorizonAlert tone="info" title={SENT_FOR_APPROVAL}>
+        <HorizonAlert banner tone="info" title={SENT_FOR_APPROVAL}>
           Waiting at the {view.workflow.stage_label || humanize(view.workflow.stage) || 'approval'} stage. The approver decides it from their work queue.
         </HorizonAlert>
       ) : (
-        <HorizonAlert tone="info" title="Waiting for approval">
+        <HorizonAlert banner tone="info" title="Waiting for approval">
           This endorsement needs approval before it takes effect.
         </HorizonAlert>
       );
     case 'EFFECTIVE': {
       const benefit = changedBenefit(view);
       return (
-        <HorizonAlert tone="success" title="Effective">
+        <HorizonAlert banner tone="success" title="Effective">
           The policy is now at version {view.resulting_version_no ?? '—'}
           {benefit && benefit.limit_amount !== null
             ? `, with the ${benefit.name} limit at ${formatMoney(benefit.limit_amount, view.financial.currency)}`
@@ -425,13 +426,13 @@ const StatePanel: React.FC<{
     }
     case 'DECLINED':
       return (
-        <HorizonAlert tone="danger" title="Declined">
+        <HorizonAlert banner tone="danger" title="Declined">
           {view.decision_reason || 'The approval was rejected.'}
         </HorizonAlert>
       );
     case 'CANCELLED':
       return (
-        <HorizonAlert tone="neutral" title="Withdrawn">
+        <HorizonAlert banner tone="neutral" title="Withdrawn">
           {view.decision_reason || 'It was withdrawn and will not take effect.'}
         </HorizonAlert>
       );
@@ -451,6 +452,7 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
       <DetailGroup title="Requested change">
         {benefit ? (
           <DetailGrid
+            dense
             items={[
               { label: 'Benefit', value: benefit.name },
               {
@@ -461,14 +463,15 @@ const RequestedChange: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
             ]}
           />
         ) : requested.length > 0 ? (
-          <DetailGrid items={requested} />
+          <DetailGrid dense items={requested} />
         ) : (
           <p className="text-[13px] text-[var(--hz-text-secondary)]">No details.</p>
         )}
       </DetailGroup>
       <DetailDivider />
-      <DetailGroup title="Resulting terms" description="The policy as it will stand once this takes effect.">
+      <DetailGroup title="Resulting terms">
         <DetailGrid
+          dense
           items={[
             { label: 'Expiry', value: formatDate(terms.expiry_date) },
             { label: 'Sum insured', value: formatMoney(terms.sum_insured, currency) },

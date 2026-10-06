@@ -231,13 +231,31 @@ export function HorizonAlert({
   title,
   children,
   action,
+  banner = false,
 }: {
   tone?: FeedbackTone;
   title?: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  /** A status banner: tinted in its tone, the title and the message on one line (wrapping when narrow). */
+  banner?: boolean;
 }) {
   const Icon = feedbackIcons[tone];
+
+  if (banner) {
+    return (
+      <div data-slot="alert" data-tone={tone} className={`rounded-lg border px-4 py-2.5 text-sm ${feedbackToneClass[tone]}`}>
+        <div className="flex items-start gap-3">
+          <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          <div className="min-w-0 flex-1 leading-5">
+            {title && <span className="mr-2 font-semibold">{title}</span>}
+            <span className="opacity-90">{children}</span>
+          </div>
+          {action && <div className="shrink-0 self-center">{action}</div>}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -682,13 +700,23 @@ export function DetailDivider({ vertical = false }: { vertical?: boolean }) {
 }
 
 /** Label over value, in up to three columns of stacked facts (the template's `dl`). */
-export function DetailGrid({ items, columns = 3 }: { items: Array<{ label: string; value: React.ReactNode }>; columns?: 1 | 2 | 3 }) {
+export function DetailGrid({
+  items,
+  columns = 3,
+  dense = false,
+}: {
+  items: Array<{ label: string; value: React.ReactNode }>;
+  columns?: 1 | 2 | 3;
+  /** Tighter gaps, for a dialog where the record has to fit the window. */
+  dense?: boolean;
+}) {
   const per = Math.ceil(items.length / columns) || 1;
   const stacks = Array.from({ length: columns }, (_, index) => items.slice(index * per, (index + 1) * per)).filter((stack) => stack.length);
+  const gaps = dense ? 'gap-x-6 gap-y-3' : `gap-8 ${columns > 2 ? 'xl:gap-12' : ''}`;
   return (
-    <dl className={`grid gap-8 ${columns > 1 ? 'sm:grid-cols-2' : ''} ${columns > 2 ? 'xl:grid-cols-3 xl:gap-12' : ''}`}>
+    <dl className={`grid ${gaps} ${columns > 1 ? 'sm:grid-cols-2' : ''} ${columns > 2 ? 'xl:grid-cols-3' : ''}`}>
       {stacks.map((stack, index) => (
-        <div key={index} className="flex flex-col gap-5">
+        <div key={index} className={`flex flex-col ${dense ? 'gap-3' : 'gap-5'}`}>
           {stack.map((item) => (
             <div key={item.label} className="flex flex-col gap-1">
               <dt className="text-[13px] text-[var(--hz-text-muted)]">{item.label}</dt>
