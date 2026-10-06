@@ -20,7 +20,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { Check, FileText, Pencil, RefreshCw, RotateCcw, Send, Undo2 } from 'lucide-react';
+import { Ban, Check, FileText, Pencil, RefreshCw, RotateCcw, Send, Undo2, X } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -532,6 +532,8 @@ const Financials: React.FC<{ view: EndorsementDetail }> = ({ view }) => {
 const STEP_DOT: Record<string, string> = {
   DONE: 'border-[var(--hz-success)] bg-[var(--hz-success)] text-white',
   CURRENT: 'border-[var(--hz-warning)] bg-[var(--hz-warning-bg)] text-[var(--hz-warning-text)]',
+  REJECTED: 'border-[var(--hz-danger)] bg-[var(--hz-danger)] text-white',
+  VOID: 'border-[var(--hz-text-muted)] bg-[var(--hz-text-muted)] text-white',
   NEXT: 'border-[var(--hz-border-strong)] bg-[var(--hz-surface-main)] text-[var(--hz-text-muted)]',
   NOT_REACHED: 'border-[var(--hz-border-grid)] bg-[var(--hz-surface-muted)] text-[var(--hz-text-disabled)]',
 };
@@ -544,7 +546,15 @@ const PathStep: React.FC<{ state: string; title: string; detail: React.ReactNode
       aria-hidden="true"
       className={`relative z-[1] flex size-6 shrink-0 items-center justify-center rounded-full border ${STEP_DOT[state] ?? STEP_DOT.NEXT}`}
     >
-      {state === 'DONE' ? <Check className="size-3.5" strokeWidth={3} /> : state === 'CURRENT' ? <span className="size-2 rounded-full bg-current" /> : null}
+      {state === 'DONE' ? (
+        <Check className="size-3.5" strokeWidth={3} />
+      ) : state === 'REJECTED' ? (
+        <X className="size-3.5" strokeWidth={3} />
+      ) : state === 'VOID' ? (
+        <Ban className="size-3.5" strokeWidth={2.5} />
+      ) : state === 'CURRENT' ? (
+        <span className="size-2 rounded-full bg-current" />
+      ) : null}
     </span>
     <div className="min-w-0 pt-0.5">
       <p className={`text-sm font-medium leading-5 ${state === 'NOT_REACHED' ? 'text-[var(--hz-text-muted)]' : 'text-[var(--hz-text-primary)]'}`}>{title}</p>
@@ -553,10 +563,17 @@ const PathStep: React.FC<{ state: string; title: string; detail: React.ReactNode
   </li>
 );
 
-const STATE_TEXT: Record<string, string> = { DONE: 'Approved', NEXT: 'Next', NOT_REACHED: 'Not reached' };
+const STATE_TEXT: Record<string, string> = {
+  DONE: 'Approved',
+  REJECTED: 'Rejected at this stage',
+  VOID: 'Voided at this stage',
+  NEXT: 'Next',
+  NOT_REACHED: 'Not reached',
+};
 
 /**
- * Where the approval stands: submitted, then each stage of the frozen path, done, current or next.
+ * Where the approval stands: submitted, then each stage of the frozen path: done, current, next,
+ * rejected or voided where that happened, or never reached (DESIGN-1-R1).
  * The current stage says which role decides it (by name, never a person); an older backend without
  * the path gets the plain facts.
  */

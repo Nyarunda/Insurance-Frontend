@@ -36,7 +36,7 @@ export interface WorkflowBlock {
 export interface ApprovalPathStage {
   code: string;
   name: string;
-  state: 'DONE' | 'CURRENT' | 'NEXT' | 'NOT_REACHED' | string;
+  state: 'DONE' | 'CURRENT' | 'NEXT' | 'REJECTED' | 'VOID' | 'NOT_REACHED' | string;
 }
 
 /** PTH1-D4: why a referred endorsement can no longer be approved, and what to do next. */

@@ -21,6 +21,9 @@ import { readFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { Browser, expect, Page, Request, Response, test } from '@playwright/test';
 
+/** DESIGN-1-R1: the comment the checker types on approval (W1). */
+const APPROVAL_COMMENT = 'Checked against the valuation report.';
+
 const PORT = process.env.FI1_FRONTEND_PORT ?? '3000';
 const ACCOUNTS_FILE = process.env.FI1E_ACCOUNTS;
 const FACTS_FILE = process.env.FI1E_FACTS;
@@ -198,7 +201,7 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     await fillChangeLimit(held.page, 'WINDSCREEN', '90000', 'Held open while another change takes effect');
   });
 
-  test('the checker finds the first in My work and approves it; a dropped response replays with one effect', async () => {
+  test('the checker finds the first in My work and approves it with a comment; a dropped response replays with one effect', async () => {
     const { page, tracked } = checker;
     await page.goto(`${origin(facts().alpha.domain)}/my-work/list`);
     await expect(page.getByRole('row', { name: new RegExp(endorsements.first.number) })).toBeVisible();
@@ -234,6 +237,8 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     });
     await page.getByRole('button', { name: 'Approve' }).click();
     await expect(page.getByRole('dialog')).toContainText('Approving records your decision at this stage.');
+    // DESIGN-1-R1 (W1): the approver adds an optional comment; it travels with both attempts.
+    await page.getByLabel('Comment (optional)').fill(APPROVAL_COMMENT);
     await page.getByRole('button', { name: 'Confirm approval' }).click();
     await expect(page.getByText(`Approved: Policy endorsement ${endorsements.first.number}`)).toBeVisible();
     await page.unroute('**/api/v1/workflows/instances/*/actions');
@@ -242,13 +247,19 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     expect(sent).toHaveLength(2);
     expect(sent[1].headers()['x-idempotency-key']).toBe(sent[0].headers()['x-idempotency-key']);
     expect(sent[1].postDataJSON()).toEqual(sent[0].postDataJSON());
-    expect(sent[0].postDataJSON()).not.toHaveProperty('reason_text'); // APPROVE sends no comment
+    expect(sent[0].postDataJSON().reason_text).toBe(APPROVAL_COMMENT); // the comment, on both attempts
+    expect(sent[1].postDataJSON().reason_text).toBe(APPROVAL_COMMENT);
+    expect(sent[0].postDataJSON()).not.toHaveProperty('reason_code'); // APPROVE takes no reason code
     const answered = tracked.matching(/\/actions$/).responses();
     expect(answered.at(-1)!.headers()['idempotency-replayed']).toBe('true');
     // The instance's status (the badge in the Status row) and its history both say so.
     // DESIGN-1: the status is the badge beside the dialog's title.
     await expect(page.getByRole('dialog').locator('h2 ~ span', { hasText: /^Approved$/ })).toBeVisible();
-    await expect(page.getByRole('table', { name: 'Workflow history' })).toContainText('Approved');
+    const history = page.getByRole('table', { name: 'Workflow history' });
+    await expect(history).toContainText('Approved');
+    // The comment is kept once, on the one APPROVE action (the replay added no second action).
+    await expect(history.getByRole('row').filter({ hasText: APPROVAL_COMMENT })).toHaveCount(1);
+    await expect(history.getByRole('row').filter({ hasText: /Approved/ }).filter({ hasText: APPROVAL_COMMENT })).toHaveCount(1);
   });
 
   test('the policy now has exactly one new version, in force, with the new limit', async () => {

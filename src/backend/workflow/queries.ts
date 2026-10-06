@@ -14,16 +14,17 @@ export const WORKFLOW_KEYS = {
   reasonCodes: (action: Decision) => ['workflow', 'reason-codes', action] as const,
 };
 
-/** How often the shell checks the queue for new approvals (DESIGN-1 reminder). */
-export const QUEUE_POLL_MS = 60_000;
-
-export function useWorkQueue(enabled = true, poll = false) {
+/**
+ * The user's work queue. There is no background polling (DESIGN-1-R1): it is fetched when first
+ * needed, again when the user returns to the window, on Refresh, and after a decision or a domain
+ * command invalidates it. The shell's navigation count and reminder read this same cached answer.
+ */
+export function useWorkQueue(enabled = true) {
   return useQuery({
     queryKey: WORKFLOW_KEYS.queue,
     queryFn: async () => (await api.request<WorkQueue>('/work-queue')).data,
     enabled,
     staleTime: 0, // refreshed whenever the user comes back to the tab
-    refetchInterval: poll ? QUEUE_POLL_MS : false,
   });
 }
 

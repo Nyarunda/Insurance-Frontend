@@ -1,6 +1,8 @@
 /**
  * Reminds an approver of the approvals waiting for them (DESIGN-1): once per browser session when
- * some are waiting, and again whenever a new one arrives (the queue is polled by the shell). Each
+ * some are waiting, and again when a refreshed queue holds a new one. The queue is not polled
+ * (DESIGN-1-R1): it refreshes when the user returns to the window, on Refresh, and after a
+ * decision or domain command. Each
  * reminder is a toast with the notification sound and a link to My Work Queue. Nothing is inferred:
  * the tasks are the server's `/work-queue`.
  */

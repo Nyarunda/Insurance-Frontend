@@ -302,7 +302,7 @@ export const InstancePage: React.FC = () => {
                         <th>Action</th>
                         <th>By</th>
                         <th>Outcome</th>
-                        <th>Reason</th>
+                        <th>Reason / comment</th>
                       </tr>
                     </thead>
                     <tbody>

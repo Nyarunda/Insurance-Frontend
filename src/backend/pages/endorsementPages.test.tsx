@@ -556,6 +556,36 @@ describe('the endorsement', () => {
     expect(steps[2]).toHaveTextContent('Head of insuranceNext');
   });
 
+  it.each([
+    ['REJECTED', 'Rejected at this stage'],
+    ['VOID', 'Voided at this stage'],
+  ])('DESIGN-1-R1: a closed path shows the stage it ended at as %s, and the stage after it as not reached', async (state, text) => {
+    const base = pending();
+    endorsementBackend({
+      endorsement: pending({
+        workflow: {
+          ...base.workflow!,
+          status: state,
+          stage: null,
+          path: [
+            { code: 'OFFICER_CHECK', name: 'Officer check', state: 'DONE' },
+            { code: 'ENDORSEMENT_CHECK', name: 'Endorsement check', state },
+            { code: 'HEAD_OF_INSURANCE', name: 'Head of insurance', state: 'NOT_REACHED' },
+          ],
+          waiting_on: [],
+        },
+      }),
+    });
+    renderAt(ENDORSEMENT_PATH);
+    const steps = within(await screen.findByRole('list', { name: 'Approval path' })).getAllByRole('listitem');
+    expect(steps.map((step) => step.textContent)).toEqual([
+      expect.stringMatching(/^Submitted/),
+      'Officer checkApproved',
+      `Endorsement check${text}`,
+      'Head of insuranceNot reached',
+    ]);
+  });
+
   it('waiting for approval it can only be withdrawn, and says how to change it', async () => {
     endorsementBackend({ endorsement: pending() });
     renderAt(ENDORSEMENT_PATH);

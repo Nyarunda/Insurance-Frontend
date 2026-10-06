@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { envelope, FakeCall, fakeFetch, json } from '../../test/fetchFake';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { ME_QUERY_KEY, Me } from '../../lib/auth/me';
+import { WORKFLOW_KEYS } from '../workflow/queries';
 import { useSessionStore } from '../../lib/auth/sessionStore';
 import { setAccessToken } from '../../lib/auth/tokens';
 import { queryClient } from '../../lib/query/queryClient';
@@ -160,6 +161,15 @@ describe('My Work Queue', () => {
     expect(screen.queryByText('1 approval is waiting for you')).not.toBeInTheDocument(); // not again this session
   });
 
+  it('DESIGN-1-R1: the shell never polls the queue; it refreshes on focus, Refresh and invalidation', async () => {
+    workflowBackend({});
+    renderAt('/');
+    await screen.findByText('1 approval is waiting for you');
+    const queue = queryClient.getQueryCache().find({ queryKey: WORKFLOW_KEYS.queue })!;
+    expect(queue.observers.length).toBeGreaterThan(0);
+    for (const observer of queue.observers) expect(observer.options.refetchInterval ?? false).toBe(false);
+  });
+
   it('lists only what /work-queue returns, in words, with no identifiers', async () => {
     workflowBackend({});
     renderAt('/my-work');
@@ -253,6 +263,8 @@ describe('the instance', () => {
     expect(screen.getByText('Change limit')).toBeInTheDocument();
     const history = screen.getByRole('table', { name: 'Workflow history' });
     expect(within(history).getByText('Requester')).toBeInTheDocument();
+    // DESIGN-1-R1: the column holds a rejection's reason or an approver's comment.
+    expect(within(history).getByRole('columnheader', { name: 'Reason / comment' })).toBeInTheDocument();
     expect(mainText()).not.toMatch(UUID_IN_TEXT);
     expect(mainText()).not.toContain('ab'.repeat(32));
   });
