@@ -22,7 +22,11 @@ import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
-import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, TASK_VIEW } from './permissions';
+import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, TASK_VIEW } from './permissions';
+import { QuotationRefRoute } from './quotations/refs';
+import { QuotationCreatePage } from './pages/QuotationCreatePage';
+import { QuotationPage } from './pages/QuotationPage';
+import { QuotationsPage } from './pages/QuotationsPage';
 import { CustomerRefRoute } from './customers/refs';
 import { CustomerCreatePage } from './pages/CustomerCreatePage';
 import { CustomerPage } from './pages/CustomerPage';
@@ -102,6 +106,40 @@ export const backendRoutes: RouteObject[] = [
             <CustomerRefRoute>
               <CustomerPage />
             </CustomerRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // NB1-B: quotations, as customers: the list, the new-quotation dialog over it, the record by number.
+      { path: 'quotations', element: <ToList to="/quotations/list" /> },
+      { path: 'quotations/:record/*', element: <IntoList /> },
+      {
+        path: 'quotations/list',
+        element: (
+          <RequirePermission permission={QUOTATION_VIEW}>
+            <QuotationsPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'quotations/list/new',
+        element: (
+          <RequirePermission permission={QUOTATION_VIEW}>
+            <RequirePermission permission={QUOTATION_CREATE}>
+              <div inert aria-hidden="true">
+                <QuotationsPage />
+              </div>
+              <QuotationCreatePage />
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'quotations/list/:quotationId',
+        element: (
+          <RequirePermission permission={QUOTATION_VIEW}>
+            <QuotationRefRoute>
+              <QuotationPage />
+            </QuotationRefRoute>
           </RequirePermission>
         ),
       },

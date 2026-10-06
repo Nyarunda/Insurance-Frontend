@@ -14,7 +14,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { ArrowLeft, Building2, CircleCheck, Pencil, Plus, UserRound } from 'lucide-react';
+import { ArrowLeft, Building2, CircleCheck, FilePlus2, Pencil, Plus, UserRound } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -46,7 +46,7 @@ import { DuplicateAcknowledgement, DuplicateNotice, duplicatesOf } from '../cust
 import { useCustomerId } from '../customers/refs';
 import type { CustomerDetail, CustomerIdentifier, CustomerType, DuplicateDetails } from '../customers/types';
 import { CustomerOutcome, useCustomerCommands } from '../customers/useCustomerCommands';
-import { CUSTOMER_EDIT, KYC_MANAGE, KYC_VERIFY } from '../permissions';
+import { CUSTOMER_EDIT, KYC_MANAGE, KYC_VERIFY, QUOTATION_CREATE } from '../permissions';
 import { formatDate } from '../policies/format';
 import { formatDateTime, humanize } from '../workflow/format';
 import { customersFrom } from './CustomersPage';
@@ -84,6 +84,7 @@ export const CustomerPage: React.FC = () => {
   const canEdit = usePermission(CUSTOMER_EDIT);
   const canManageKyc = usePermission(KYC_MANAGE);
   const canVerify = usePermission(KYC_VERIFY);
+  const canQuote = usePermission(QUOTATION_CREATE);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -139,6 +140,21 @@ export const CustomerPage: React.FC = () => {
         }
         actions={
           <>
+            {canQuote && (
+              <button
+                type="button"
+                className="hz-button hz-button-primary"
+                // NB-D2: the guide hands the customer over to the quotation's own create dialog; nothing else is kept.
+                onClick={() =>
+                  navigate('/quotations/list/new', {
+                    state: { customer: { id: view.id, customer_no: view.customer_no, display_name: view.display_name } },
+                  })
+                }
+              >
+                <FilePlus2 className="h-3.5 w-3.5" />
+                New quotation
+              </button>
+            )}
             {canEdit && (
               <button type="button" className="hz-button hz-button-secondary" onClick={() => setDialog({ kind: 'profile' })}>
                 <Pencil className="h-3.5 w-3.5" />

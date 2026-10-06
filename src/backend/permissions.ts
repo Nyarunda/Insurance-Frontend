@@ -11,3 +11,12 @@ export const CUSTOMER_EDIT = 'clients.customer.edit';
 export const KYC_VIEW = 'clients.kyc.view';
 export const KYC_MANAGE = 'clients.kyc.manage';
 export const KYC_VERIFY = 'clients.kyc.verify';
+
+// NB1-B: quotations (QUOTATIONS-1). Pricing and risk entry are quotations.quotation.edit.
+export const QUOTATION_VIEW = 'quotations.quotation.view';
+export const QUOTATION_CREATE = 'quotations.quotation.create';
+export const QUOTATION_EDIT = 'quotations.quotation.edit';
+export const QUOTATION_ISSUE = 'quotations.quotation.issue';
+export const QUOTATION_DECIDE = 'quotations.quotation.decide';
+export const QUOTATION_CANCEL = 'quotations.quotation.cancel';
+export const QUOTATION_CHECK = 'quotations.quotation.check';
