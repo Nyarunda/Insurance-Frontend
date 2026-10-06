@@ -17,11 +17,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { UserPlus } from 'lucide-react';
 import { DetailDivider, FieldError } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
+import { ApiError } from '../../lib/api/errors';
 import { fieldErrorsOf } from '../../lib/api/fieldErrors';
 import { usePermission } from '../../lib/auth/me';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
-import { IDENTIFIER_TYPES } from '../customers/format';
+import { IDENTIFIER_TYPES, identifierLabel } from '../customers/format';
 import { customerHref } from '../customers/refs';
 import { DuplicateAcknowledgement, DuplicateNotice, duplicatesOf } from '../customers/duplicates';
 import type { CustomerCreateBody, CustomerType, DuplicateDetails } from '../customers/types';
@@ -35,6 +36,22 @@ const Required = () => <span className="text-[var(--hz-danger)]">*</span>;
 
 const FORM_ID = 'customer-create-form';
 const TITLE_ID = 'customer-create-title';
+
+/**
+ * The server names a bad contact and a bad identifier alike (`field: "value"`); its code says which
+ * (CONTACT_INVALID, IDENTIFIER_INVALID) and, for a contact, its message says phone or e-mail. Each
+ * lands on its own input, and an identifier type is named in words ("KRA PIN", not "KRA_PIN").
+ */
+export function placeValueError(error: unknown, fields: Record<string, string>): Record<string, string> {
+  if (!fields.value || !(error instanceof ApiError)) return fields;
+  const { value: message, ...rest } = fields;
+  if (error.code === 'IDENTIFIER_INVALID') {
+    const worded = IDENTIFIER_TYPES.reduce((text, type) => text.split(type.id).join(identifierLabel(type.id)), message);
+    return { ...rest, identifier: worded };
+  }
+  if (error.code === 'CONTACT_INVALID') return { ...rest, [/e-?mail/i.test(message) ? 'email' : 'mobile']: message };
+  return fields;
+}
 
 export const CustomerCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -120,7 +137,7 @@ export const CustomerCreatePage: React.FC = () => {
       setAcknowledged(false);
       return;
     }
-    const fields = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
+    const fields = outcome.kind === 'invalid' ? placeValueError(outcome.error, fieldErrorsOf(outcome.error)) : {};
     if (Object.keys(fields).length) {
       setServerFields(fields);
       return;
@@ -228,8 +245,8 @@ export const CustomerCreatePage: React.FC = () => {
         <fieldset className="flex flex-col gap-4">
           <legend className="mb-2 text-base font-medium text-[var(--hz-text-primary)]">{canIdentify ? 'Contact and identity' : 'Contact'}</legend>
           <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
-            <TextInput id="customer-mobile" text="Mobile number" value={mobile} onChange={setMobile} placeholder="0712 345 678" error={errorFor('value')} />
-            <TextInput id="customer-email" text="E-mail" type="email" value={email} onChange={setEmail} placeholder="name@example.co.ke" />
+            <TextInput id="customer-mobile" text="Mobile number" value={mobile} onChange={setMobile} placeholder="0712 345 678" error={errorFor('mobile')} />
+            <TextInput id="customer-email" text="E-mail" type="email" value={email} onChange={setEmail} placeholder="name@example.co.ke" error={errorFor('email')} />
             {canIdentify && (
               <>
                 <div>
@@ -249,7 +266,9 @@ export const CustomerCreatePage: React.FC = () => {
                   text="Identifier number"
                   value={idValue}
                   onChange={setIdValue}
+                  placeholder={idType === 'KRA_PIN' ? 'A012345678Z' : undefined}
                   hint="Stored encrypted; only its last 4 characters are shown."
+                  error={errorFor('identifier')}
                 />
               </>
             )}
