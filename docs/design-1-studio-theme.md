@@ -1,7 +1,7 @@
 # DESIGN-1: the Studio theme
 
 **Origin:** RUP1 finding F-10 (OBSERVATION): the operator found the design "not rich or professional enough". Before the RUP1 human follow-up, the product owner asked for the frontend to follow the Studio Admin template (shadcn/ui) closely. This **replaces the earlier institutional design direction** (navy shell, 3px/6px corners, no pills), by the product owner's choice on 2026-10-05.
-**Status:** proposed slice on branch `design-1` (from `main` `c907f54`), for the gate reviewer. The pilot candidate stays `c907f54` until this is accepted.
+**Status:** proposed slice on branch `design-1` (from `main` `c907f54`, 28 commits, local), with a paired backend branch `approve-comment` (from `insurance-core` `47f903e`, 3 commits, local), for the gate reviewer. The pilot candidate stays `c907f54` / `e85aa1b` until this is accepted. **Three items go beyond presentation and need a ruling** (see *For the gate reviewer to rule on*).
 
 ## What changed
 
@@ -29,10 +29,43 @@ Presentation only. No route, query, permission, decision rule or text that a tes
 
 **Not taken from the template:** theme presets, font switcher, dark mode, decorative charts, and the template's sample metrics. Dark mode can be a later slice, because the tokens already allow it.
 
+## Changes since the first write-up (2026-10-05/06)
+
+Requested by the product owner while reviewing on the disposable FI1-E environment. Each row is one or more commits on `design-1`; backend rows name the `approve-comment` commit.
+
+| Area | Change |
+| :--- | :--- |
+| **One building kit** (`horizon.tsx`) | Every backend screen is composed from shared pieces instead of styling its own: `ListCard` (title, actions, a toolbar row, the table in its own bordered box, a footer), `RecordCell`, `StackedCell`, `RowChevron`, `openableRow`, `DotTag`, `EmptyState`, `SearchField`, `FilterGroup`, `StatCard`/`StatGrid`, `RecordHeader`, `DetailGroup`/`DetailGrid`/`DetailDivider`, `SideSection`/`SummaryList`, `RecordColumns`, `ChangeCallout`, `StatusScreen`, `ToastCard`. Sizes follow the template's source: 12px card radius, 16px padding and gaps, a 28px icon tile, a 30px metric; metric cards in four equal columns on wide screens; pages 16px apart (24px from `md`). |
+| **Policy workspace** | The template's record page: a header with the policy period as a ring, status and outline tags, Back; line tabs; label-over-value groups split by rules; on Overview a status column (record status, expiry with days left, version in force). |
+| **Endorsement as a dialog** | `…/endorsements/END…` opens as an expandable dialog over the policy's Endorsements tab (inert behind), status badge beside the title, details on the left and Premium/Approval in a side column; the changed benefit is marked in the resulting limits. |
+| **Lists** | My Work Queue, Policy Directory, the Endorsements tab and Home share one row format (icon tile and record, tags, a chevron; the row opens by click or Enter), toolbars with search and filters, empty states, and counts or paging under the table. My Work Queue adds metric cards (waiting, assigned today, oldest, for a colleague) and a search that only narrows what the server listed. |
+| **Maker's actions by status** | Draft: **Edit draft**, **Submit for approval** (or *Submit and apply* when no check is needed), **Withdraw**. Waiting for approval: **Withdraw**, with how to change it. Withdrawn or declined: **Prepare again** (a new draft from the same change and reason; the old record is unchanged). Edit draft uses the backend's existing `PATCH /endorsements/{id}` (DRAFT only, endorsement ETag, own idempotency key): **its first use by the frontend** (ruling item 3). There is no reopen: the backend has none, and its own required action is to withdraw and prepare again. |
+| **Approve with a comment** | The Approve dialog has an optional comment (≤ 2,000), sent as `reason_text` only when given. **Backend `2911831`**: the engine received the text and discarded it; it now keeps it on the APPROVE action, as a rejection's reason is (no reason code, no migration), so it shows in the history. Outcome hooks are unchanged. Ruling item 1. |
+| **Approval path and who decides** | The endorsement's Approval column shows Submitted, then each stage of the frozen path (done, current, next), and for the current stage the **role** that decides it ("Waiting for: Underwriting Manager"), never a person (product owner's choice). **Backend `ae5347f`**: every record's `workflow` block adds `stage_label`, `path` and `waiting_on` (role names), additively, no migration. Ruling item 2. |
+| **History: who asked, and why** | The Submit row names the requester by email (**backend `592e796`**: `actor_email` on SUBMIT rows only; approvers stay named by stage) and shows the requester's reason from the frozen approval facts. Ruling item 2. |
+| **Toasts, reminders, queue count** | One toast (`ToastCard`): a coloured card, top right, with its sound. Confirmations (Sent for approval, Approved, Withdrawn) are green; sign-in errors red, with the reference. For an approver the shell polls `/work-queue` every 60s: My Work Queue shows the count in the navigation, and a reminder toast says how many approvals wait (once per session) and announces new ones. |
+| **Home by permission** | `/me` has no role names, so Home reads permissions: tags (Approver, Endorsement maker, Policy viewer), metric cards only for what the user can use (tasks and oldest; active and visible policies, counted by the server), the main card (the queue, or the first policies, or a "no work screens" state), and one shortcut per permission. |
+| **Errors and access states** | No access, not found and "Insurance Cloud is not reachable" are one centred card (tinted icon, title, explanation, the permission as a code chip, ways out). Inline alerts take the template's Alert form; the endorsement's status is a one-line tinted banner. A void for an out-of-window date is explained in words (the requested date, the allowed window, withdraw and prepare again). |
+| **Dialogs fit the window** | Explanatory sub-headings dropped, a dense detail grid in dialogs. |
+| **Type-checking** (`389bd2d`) | `@types/react` and `@types/react-dom` were missing, so `tsc` had not checked JSX props. With them: 25 errors fixed, including a latent defect where Operations and Reporting had no screen (now disabled). |
+
 ## Test changes
 
 - Two page tests and one FI1-E journey step found the alert panel by its old CSS class (`rounded-[3px]`). They now use the alert's `data-slot="alert"` hook. The assertions are unchanged. The first FI1-E run on the new theme failed at exactly that step (test 7: the selector found no element) and passed once the selector was changed.
 - `usePolicies` takes an optional `enabled` flag, so Home asks for policies only when the user may see them.
+- FI1-E (`d6a24d7`): the approval's status is now the badge beside the dialog title, so step 5 looks for it there instead of a `dd`; and the cross-tenant step called the policy's **screen** address (`/policies/list/{id}`, after the addressing change) as an API path, which answered 404 before the tenant check. It now calls `/policies/{id}`; the other three paths were refused with 403 `CROSS_TENANT_TOKEN_ATTEMPT` throughout. Run 1 failed at each of these before its fix; both passes below are after them.
+- Six endorsement tests address the submit button as `/^Submit/` (it says *Submit for approval*); one asserted no comment field on Approve and now asserts an empty optional one; the withdraw test expects the endorsement dialog to stay open.
+
+## Evidence (2026-10-06, `design-1` `d6a24d7`, backend `approve-comment` `592e796`)
+
+| Check | Result |
+| :--- | :--- |
+| Lint (`tsc --noEmit`), `build`, `build:backend` | Pass |
+| Vitest | **242/242** |
+| FI1-A suite (its environment pins backend `f4d6182`; sign-in and session logic unchanged) | **11 passed** (12 FI1-E tests skipped there, as designed) |
+| FI1-E real-backend journey, backend `592e796`, each run on a freshly built environment | **12/12, twice** |
+| Backend, targeted while building | wf4 execution 23 (3 new); wi1 + policies/test_endorsements 98; wi1 + wf4 217 |
+| Backend full gate, candidate `approve-comment` `592e796` (base `47f903e`), fresh PostgreSQL 16 + PgBouncer stack (`down -v`, `up --wait`) | **1228 passed, 0 failed, 0 skipped** (1224 at `47f903e` + 4 new), 20m36s. **No migration added or changed** (`git diff 47f903e..592e796` touches 3 product files and 2 test files, none under `migrations/`) |
 
 ## Evidence (2026-10-05)
 
@@ -44,7 +77,15 @@ Presentation only. No route, query, permission, decision rule or text that a tes
 | FI1-A suite | Not rerun: no auth logic changed, only the sign-in layout's presentation |
 | Visual review | 15 screens captured from a disposable FI1-E environment (sign-in, Home, Policy Directory, policy, new endorsement, My Work, approval page, both dialogs, phone width). Not committed. Teardown: stack down with its volumes, processes stopped, worktree removed, secrets deleted, `test-results/` deleted. |
 
-## Requested by the product owner, for the gate reviewer to rule on
+## For the gate reviewer to rule on (2026-10-06)
+
+1. **Approve comment, built.** The product owner asked for it again during review ("checker needs to add comment"). It changes the accepted rule that APPROVE takes no text. The backend keeps the comment on the action; nothing else reads it. The maker does not see it on the endorsement.
+2. **What the maker sees of the approval, built.** The path with the deciding **role** (never a person) on the endorsement, and the requester's **email** on the approval's history. Additive backend fields on every record's `workflow` block and on SUBMIT history rows.
+3. **Edit draft, built.** First frontend use of the existing `PATCH /endorsements/{id}`.
+4. **Delegate, not built.** Unchanged from item 2 below: it needs a backend slice (create, list and revoke delegations; eligible delegates) and a go-ahead.
+5. **Observation for the pilot.** The form defaults the effective date to today and the backend refuses a past date at approval, so an endorsement submitted late and approved after midnight is voided (seen in review on 2026-10-06). A rule (a warning to the maker, or approval with a later date) is a product decision.
+
+## Requested by the product owner on 2026-10-05 (history)
 
 1. **A comment on Approve.** Asked for: a comment field in the approval dialog. The accepted rule (FI1-B, reconfirmed in RUP1-F1 D5) is that APPROVE takes no reason code, no text and no comment. The API's action body already carries `reason_text`, so no backend change may be needed. It is still a change to an accepted decision rule, and the history and the maker's view would then show approval comments. Not built.
 2. **Delegate from the approval.** Asked for: a Delegate action in the approval dialog that opens a dialog to choose a delegate, based on the approval setup for each user and document type. The runtime already has delegation (WF-5E, `runtime/delegation.py`): a person grants a colleague their approval authority for chosen definitions (document types) over a period. Authority, scope and SoD are intersected, never unioned, and chains and self-delegation are refused. The action endpoint accepts `on_behalf_of`. **No HTTP endpoint creates or lists delegations, or lists eligible delegates**, and delegation work was excluded from RUP1-F1 and these slices. It needs a backend slice (endpoints and an eligibility query) and the reviewer's go-ahead before any frontend. Not built.
