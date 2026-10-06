@@ -24,7 +24,8 @@ export const SignInFrame: React.FC<{ children: React.ReactNode; footer?: React.R
     <section className="hidden lg:flex w-[46%] min-h-screen bg-[var(--hz-primary-800)] text-[var(--hz-text-inverse)] relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(90deg,transparent_47px,white_48px),linear-gradient(transparent_47px,white_48px)] bg-[length:48px_48px]" />
       <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
-      <div className="relative z-10 flex w-full flex-col justify-end p-10 xl:p-14">
+      {/* Centred on the same line as the form: the form column's 24px padding and 32px logo row sit above it. */}
+      <div className="relative z-10 flex w-full flex-col justify-center px-10 pt-14 pb-6 xl:px-14">
         <div className="max-w-lg">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[13px] text-white/80">
             <ShieldCheck className="h-4 w-4" />
