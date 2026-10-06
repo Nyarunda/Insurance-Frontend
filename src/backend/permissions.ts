@@ -20,3 +20,11 @@ export const QUOTATION_ISSUE = 'quotations.quotation.issue';
 export const QUOTATION_DECIDE = 'quotations.quotation.decide';
 export const QUOTATION_CANCEL = 'quotations.quotation.cancel';
 export const QUOTATION_CHECK = 'quotations.quotation.check';
+
+// NB1-C: underwriting proposals (UNDERWRITING-1), judged at the quoting branch the proposal inherits.
+export const PROPOSAL_VIEW = 'underwriting.proposal.view';
+export const PROPOSAL_CREATE = 'underwriting.proposal.create';
+export const PROPOSAL_EDIT = 'underwriting.proposal.edit';
+export const PROPOSAL_DECLINE = 'underwriting.proposal.decline';
+export const PROPOSAL_CANCEL = 'underwriting.proposal.cancel';
+export const PROPOSAL_EXCEPTION_APPROVE = 'underwriting.exception.approve';

@@ -6,8 +6,8 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { FileCheck2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
-import { CUSTOMER_VIEW, POLICY_VIEW, QUOTATION_VIEW, TASK_VIEW } from './permissions';
+import { ClipboardList, FileCheck2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
+import { CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_VIEW, TASK_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -49,7 +49,10 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     id: 'sales',
     title: 'Sales',
     icon: FileText,
-    items: [{ screen: 'quotations', label: 'Quotations', path: '/quotations/list', permission: QUOTATION_VIEW, icon: FileText }],
+    items: [
+      { screen: 'quotations', label: 'Quotations', path: '/quotations/list', permission: QUOTATION_VIEW, icon: FileText },
+      { screen: 'applications', label: 'Proposals', path: '/proposals/list', permission: PROPOSAL_VIEW, icon: ClipboardList },
+    ],
   },
   {
     id: 'policies',

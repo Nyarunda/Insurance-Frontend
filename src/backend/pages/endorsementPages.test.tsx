@@ -945,8 +945,12 @@ describe('the lightweight approval path', () => {
       readFileSync(file, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/^\s*\/\/.*$/gm, '');
-    const offenders = files.filter((file) => /\/(approve|decline)\b/.test(code(file)));
+    // NB1-C: the one sanctioned exception. Underwriting exceptions are approved here when the tenant
+    // does not govern them (NEW-BUSINESS-1 NB-D5, the scope's "lightweight path"); endorsements never are.
+    const sanctioned = [join(root, 'backend', 'proposals', 'useProposalCommands.ts')];
+    const offenders = files.filter((file) => !sanctioned.includes(file) && /\/(approve|decline)\b/.test(code(file)));
     expect(offenders).toEqual([]);
+    expect(code(sanctioned[0])).not.toMatch(/endorsement/i);
     // The scan itself works: the rule is written down where the commands are.
     expect(readFileSync(join(root, 'backend', 'endorsements', 'useEndorsementCommands.ts'), 'utf8')).toMatch(/\/approve/);
   });

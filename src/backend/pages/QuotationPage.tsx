@@ -19,7 +19,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { ArrowLeft, Calculator, FileText, Plus, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calculator, ClipboardPlus, FileText, Plus, Send, Trash2 } from 'lucide-react';
 import {
   DetailDivider,
   DetailGrid,
@@ -46,7 +46,7 @@ import { fieldErrorsOf } from '../../lib/api/fieldErrors';
 import { usePermission } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { customerHref } from '../customers/refs';
-import { QUOTATION_CANCEL, QUOTATION_CHECK, QUOTATION_DECIDE, QUOTATION_EDIT, QUOTATION_ISSUE } from '../permissions';
+import { PROPOSAL_CREATE, PROPOSAL_VIEW, QUOTATION_CANCEL, QUOTATION_CHECK, QUOTATION_DECIDE, QUOTATION_EDIT, QUOTATION_ISSUE } from '../permissions';
 import { formatDate } from '../policies/format';
 import { QUOTATION_STATUS_LABEL, QUOTATION_TONE, RISK_IDENTIFIER_TYPES, riskIdentifierLabel } from '../quotations/format';
 import { useOffer, useProductDetail, useProductVersion, useQuotation, versionInForce } from '../quotations/queries';
@@ -73,6 +73,8 @@ export const QuotationPage: React.FC = () => {
   const canDecide = usePermission(QUOTATION_DECIDE);
   const canCancel = usePermission(QUOTATION_CANCEL);
   const canCheck = usePermission(QUOTATION_CHECK);
+  const canCreateProposal = usePermission(PROPOSAL_CREATE);
+  const canSeeProposals = usePermission(PROPOSAL_VIEW);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ error: unknown; title: string } | null>(null);
@@ -171,6 +173,15 @@ export const QuotationPage: React.FC = () => {
       <button key="revise" type="button" className="hz-button hz-button-secondary" disabled={commands.pending}
         onClick={() => void act('The quotation was not revised', 'New revision', (e) => commands.revise(view.id, e))}>
         Revise
+      </button>,
+    );
+  }
+  if (view.status === 'ACCEPTED' && canCreateProposal && canSeeProposals) {
+    actions.push(
+      <button key="propose" type="button" className="hz-button hz-button-primary"
+        onClick={() => navigate('/proposals/list/new', { state: { quotation: { id: view.id, quotation_no: view.quotation_no, customer: view.customer.display_name, product: view.product.name } } })}>
+        <ClipboardPlus className="h-3.5 w-3.5" />
+        Create proposal
       </button>,
     );
   }

@@ -5,6 +5,7 @@ import {
   Building2,
   ChevronRight,
   ClipboardCheck,
+  ClipboardList,
   Clock3,
   FileCheck2,
   FilePen,
@@ -36,7 +37,7 @@ import {
 } from '../../components/horizon';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { useMe, usePermission } from '../../lib/auth/me';
-import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, QUOTATION_CREATE, TASK_VIEW } from '../permissions';
+import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, PROPOSAL_CREATE, QUOTATION_CREATE, TASK_VIEW } from '../permissions';
 import { COVERAGE_TONE } from '../policies/format';
 import { usePolicies } from '../policies/queries';
 import { policyHref } from '../policies/refs';
@@ -76,6 +77,7 @@ export const HomePage: React.FC = () => {
   const canSeeCustomers = usePermission(CUSTOMER_VIEW);
   const canAddCustomer = usePermission(CUSTOMER_CREATE);
   const canQuote = usePermission(QUOTATION_CREATE);
+  const canPropose = usePermission(PROPOSAL_CREATE);
   const queue = useWorkQueue(canDecide);
   const policies = usePolicies({ page: 1 }, canSeePolicies);
   const active = usePolicies({ coverage_status: 'ACTIVE', page: 1 }, canSeePolicies);
@@ -151,6 +153,9 @@ export const HomePage: React.FC = () => {
       : []),
     ...(canQuote
       ? [{ id: 'quote', icon: FileText, title: 'Prepare a quotation', text: 'Choose the customer and product, enter the risk and price it.', to: '/quotations/list/new' }]
+      : []),
+    ...(canPropose
+      ? [{ id: 'propose', icon: ClipboardList, title: 'Underwrite an accepted quotation', text: 'Make a proposal, record the evidence and submit it.', to: '/proposals/list/new' }]
       : []),
     ...(canSeeCustomers
       ? [{ id: 'customers', icon: UsersRound, title: 'Find a customer', text: 'Search customers by name, number, phone or e-mail.', to: '/customers/list' }]

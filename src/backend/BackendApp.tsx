@@ -22,7 +22,21 @@ import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
-import { CUSTOMER_CREATE, CUSTOMER_VIEW, ENDORSEMENT_CREATE, POLICY_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, TASK_VIEW } from './permissions';
+import {
+  CUSTOMER_CREATE,
+  CUSTOMER_VIEW,
+  ENDORSEMENT_CREATE,
+  POLICY_VIEW,
+  PROPOSAL_CREATE,
+  PROPOSAL_VIEW,
+  QUOTATION_CREATE,
+  QUOTATION_VIEW,
+  TASK_VIEW,
+} from './permissions';
+import { ProposalRefRoute } from './proposals/refs';
+import { ProposalCreatePage } from './pages/ProposalCreatePage';
+import { ProposalPage } from './pages/ProposalPage';
+import { ProposalsPage } from './pages/ProposalsPage';
 import { QuotationRefRoute } from './quotations/refs';
 import { QuotationCreatePage } from './pages/QuotationCreatePage';
 import { QuotationPage } from './pages/QuotationPage';
@@ -140,6 +154,40 @@ export const backendRoutes: RouteObject[] = [
             <QuotationRefRoute>
               <QuotationPage />
             </QuotationRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // NB1-C: underwriting proposals, as quotations: the list, the new-proposal dialog over it, the record by number.
+      { path: 'proposals', element: <ToList to="/proposals/list" /> },
+      { path: 'proposals/:record/*', element: <IntoList /> },
+      {
+        path: 'proposals/list',
+        element: (
+          <RequirePermission permission={PROPOSAL_VIEW}>
+            <ProposalsPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'proposals/list/new',
+        element: (
+          <RequirePermission permission={PROPOSAL_VIEW}>
+            <RequirePermission permission={PROPOSAL_CREATE}>
+              <div inert aria-hidden="true">
+                <ProposalsPage />
+              </div>
+              <ProposalCreatePage />
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'proposals/list/:proposalId',
+        element: (
+          <RequirePermission permission={PROPOSAL_VIEW}>
+            <ProposalRefRoute>
+              <ProposalPage />
+            </ProposalRefRoute>
           </RequirePermission>
         ),
       },
