@@ -1,6 +1,6 @@
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -257,6 +257,41 @@ describe('sign-in against the backend contract', () => {
 });
 
 describe('the shell in backend mode', () => {
+  it('shapes Home by permission: an approver sees what waits, a maker how to change a policy', async () => {
+    signedInAs({ ...ME, permissions: ['workflow.task.view'] });
+    backend((call) => (call.url.endsWith('/work-queue') ? json(200, { results: [] }) : json(200, ME)));
+    renderAt('/');
+    expect(await screen.findByRole('heading', { name: 'Waiting for you' })).toBeInTheDocument();
+    const tags = screen.getByLabelText('What you can do');
+    expect(tags).toHaveTextContent('Approver');
+    expect(tags).not.toHaveTextContent('Endorsement maker');
+    expect(screen.getByRole('button', { name: /Decide approvals/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Change a policy/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Active policies')).not.toBeInTheDocument();
+    cleanup();
+    queryClient.clear();
+
+    signedInAs({ ...ME, permissions: ['policies.policy.view', 'policies.endorsement.create'] });
+    backend((call) =>
+      call.url.includes('/policies?') ? json(200, { results: [], count: call.url.includes('coverage_status=ACTIVE') ? 7 : 9 }) : json(200, ME),
+    );
+    renderAt('/');
+    expect(await screen.findByRole('button', { name: /Change a policy/ })).toBeInTheDocument();
+    expect(screen.getByLabelText('What you can do')).toHaveTextContent('Endorsement maker');
+    expect(screen.queryByRole('button', { name: /Decide approvals/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Waiting for you')).not.toBeInTheDocument();
+    expect(await screen.findByText('7')).toBeInTheDocument(); // active policies, from the server
+    expect(screen.getByText('9')).toBeInTheDocument();
+  });
+
+  it('a user with no work permission is told so, with no work cards', async () => {
+    signedInAs({ ...ME, permissions: [] });
+    backend(() => json(200, ME));
+    renderAt('/');
+    expect(await screen.findByText('No work screens are open to you yet')).toBeInTheDocument();
+    expect(screen.queryByLabelText('What you can do')).not.toBeInTheDocument();
+  });
+
   it('shows the tenant from /me with no switcher, and none of the demo’s mock content', async () => {
     signedInAs(ME);
     renderAt('/');
