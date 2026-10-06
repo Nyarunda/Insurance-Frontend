@@ -1,7 +1,7 @@
 # DESIGN-1: the Studio theme
 
 **Origin:** RUP1 finding F-10 (OBSERVATION): the operator found the design "not rich or professional enough". Before the RUP1 human follow-up, the product owner asked for the frontend to follow the Studio Admin template (shadcn/ui) closely. This **replaces the earlier institutional design direction** (navy shell, 3px/6px corners, no pills), by the product owner's choice on 2026-10-05.
-**Status (2026-10-06, DESIGN-1-R1):** branch `design-1` (from `main` `c907f54`) with a paired backend branch `approve-comment` (from `insurance-core` `47f903e`), both pushed for review. The first review range (`c907f54..e066f68`, `47f903e..592e796`) was reviewed: **REQUEST CHANGES, R1 authorized**. R1 is the increment `e066f68..` (frontend) and `592e796..` (backend); see *DESIGN-1-R1*. `insurance-core` and `main` are unchanged; the pilot candidate stays `c907f54` / `e85aa1b` until this is accepted. Sections dated 2026-10-05 below are **historical**: where they say a comment on Approve is "not built", that was superseded by W1.
+**Status (2026-10-06, DESIGN-1-R1):** branch `design-1` (from `main` `c907f54`) with a paired backend branch `approve-comment` (from `insurance-core` `47f903e`), both pushed for review. The first review range (`c907f54..e066f68`, `47f903e..592e796`) was reviewed: **REQUEST CHANGES, R1 authorized**. R1 (`e066f68..b21cf1e`, `592e796..ef618f6`) was reviewed **PASS / CLOSED**; W6 then went to a separate increment, **DESIGN-1-R2** (`b21cf1e..`, `ef618f6..`); see *DESIGN-1-R2*. `insurance-core` and `main` are unchanged; the pilot candidate stays `c907f54` / `e85aa1b` until this is accepted. Sections dated 2026-10-05 below are **historical**: where they say a comment on Approve is "not built", that was superseded by W1.
 
 ## What changed
 
@@ -104,6 +104,49 @@ The reviewer's implementation review of `c907f54..e066f68` / `47f903e..592e796`:
 | Backend full gate, `approve-comment` `ef618f6`, fresh PostgreSQL 16 + PgBouncer stack | **1232 passed, 0 failed, 0 skipped** (1228 at `592e796` + 4 new), 22m20s. **No migration added or changed** (`592e796..ef618f6` touches `apps/workflow/integration.py` and `tests/wf4/test_execution.py` only) |
 | FI1-E real-backend journey, backend `ef618f6`, each run on a freshly built environment | **12/12, twice** (`r1-run1`, `r1-run2`), frontend `fb451e6`. Step 5 now approves with the comment *Checked against the valuation report.*: both attempts send it with the same idempotency key and body, the second answer is `Idempotency-Replayed: true`, the history holds the comment on one row, and step 6 still finds exactly one new policy version |
 | FI1-A | Not rerun (reviewer: R1 touches no authentication or session code) |
+
+## DESIGN-1-R2: requester identity (W6, 2026-10-06)
+
+**Audit record of W6:**
+
+```text
+W6 email retained:   PRODUCT-OWNER REQUIREMENT
+Reviewer ruling:     requester identification ACCEPTED;
+                     unconditional actor_email disclosure NOT ACCEPTED;
+                     permission-gated disclosure REQUIRED.
+```
+
+(The R1 row above records the product owner's decision as it stood before this ruling.)
+
+**What R2 does.** A new permission, `workflow.requester_identity.view`, controls **redaction only**: it never makes an instance visible.
+
+| Caller | `history[].actor_email` |
+| :--- | :--- |
+| Cannot otherwise see the instance | 404, as before (the permission changes nothing) |
+| Sees the instance, lacks the permission in the instance's branch | `null` on every row |
+| Sees the instance and holds the permission in its branch | the requester's email on the **SUBMIT** row only |
+| Approve, reject and system rows | always `null` |
+
+The same rule applies to a command's answer (the approval's reply carries the caller's own view).
+
+- **Catalog:** `rbac` `0007_requester_identity_permission`, forward-only, adds the code to the catalog. **No role receives it**, so no existing user gains it. It is a separate list (`WORKFLOW_IDENTITY_PERMISSIONS`), so the applied `0002` is unchanged.
+- **Supported setup:** `setup_tenant_access --access-profile REQUESTER_IDENTITY_VIEWER` (a tenant role holding only that permission, scope BRANCH at `--branch`, or ALL). Not `workflow.task.view`, `view_team` or an administrator permission.
+- **Frontend:** unchanged behaviour. An email shows as `maker@… (requester)`; `null` as **Requester**; the caller as **You**; approvers by stage; **System**.
+- **Pilot:** the checker who must identify the maker is given the profile through `setup_tenant_access`; anyone without it still decides normally, with the requester shown as *Requester*.
+
+**Also in this increment, presentation only:** `18a425b` centres the sign-in page's wording panel on the form's line (it sat at the bottom). Layout classes in `SignInLayout.tsx` only; no sign-in logic changed. Requested by the product owner during review.
+
+### R2 evidence
+
+| Check | Result |
+| :--- | :--- |
+| Focused: `wf1/test_migrations` (from zero, forward), `wf2` (RBAC, platform roles), `wf4`, `wf5`, `wi1` | **654 passed** at `12c9bbf` |
+| New backend tests | permitted checker sees the email, an equivalent checker without it gets `null`, and the command answer is redacted; the permission alone gives 404 and no tasks; held in another branch gives `null`; the setup profile names the requester and grants nothing else |
+| Backend full gate, `approve-comment` `12c9bbf`, fresh PostgreSQL 16 + PgBouncer stack | **1236 passed, 0 failed, 0 skipped** (1232 at `ef618f6` + 4 new), 32m51s |
+| Migrations | **One added**: `rbac/0007_requester_identity_permission` (data only: one catalog row). Migration-from-zero and forward tests pass |
+| `tsc --noEmit`, `build`, `build:backend` | Pass (`a5b30b3`, and again with `18a425b`) |
+| Vitest | **245/245** (the actor-label test adds the `null` → *Requester* case) |
+| FI1-E, backend `12c9bbf`, freshly built environment each run; the checker is explicitly granted `workflow.requester_identity.view` (REQUESTER_IDENTITY_VIEWER through `setup_tenant_access`), and step 5 checks the Submit row reads `maker@fi1e.test (requester)`. The checker sees it **because of that grant**, not because of `workflow.task.view` or the assignment: the backend tests show an equivalent assigned checker without the grant receives `"actor_email": null` | **12/12, twice** (`r2-run1`, `r2-run2`), frontend `18a425b` |
 
 ## For the gate reviewer to rule on (2026-10-06, first review; ruled above)
 
