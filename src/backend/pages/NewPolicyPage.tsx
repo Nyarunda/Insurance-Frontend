@@ -58,7 +58,8 @@ export const NewPolicyPage: React.FC = () => {
       title: 'Customer',
       text: 'Find the customer or add them. Their KYC must be verified by a checker before the policy can be bound.',
       actions: [
-        ...(canAddCustomer ? [{ label: 'Add a customer', to: '/customers/list/new', primary: true }] : []),
+        // Each action as its route guards it (NB1-D-R1, D1): the list's view permission and the create.
+        ...(canSeeCustomers && canAddCustomer ? [{ label: 'Add a customer', to: '/customers/list/new', primary: true }] : []),
         ...(canSeeCustomers ? [{ label: 'Find a customer', to: '/customers/list' }] : []),
       ],
       closed: 'Customers are not among your screens.',
@@ -69,7 +70,7 @@ export const NewPolicyPage: React.FC = () => {
       title: 'Quotation',
       text: "On the customer's record, New quotation. Enter the risk, price it, issue the offer and record the customer's answer.",
       actions: [
-        ...(canQuote ? [{ label: 'New quotation', to: '/quotations/list/new', primary: true }] : []),
+        ...(canSeeQuotations && canQuote ? [{ label: 'New quotation', to: '/quotations/list/new', primary: true }] : []),
         ...(canSeeQuotations ? [{ label: 'Quotations', to: '/quotations/list' }] : []),
       ],
       closed: 'Quotations are not among your screens.',

@@ -1030,7 +1030,7 @@ const BindDialog: React.FC<{ view: ProposalDetail; etag: string; onClose: () => 
           </label>
           <input id="proposal-insurer-policy-no" value={insurerNo} maxLength={64} onChange={(event) => setInsurerNo(event.target.value)}
             aria-invalid={!!fields.insurer_policy_no} className={field(!!fields.insurer_policy_no)} />
-          {!fields.insurer_policy_no && <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Optional. It can be recorded on the policy later.</p>}
+          {!fields.insurer_policy_no && <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Optional. If omitted, the policy is created without an insurer policy number.</p>}
           <FieldError message={fields.insurer_policy_no} />
         </div>
         <p className="text-sm text-[var(--hz-text-secondary)]">

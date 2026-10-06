@@ -2,7 +2,7 @@
 
 **Slice of:** NEW-BUSINESS-1 (`backend/docs/specs/new-business-1-scope.md`).
 **Branch:** `nb1-d` from `main` `de9689a` (NB1-C and the customer-form fix merged). Frontend only; no backend change (NB-D1). Independent of `home-metrics`.
-**Status:** built, awaiting review.
+**Status:** NB1-D (`97e2217`) reviewed: REQUEST CHANGES (D1, plus one wording correction). NB1-D-R1 makes them; see *NB1-D-R1*.
 
 ## Bind
 
@@ -65,3 +65,19 @@ The 7 new tests:
 7. Without customer create, Add a customer is not offered. Without bind, the ready proposals are never requested. The Ready to bind link stays for a proposal viewer.
 
 The real-backend journey is NB1-E's.
+
+## NB1-D-R1
+
+| Finding | Correction |
+| :--- | :--- |
+| **D1** (required): the guide offered **Add a customer** with `clients.customer.create` alone and **New quotation** with `quotations.quotation.create` alone. The routes need the list's view permission as well. | Each action now follows its route guard: **Add a customer** needs `clients.customer.view` + `.create`, **New quotation** needs `quotations.quotation.view` + `.create`, and **New proposal** keeps `underwriting.proposal.view` + `.create`. A step whose screens are all closed says so. The guide's own route stays on `quotations.quotation.create`. |
+| **Wording**: the bind dialog said the insurer number "can be recorded on the policy later", but the application offers no such action. | "Optional. If omitted, the policy is created without an insurer policy number." |
+
+**R1 evidence:** two new tests.
+1. Asymmetric permissions (create without view) offer no **Add a customer** and no **New quotation**, and each step says it is closed. With view and create, both are offered.
+2. The bind dialog shows the new wording and never promises a later recording.
+
+| Check | Result |
+| :--- | :--- |
+| `tsc --noEmit`, `build`, `build:backend` | Pass |
+| Vitest | **305/305** (303 + 2 new) |

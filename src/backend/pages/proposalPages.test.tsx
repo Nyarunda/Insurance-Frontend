@@ -659,6 +659,36 @@ describe('NB1-D: the New policy guide', () => {
   });
 });
 
+describe('NB1-D-R1: the guide offers only the routes the permissions open (D1)', () => {
+  it('customer create without customer view offers no Add a customer; quotation create without view offers no New quotation', async () => {
+    proposalBackend();
+    renderAt('/new-policy', person(['clients.customer.create', 'quotations.quotation.create']));
+    const customer = await screen.findByRole('listitem', { name: 'Step 1: Customer' });
+    expect(within(customer).queryByRole('button', { name: 'Add a customer' })).not.toBeInTheDocument();
+    expect(customer).toHaveTextContent('Customers are not among your screens.');
+    const quotation = screen.getByRole('listitem', { name: 'Step 2: Quotation' });
+    expect(within(quotation).queryByRole('button', { name: 'New quotation' })).not.toBeInTheDocument();
+    expect(quotation).toHaveTextContent('Quotations are not among your screens.');
+
+    cleanup();
+    queryClient.clear();
+    proposalBackend();
+    renderAt('/new-policy', person(['clients.customer.view', 'clients.customer.create', 'quotations.quotation.view', 'quotations.quotation.create']));
+    expect(within(await screen.findByRole('listitem', { name: 'Step 1: Customer' })).getByRole('button', { name: 'Add a customer' })).toBeInTheDocument();
+    expect(within(screen.getByRole('listitem', { name: 'Step 2: Quotation' })).getByRole('button', { name: 'New quotation' })).toBeInTheDocument();
+  });
+
+  it('the bind dialog does not promise a later recording of the insurer number', async () => {
+    const user = userEvent.setup();
+    proposalBackend({ view: detail({ status: 'READY_TO_BIND', submitted_at: '2026-10-06T12:00:00Z', ready_at: '2026-10-06T14:00:00Z' }) });
+    renderAt(`/proposals/list/${P_ID}`, BINDER);
+    await user.click(await screen.findByRole('button', { name: 'Bind' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Bind into a policy' });
+    expect(dialog).toHaveTextContent('Optional. If omitted, the policy is created without an insurer policy number.');
+    expect(dialog).not.toHaveTextContent(/recorded on the policy later/);
+  });
+});
+
 describe('Addresses', () => {
   it('a number the user cannot see is not found', async () => {
     proposalBackend({ list: [] });
