@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classifyCommandError } from '../../lib/api/commandErrors';
 import { ApiError } from '../../lib/api/errors';
-import { actorLabel, changeSummary, decisionFacts, displayFacts, formatMoney, humanize, isUuid } from './format';
+import { actorLabel, changeSummary, explainVoid, decisionFacts, displayFacts, formatMoney, humanize, isUuid } from './format';
 import type { HistoryEntry } from './types';
 
 const entry = (over: Partial<HistoryEntry>): HistoryEntry => ({
@@ -50,6 +50,15 @@ describe('display rules', () => {
       { label: 'Premium delta', value: '0.00' },
     ]);
     expect(rows.some((row) => isUuid(row.value))).toBe(false);
+  });
+
+  it('explains a void for a date out of its window in plain words, with the requested date', () => {
+    expect(
+      explainVoid('EFFECTIVE_DATE_INVALID: the endorsement takes effect from 2026-10-06 to 2027-10-04', { effective_date: '2026-10-05' }),
+    ).toBe(
+      'The change was to take effect on 05 Oct 2026, which is no longer allowed: it can only take effect from 06 Oct 2026 to 04 Oct 2027. The maker can withdraw it and prepare it again with a new date.',
+    );
+    expect(explainVoid('ENDORSEMENT_BASE_STALE: V1 superseded by V2')).toBe('Endorsement base stale: V1 superseded by V2');
   });
 
   it('names people only as You, System, or by the stage they acted at', () => {

@@ -39,6 +39,7 @@ import {
   DECISION_KEYS,
   decisionFacts,
   displayFacts,
+  explainVoid,
   formatDateTime,
   formatMoney,
   humanize,
@@ -206,7 +207,11 @@ export const InstancePage: React.FC = () => {
   const requestReason = typeof view.approval_facts?.request_reason === 'string' ? view.approval_facts.request_reason : null;
   // FI1-E: a void instance says so as a heading, with the reason recorded when it was voided.
   const voided = view.status === 'VOID' ? [...view.history].reverse().find((entry) => entry.new_status === 'VOID') : undefined;
-  const voidReason = voided?.reason_text ? readableReason(voided.reason_text) : voided?.reason_code ? humanize(voided.reason_code) : null;
+  const voidReason = voided?.reason_text
+    ? explainVoid(voided.reason_text, view.approval_facts)
+    : voided?.reason_code
+      ? humanize(voided.reason_code)
+      : null;
 
   return (
     <>

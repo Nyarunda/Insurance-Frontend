@@ -31,6 +31,33 @@ export function readableReason(text: string): string {
   return match[2] ? `${humanize(match[1])}: ${match[2]}` : humanize(match[1]);
 }
 
+const ISO_DAY = (value: string) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  return match
+    ? new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })
+    : value;
+};
+
+/**
+ * Why an approval was voided, in plain words. A date that fell out of the allowed window (the
+ * backend's EFFECTIVE_DATE_INVALID, "takes effect from A to B") is explained as such, with the
+ * requested date from the frozen facts; any other reason reads as `readableReason` gives it.
+ */
+export function explainVoid(text: string, facts?: Record<string, unknown> | null): string {
+  const allowed = /^EFFECTIVE_DATE_INVALID:.*?from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})/s.exec(text.trim());
+  if (!allowed) return readableReason(text);
+  const requested = typeof facts?.effective_date === 'string' ? ` on ${ISO_DAY(facts.effective_date)}` : '';
+  return (
+    `The change was to take effect${requested}, which is no longer allowed: it can only take effect from ` +
+    `${ISO_DAY(allowed[1])} to ${ISO_DAY(allowed[2])}. The maker can withdraw it and prepare it again with a new date.`
+  );
+}
+
 /** A backend `required_action`: a code reads as words, a sentence is shown as the backend wrote it. */
 export function requiredActionText(value: string): string {
   return /^[A-Z0-9_]+$/.test(value.trim()) ? humanize(value) : value.trim();
