@@ -405,13 +405,43 @@ describe('NB1-B-R1', () => {
     expect(offer).not.toHaveTextContent('Red');                       // risk.details stays hidden (NB-D3)
   });
 
-  it('B2: a grouped number is sent as canonical digits; malformed grouping is refused, never read as another number', async () => {
+  it('B2: the parser sends grouped numbers as canonical digits and refuses malformed grouping', () => {
     expect(parseFactorDecimal('1,200,000.50')).toEqual({ value: '1200000.50', error: null });
     expect(parseFactorDecimal('1200000')).toEqual({ value: '1200000', error: null });
     expect(parseFactorDecimal('0')).toEqual({ value: '0', error: null });
     expect(parseFactorDecimal('1,2,00')).toEqual({ value: null, error: DECIMAL_MESSAGES.grouping });
     expect(parseFactorDecimal('12a')).toEqual({ value: null, error: DECIMAL_MESSAGES.notNumber });
+  });
 
+  it('B2 (R2): only surrounding whitespace is ignored; the supported forms pass and internal spaces are refused', async () => {
+    const accepted: [string, string][] = [
+      ['1200000', '1200000'],
+      ['1200000.50', '1200000.50'],
+      ['1,200,000', '1200000'],
+      ['1,200,000.50', '1200000.50'],
+      ['0', '0'],
+      ['-1200', '-1200'],
+      [' 1200 ', '1200'],
+    ];
+    for (const [raw, value] of accepted) expect(parseFactorDecimal(raw), raw).toEqual({ value, error: null });
+    for (const raw of ['1 200 000', '1 2 00', '12 00', '1,2,00', '12a']) {
+      expect(parseFactorDecimal(raw).value, raw).toBeNull();
+      expect(parseFactorDecimal(raw).error, raw).not.toBeNull();
+    }
+
+    const user = userEvent.setup();
+    const backend = quotationBackend();
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    const sum = within(risk).getByLabelText(/Sum insured \(KES\)/);
+    await user.clear(sum);
+    await user.type(sum, '1 2 00');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    expect(within(risk).getByText(DECIMAL_MESSAGES.notNumber)).toBeInTheDocument();
+    expect(backend.sent('risk')).toHaveLength(0);
+  });
+
+  it('B2: in the form, malformed grouping is refused and a grouped number is sent as canonical digits', async () => {
     const user = userEvent.setup();
     const backend = quotationBackend();
     renderAt(`/quotations/list/${Q_ID}`);

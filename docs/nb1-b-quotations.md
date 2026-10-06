@@ -2,7 +2,7 @@
 
 **Slice of:** NEW-BUSINESS-1 (`backend/docs/specs/new-business-1-scope.md`).
 **Branch:** `nb1-b` from `main` `96985c7`. Frontend only; no backend change (NB-D1).
-**Status:** NB1-B (`e6dab80`) reviewed: REQUEST CHANGES (B1, B2, B3). NB1-B-R1 makes those corrections; see *NB1-B-R1*.
+**Status:** NB1-B (`e6dab80`) reviewed: REQUEST CHANGES (B1, B2, B3). NB1-B-R1 (`60e4e3e`) closed B1 and B3; B2 needed one more correction, made in NB1-B-R2.
 
 ## What it adds
 
@@ -20,7 +20,7 @@
 ## The record
 
 - **Risk (NB-D3):**
-  - **The form:** the rating factors come only from the product's published version in force. `DECIMAL` is a number field showing its bounds and unit, and is checked before sending. **One parser serves the check and the request** (`quotations/decimal.ts`, R1, B2): `1,200,000.50` is sent as `"1200000.50"` while the field keeps what was typed, and malformed grouping such as `1,2,00` is refused rather than read as another number. `CHOICE` offers the server's choices. `BOOLEAN` is a yes/no choice.
+  - **The form:** the rating factors come only from the product's published version in force. `DECIMAL` is a number field showing its bounds and unit, and is checked before sending. **One parser serves the check and the request** (`quotations/decimal.ts`, R1, B2): `1,200,000.50` is sent as `"1200000.50"` while the field keeps what was typed, and malformed grouping such as `1,2,00`, or any internal space (`1 200 000`, `12 00`), is refused rather than read as another number. Only surrounding spaces are ignored (R2). `CHOICE` offers the server's choices. `BOOLEAN` is a yes/no choice.
   - **Identifiers:** risk identifiers use the platform's fixed types.
   - **`risk.details`:** not shown. What a revision already holds is sent back unchanged.
   - **Saving:** `PUT …/risk` with the ETag. The server clears any pricing when the risk changes, and the screen says so.
@@ -85,3 +85,16 @@ The real-backend journey is NB1-E's.
 | :--- | :--- |
 | `tsc --noEmit`, `build`, `build:backend` | Pass |
 | Vitest | **274/274** (270 + 4 new: B1, B2, and two for B3) |
+
+## NB1-B-R2
+
+| Finding | Correction |
+| :--- | :--- |
+| **B2**: the parser deleted every internal space before checking, so `1 2 00` became `1200` and was accepted. | `parseFactorDecimal` now ignores only surrounding whitespace (`raw.trim()`). The accepted forms are plain digits (`1200000`, `1200000.50`), comma groups of three (`1,200,000`, `1,200,000.50`), zero and a leading minus (`-1200`). Anything with an internal space is refused. Space grouping is not a supported grammar. |
+
+**R2 evidence:** the R1 B2 test is split into a parser test and a form test, and one test is new. The parser accepts the six supported forms and ` 1200 ` (sent as `1200`), and refuses `1 200 000`, `1 2 00`, `12 00`, `1,2,00` and `12a`. In the form, `1 2 00` shows the number message and nothing is sent.
+
+| Check | Result |
+| :--- | :--- |
+| `tsc --noEmit`, `build`, `build:backend` | Pass |
+| Vitest | **276/276** (274, + 1 from the split, + 1 new) |
