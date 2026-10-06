@@ -90,7 +90,6 @@ export const PoliciesPage: React.FC = () => {
       />
       <ListCard
         title="Policies"
-        description="Policies within your branch access. Open one to see its cover, premium and endorsements."
         toolbar={
           <>
             <form

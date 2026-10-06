@@ -154,7 +154,6 @@ export const WorkQueuePage: React.FC = () => {
 
       <ListCard
         title="Tasks"
-        description="Open a task to see what is being approved and decide it."
         toolbar={
           <>
             <SearchField
