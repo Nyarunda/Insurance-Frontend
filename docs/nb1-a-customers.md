@@ -2,6 +2,7 @@
 
 **Slice of:** NEW-BUSINESS-1 (`backend/docs/specs/new-business-1-scope.md`, closed 2026-10-06).
 **Branch:** `nb1-a` from `main` `df23759`. Frontend only; no backend change (NB-D1).
+**Status:** NB1-A (`be0f129`) reviewed: REQUEST CHANGES (A1, A2, field-error wording). NB1-A-R1 makes those corrections; see *NB1-A-R1*.
 
 ## What it adds
 
@@ -23,10 +24,12 @@ The record has three tabs:
 ## Rules kept as the backend keeps them
 
 - **Create:**
-  - It sends the profile for the chosen type, the home branch (one of the user's branches), the mobile number and e-mail as primary contacts, and optionally the primary identifier.
-  - The server normalizes, numbers and validates. Field errors come back onto the fields.
+  - It sends the profile for the chosen type, the home branch (one of the user's branches), and the mobile number and e-mail as primary contacts.
+  - The optional primary identifier is offered **only with `clients.kyc.manage`**, because the server refuses an identifier at creation from anyone else (R1, A2).
+  - The server normalizes, numbers and validates. **Field errors the form can map land on their fields** (the profile fields, the home branch). Anything else, such as an error nested in the `contacts` list, is shown as the backend's error above the form.
 - **Duplicates (NB-D6 for customers, C1-D16):**
-  - A 409 `CUSTOMER_DUPLICATE_CANDIDATE` shows the customer numbers the user may see and a count of the rest.
+  - This applies to both **creating a customer and adding an identifier** (R1, A1), through one shared presentation (`customers/duplicates.tsx`).
+  - A 409 `CUSTOMER_DUPLICATE_CANDIDATE` shows the customer numbers the user may see, the identifier types each matched on, and a count of the rest. The user sees this before any acknowledgement is possible.
   - Continuing needs a ticked acknowledgement and a reason. The request is resent with `acknowledge_duplicates` and `duplicate_reason`; the body changed, so it goes under a new idempotency key.
   - Records are never merged.
 - **Edits:**
@@ -64,3 +67,22 @@ The 11 new tests:
 11. KYC hidden by access says so.
 
 The real-backend journey is NB1-E's.
+
+## NB1-A-R1
+
+| Finding | Correction |
+| :--- | :--- |
+| **A1** (blocker): adding an identifier that collides only asked for a reason; the candidates were not shown. | `IdentifierDialog` shows the same evidence as creation (`DuplicateNotice`: visible numbers with their matched identifier types, and the hidden count). **Add anyway** stays disabled until the acknowledgement is ticked, and a reason is required. The retry sends `acknowledge_duplicates` and `duplicate_reason`; the body changed, so it goes under a new idempotency key. |
+| **A2**: the identifier fields were offered to a user with `clients.customer.create` only. | They appear only with `clients.kyc.manage`. Without it, the section is *Contact*, and no `identifiers` are sent. |
+| Field-error wording in this record | Narrowed: mapped field errors land on their fields; others are shown as the backend's error. No change to the shared error helper. |
+
+**R1 evidence:**
+
+| Check | Result |
+| :--- | :--- |
+| `tsc --noEmit`, `build`, `build:backend` | Pass |
+| Vitest | **258/258** (256 + 2 new) |
+
+The two new tests:
+- A create-only user sees no identifier controls, and the create body has no `identifiers`.
+- Adding a colliding identifier shows the number, the matched type and the hidden count. Add anyway stays disabled until the acknowledgement is ticked, a reason is required, and the acknowledged retry carries the changed body under a new key.

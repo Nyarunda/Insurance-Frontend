@@ -3,8 +3,9 @@
  * address (`/customers/list/new`).
  *
  * The form holds the profile for the chosen type (an individual or a company), the home branch
- * (one the user's access covers), a mobile number and an e-mail, and optionally the primary
- * identifier. The server normalizes, numbers and checks everything. When an identifier already
+ * (one the user's access covers), a mobile number and an e-mail, and, for a user who also holds
+ * clients.kyc.manage, optionally the primary identifier (the server refuses an identifier from
+ * anyone else, NB1-A-R1). The server normalizes, numbers and checks everything. When an identifier already
  * belongs to another customer it answers 409 `CUSTOMER_DUPLICATE_CANDIDATE` with the matches the
  * user may see and a count of the rest (C1-D16): the form shows them, and continuing needs an
  * explicit acknowledgement with a reason, sent with the same request (a changed body, so a new
@@ -14,15 +15,17 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { UserPlus } from 'lucide-react';
-import { DetailDivider, FieldError, HorizonAlert } from '../../components/horizon';
+import { DetailDivider, FieldError } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
-import { ApiError } from '../../lib/api/errors';
 import { fieldErrorsOf } from '../../lib/api/fieldErrors';
+import { usePermission } from '../../lib/auth/me';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { IDENTIFIER_TYPES } from '../customers/format';
 import { customerHref } from '../customers/refs';
+import { DuplicateAcknowledgement, DuplicateNotice, duplicatesOf } from '../customers/duplicates';
 import type { CustomerCreateBody, CustomerType, DuplicateDetails } from '../customers/types';
+import { KYC_MANAGE } from '../permissions';
 import { useCustomerCommands } from '../customers/useCustomerCommands';
 import { customersFrom } from './CustomersPage';
 
@@ -33,20 +36,14 @@ const Required = () => <span className="text-[var(--hz-danger)]">*</span>;
 const FORM_ID = 'customer-create-form';
 const TITLE_ID = 'customer-create-title';
 
-const duplicatesOf = (error: unknown): DuplicateDetails | null =>
-  error instanceof ApiError && error.code === 'CUSTOMER_DUPLICATE_CANDIDATE'
-    ? {
-        candidates: Array.isArray(error.details.candidates) ? (error.details.candidates as DuplicateDetails['candidates']) : [],
-        hidden_candidates: typeof error.details.hidden_candidates === 'number' ? error.details.hidden_candidates : 0,
-      }
-    : null;
-
 export const CustomerCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const branches = useBranchStore((state) => state.branches);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const { create, pending } = useCustomerCommands();
+  // An identifier at creation needs clients.kyc.manage as well (the server refuses it otherwise).
+  const canIdentify = usePermission(KYC_MANAGE);
 
   const [type, setType] = useState<CustomerType>('INDIVIDUAL');
   const [branch, setBranch] = useState(activeBranchId ?? (branches.length === 1 ? branches[0].id : ''));
@@ -109,7 +106,7 @@ export const CustomerCreatePage: React.FC = () => {
       home_branch_id: branch,
       profile,
       ...(contacts.length ? { contacts } : {}),
-      ...(idValue.trim() ? { identifiers: [{ identifier_type: idType, value: idValue.trim(), is_primary: true }] } : {}),
+      ...(canIdentify && idValue.trim() ? { identifiers: [{ identifier_type: idType, value: idValue.trim(), is_primary: true }] } : {}),
       ...(duplicates && acknowledged ? { acknowledge_duplicates: true, duplicate_reason: duplicateReason.trim() } : {}),
     };
     const outcome = await create(body);
@@ -131,7 +128,7 @@ export const CustomerCreatePage: React.FC = () => {
     setFailure(outcome.error);
   };
 
-  const typed = Boolean(first || last || legal || mobile || email || idValue);
+  const typed = Boolean(first || last || legal || mobile || email || (canIdentify && idValue));
 
   return (
     <DialogFrame
@@ -161,29 +158,7 @@ export const CustomerCreatePage: React.FC = () => {
       }
     >
       {failure !== null && <ApiErrorAlert error={failure} title="The customer was not created" />}
-      {duplicates && (
-        <div role="alert">
-          <HorizonAlert tone="warning" title="This identifier already belongs to another customer">
-            {duplicates.candidates.length > 0 && (
-              <ul className="mt-1 list-disc pl-5">
-                {duplicates.candidates.map((candidate) => (
-                  <li key={candidate.customer_no}>
-                    <span className="font-mono">{candidate.customer_no}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {duplicates.hidden_candidates > 0 && (
-              <p className="mt-1">
-                {duplicates.hidden_candidates === 1
-                  ? '1 more match is outside the branches you can see.'
-                  : `${duplicates.hidden_candidates} more matches are outside the branches you can see.`}
-              </p>
-            )}
-            <p className="mt-1">Check it is not the same customer. Records are never merged.</p>
-          </HorizonAlert>
-        </div>
-      )}
+      {duplicates && <DuplicateNotice duplicates={duplicates} />}
 
       <form id={FORM_ID} noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-5">
         <fieldset className="flex flex-col gap-4">
@@ -251,50 +226,44 @@ export const CustomerCreatePage: React.FC = () => {
         </fieldset>
         <DetailDivider />
         <fieldset className="flex flex-col gap-4">
-          <legend className="mb-2 text-base font-medium text-[var(--hz-text-primary)]">Contact and identity</legend>
+          <legend className="mb-2 text-base font-medium text-[var(--hz-text-primary)]">{canIdentify ? 'Contact and identity' : 'Contact'}</legend>
           <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
             <TextInput id="customer-mobile" text="Mobile number" value={mobile} onChange={setMobile} placeholder="0712 345 678" error={errorFor('value')} />
             <TextInput id="customer-email" text="E-mail" type="email" value={email} onChange={setEmail} placeholder="name@example.co.ke" />
-            <div>
-              <label htmlFor="customer-id-type" className={label}>
-                Primary identifier
-              </label>
-              <select id="customer-id-type" value={idType} onChange={(event) => setIdType(event.target.value)} className={field(false)}>
-                {idTypes.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <TextInput id="customer-id-value" text="Identifier number" value={idValue} onChange={setIdValue} hint="Stored encrypted; only its last 4 characters are shown." />
+            {canIdentify && (
+              <>
+                <div>
+                  <label htmlFor="customer-id-type" className={label}>
+                    Primary identifier
+                  </label>
+                  <select id="customer-id-type" value={idType} onChange={(event) => setIdType(event.target.value)} className={field(false)}>
+                    {idTypes.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <TextInput
+                  id="customer-id-value"
+                  text="Identifier number"
+                  value={idValue}
+                  onChange={setIdValue}
+                  hint="Stored encrypted; only its last 4 characters are shown."
+                />
+              </>
+            )}
           </div>
         </fieldset>
         {duplicates && (
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-1 text-base font-medium text-[var(--hz-text-primary)]">Continue with a duplicate</legend>
-            <label className="flex items-start gap-2 text-sm text-[var(--hz-text-primary)]">
-              <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} className="mt-0.5" />
-              I have checked the matching customers and this is a different customer.
-            </label>
-            {acknowledged && (
-              <div>
-                <label htmlFor="customer-duplicate-reason" className={label}>
-                  Reason <Required />
-                </label>
-                <textarea
-                  id="customer-duplicate-reason"
-                  value={duplicateReason}
-                  onChange={(event) => setDuplicateReason(event.target.value)}
-                  maxLength={500}
-                  rows={2}
-                  aria-invalid={!!errorFor('duplicate_reason')}
-                  className={`hz-field w-full px-3 py-2 text-sm ${errorFor('duplicate_reason') ? 'hz-field-invalid' : ''}`}
-                />
-                <FieldError message={errorFor('duplicate_reason')} />
-              </div>
-            )}
-          </fieldset>
+          <DuplicateAcknowledgement
+            idPrefix="customer"
+            acknowledged={acknowledged}
+            onAcknowledged={setAcknowledged}
+            reason={duplicateReason}
+            onReason={setDuplicateReason}
+            error={errorFor('duplicate_reason')}
+          />
         )}
       </form>
     </DialogFrame>

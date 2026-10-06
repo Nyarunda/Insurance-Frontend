@@ -74,6 +74,7 @@ interface Options {
   create?: (call: FakeCall) => Response;
   patch?: (call: FakeCall) => Response;
   review?: (call: FakeCall) => Response;
+  addIdentifier?: (call: FakeCall) => Response;
 }
 
 function customerBackend(options: Options = {}) {
@@ -101,6 +102,9 @@ function customerBackend(options: Options = {}) {
       });
     }
     if (path === `/clients/${CUSTOMER_ID}/identifiers` && call.method === 'GET') return json(200, { results: [identifier()] });
+    if (path === `/clients/${CUSTOMER_ID}/identifiers` && call.method === 'POST') {
+      return options.addIdentifier ? options.addIdentifier(call) : json(201, identifier({ id: 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd' }), { ETag: ETAG });
+    }
     if (path.startsWith(`/clients/${CUSTOMER_ID}/identifiers/`) && call.method === 'PATCH') {
       return options.review ? options.review(call) : json(200, identifier({ verification_status: 'VERIFIED' }), { ETag: ETAG });
     }
@@ -229,6 +233,70 @@ describe('New customer', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/customers/list/CUS0000002'));
     const [first, second] = backend.commands('POST', '/clients');
     expect(second.body).toMatchObject({ acknowledge_duplicates: true, duplicate_reason: 'Different person, same ID typed in error at the bank' });
+    expect(second.headers['x-idempotency-key']).not.toBe(first.headers['x-idempotency-key']);
+  });
+});
+
+describe('NB1-A-R1', () => {
+  it('A2: a user who may create but not manage KYC sees no identifier controls and sends none', async () => {
+    const user = userEvent.setup();
+    const backend = customerBackend();
+    const router = renderAt('/customers/list/new', person(['clients.customer.view', 'clients.customer.create']));
+    const dialog = await screen.findByRole('dialog', { name: 'New customer' });
+    expect(within(dialog).queryByLabelText('Primary identifier')).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Identifier number')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Contact')).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText(/First name/), 'Wanjiku');
+    await user.type(within(dialog).getByLabelText(/Last name/), 'Kamau');
+    await user.click(within(dialog).getByRole('button', { name: 'Create customer' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/customers/list/CUS0000002'));
+    const [create] = backend.commands('POST', '/clients');
+    expect(create.body).not.toHaveProperty('identifiers');
+  });
+
+  it('A1: adding an identifier that collides shows the evidence, needs an acknowledgement and a reason, and retries under a new key', async () => {
+    const user = userEvent.setup();
+    let attempts = 0;
+    const backend = customerBackend({
+      addIdentifier: () => {
+        attempts += 1;
+        return attempts === 1
+          ? envelope(409, 'CUSTOMER_DUPLICATE_CANDIDATE', 'an existing customer holds the same identifier', {
+              candidates: [{ customer_no: 'CUS0000007', matched: ['NATIONAL_ID'] }],
+              hidden_candidates: 2,
+            })
+          : json(201, identifier({ id: 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd' }), { ETag: ETAG });
+      },
+    });
+    renderAt(`/customers/list/${CUSTOMER_ID}?tab=kyc`);
+    await user.click(await screen.findByRole('button', { name: 'Add identifier' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Add identifier' });
+    await user.type(within(dialog).getByLabelText(/Number/), '12345678');
+    await user.click(within(dialog).getByRole('button', { name: 'Add identifier' }));
+
+    const alert = await within(dialog).findByRole('alert');
+    expect(alert).toHaveTextContent('CUS0000007 · matches on National ID');
+    expect(alert).toHaveTextContent('2 more matches are outside the branches you can see.');
+    const add = within(dialog).getByRole('button', { name: 'Add anyway' });
+    expect(add).toBeDisabled();
+
+    await user.click(within(dialog).getByLabelText(/I have checked the matching customers/));
+    await user.click(add);
+    expect(within(dialog).getByText('Say why this is not the same customer.')).toBeInTheDocument();
+    expect(backend.commands('POST', `/clients/${CUSTOMER_ID}/identifiers`)).toHaveLength(1);
+    await user.type(within(dialog).getByLabelText(/Reason/), 'Twin with a similar ID, checked at IPRS');
+    await user.click(within(dialog).getByRole('button', { name: 'Add anyway' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add identifier' })).not.toBeInTheDocument());
+    const [first, second] = backend.commands('POST', `/clients/${CUSTOMER_ID}/identifiers`);
+    expect(first.body).toEqual({ identifier_type: 'NATIONAL_ID', value: '12345678', is_primary: true });
+    expect(second.body).toEqual({
+      identifier_type: 'NATIONAL_ID',
+      value: '12345678',
+      is_primary: true,
+      acknowledge_duplicates: true,
+      duplicate_reason: 'Twin with a similar ID, checked at IPRS',
+    });
     expect(second.headers['x-idempotency-key']).not.toBe(first.headers['x-idempotency-key']);
   });
 });

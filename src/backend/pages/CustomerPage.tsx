@@ -42,8 +42,9 @@ import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErr
 import { CUSTOMER_TYPE_LABEL, identifierLabel, IDENTIFIER_TYPES, KYC_LABEL, KYC_MOVES, KYC_TONE, STATUS_TONE } from '../customers/format';
 import type { KycMove } from '../customers/format';
 import { useCustomer, useCustomer360, useCustomerIdentifiers } from '../customers/queries';
+import { DuplicateAcknowledgement, DuplicateNotice, duplicatesOf } from '../customers/duplicates';
 import { useCustomerId } from '../customers/refs';
-import type { CustomerDetail, CustomerIdentifier, CustomerType } from '../customers/types';
+import type { CustomerDetail, CustomerIdentifier, CustomerType, DuplicateDetails } from '../customers/types';
 import { CustomerOutcome, useCustomerCommands } from '../customers/useCustomerCommands';
 import { CUSTOMER_EDIT, KYC_MANAGE, KYC_VERIFY } from '../permissions';
 import { formatDate } from '../policies/format';
@@ -710,21 +711,26 @@ const IdentifierDialog: React.FC<{ customerId: string; type: CustomerType; onClo
   const [identifierType, setIdentifierType] = useState(types[0]?.id ?? 'OTHER');
   const [value, setValue] = useState('');
   const [primary, setPrimary] = useState(true);
-  const [duplicate, setDuplicate] = useState(false);
+  // NB1-A-R1 (A1): the server's duplicate evidence, shown before any acknowledgement.
+  const [duplicates, setDuplicates] = useState<DuplicateDetails | null>(null);
+  const [acknowledged, setAcknowledged] = useState(false);
   const [reason, setReason] = useState('');
   const command = useDialogCommand();
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     command.start();
-    if (!value.trim() || (duplicate && !reason.trim())) return;
+    if (!value.trim() || (duplicates && (!acknowledged || !reason.trim()))) return;
     const outcome = await addIdentifier(customerId, {
       identifier_type: identifierType,
       value: value.trim(),
       is_primary: primary,
-      ...(duplicate ? { acknowledge_duplicates: true, duplicate_reason: reason.trim() } : {}),
+      ...(duplicates && acknowledged ? { acknowledge_duplicates: true, duplicate_reason: reason.trim() } : {}),
     });
-    if (outcome.ok === false && outcome.error instanceof ApiError && outcome.error.code === 'CUSTOMER_DUPLICATE_CANDIDATE') {
-      setDuplicate(true);
+    const found = outcome.ok === false ? duplicatesOf(outcome.error) : null;
+    if (found) {
+      setDuplicates(found);
+      setAcknowledged(false);
+      return;
     }
     command.handle(outcome, onDone);
   };
@@ -736,9 +742,19 @@ const IdentifierDialog: React.FC<{ customerId: string; type: CustomerType; onClo
       onClose={onClose}
       dismissOnBackdrop={!value}
       size="md"
-      footer={<Footer form="customer-identifier-form" pending={pending} onClose={onClose} text={duplicate ? 'Add anyway' : 'Add identifier'} busy="Adding…" />}
+      footer={
+        <>
+          <button type="button" className="hz-button hz-button-secondary" onClick={onClose} disabled={pending}>
+            Cancel
+          </button>
+          <button type="submit" form="customer-identifier-form" className="hz-button hz-button-primary" disabled={pending || (!!duplicates && !acknowledged)}>
+            {pending ? 'Adding…' : duplicates ? 'Add anyway' : 'Add identifier'}
+          </button>
+        </>
+      }
     >
       <Notices failure={command.failure} stale={command.stale} title="The identifier was not added" />
+      {duplicates && <DuplicateNotice duplicates={duplicates} />}
       <form id="customer-identifier-form" noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-5">
         <div>
           <label htmlFor="identifier-type" className={label}>
@@ -764,21 +780,15 @@ const IdentifierDialog: React.FC<{ customerId: string; type: CustomerType; onClo
           <input type="checkbox" checked={primary} onChange={(event) => setPrimary(event.target.checked)} />
           Primary identifier
         </label>
-        {duplicate && (
-          <div>
-            <label htmlFor="identifier-duplicate-reason" className={label}>
-              Why is this a different customer? <span className="text-[var(--hz-danger)]">*</span>
-            </label>
-            <textarea
-              id="identifier-duplicate-reason"
-              rows={2}
-              maxLength={500}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              className="hz-field w-full px-3 py-2 text-sm"
-            />
-            <FieldError message={command.attempted && !reason.trim() ? 'Give the reason.' : undefined} />
-          </div>
+        {duplicates && (
+          <DuplicateAcknowledgement
+            idPrefix="identifier"
+            acknowledged={acknowledged}
+            onAcknowledged={setAcknowledged}
+            reason={reason}
+            onReason={setReason}
+            error={command.attempted && acknowledged && !reason.trim() ? 'Say why this is not the same customer.' : undefined}
+          />
         )}
       </form>
     </DialogFrame>
