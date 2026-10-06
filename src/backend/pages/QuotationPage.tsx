@@ -9,6 +9,8 @@
  *   the server includes it (products.commission.view).
  * - Issue (NB-D6): when the risk is on other live quotations, the visible ones and the hidden count
  *   are shown, and issuing needs an acknowledgement with a reason (a changed body, a new key).
+ * - View offer shows the frozen `/offer` payload of an issued revision (its risk, pricing and
+ *   required documents as issued), never the current revision (NB1-B-R1, B1).
  * - The offer: accept or decline (with a reason), revise, cancel (with a reason). A revision of an
  *   expired offer needs a checker: submit it; the check is made in My Work Queue when the tenant
  *   governs it, or here by a holder of quotations.quotation.check otherwise (never its preparer).
@@ -48,6 +50,7 @@ import { QUOTATION_CANCEL, QUOTATION_CHECK, QUOTATION_DECIDE, QUOTATION_EDIT, QU
 import { formatDate } from '../policies/format';
 import { QUOTATION_STATUS_LABEL, QUOTATION_TONE, RISK_IDENTIFIER_TYPES, riskIdentifierLabel } from '../quotations/format';
 import { useOffer, useProductDetail, useProductVersion, useQuotation, versionInForce } from '../quotations/queries';
+import { parseFactorDecimal } from '../quotations/decimal';
 import { useQuotationId } from '../quotations/refs';
 import type { DuplicateAlerts, Pricing, QuotationDetail, RatingFactor, RiskIdentifier } from '../quotations/types';
 import { QuotationOutcome, useQuotationCommands } from '../quotations/useQuotationCommands';
@@ -374,20 +377,31 @@ type FactorValues = Record<string, string>;
 
 const asText = (value: unknown) => (value === undefined || value === null ? '' : typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value));
 
-/** The factor values as the server expects them: numbers as strings, choices as strings, yes/no as booleans. */
+/**
+ * The factor values as the server expects them: numbers as canonical digit strings (the same
+ * parse the check uses, NB1-B-R1 B2), choices as strings, yes/no as booleans.
+ */
 const factorBody = (factors: RatingFactor[], values: FactorValues) =>
   Object.fromEntries(
     factors
-      .filter((factor) => values[factor.code] !== undefined && values[factor.code] !== '')
-      .map((factor) => [factor.code, factor.data_type === 'BOOLEAN' ? values[factor.code] === 'true' : values[factor.code].trim()]),
+      .filter((factor) => values[factor.code] !== undefined && values[factor.code].trim() !== '')
+      .map((factor) => [
+        factor.code,
+        factor.data_type === 'BOOLEAN'
+          ? values[factor.code] === 'true'
+          : factor.data_type === 'DECIMAL'
+            ? parseFactorDecimal(values[factor.code]).value ?? values[factor.code].trim()
+            : values[factor.code].trim(),
+      ]),
   );
 
 const factorError = (factor: RatingFactor, raw: string): string | undefined => {
   const value = raw.trim();
   if (!value) return factor.is_required ? `Give the ${factor.name.toLowerCase()}.` : undefined;
   if (factor.data_type !== 'DECIMAL') return undefined;
-  const number = Number(value.replace(/,/g, ''));
-  if (!Number.isFinite(number)) return 'Enter a number.';
+  const parsed = parseFactorDecimal(value);
+  if (parsed.error || parsed.value === null) return parsed.error ?? 'Enter a number.';
+  const number = Number(parsed.value);
   if (factor.min_value !== null && number < Number(factor.min_value)) return `At least ${factor.min_value}${factor.unit ? ` ${factor.unit}` : ''}.`;
   if (factor.max_value !== null && number > Number(factor.max_value)) return `At most ${factor.max_value}${factor.unit ? ` ${factor.unit}` : ''}.`;
   return undefined;
@@ -814,7 +828,45 @@ const OfferDialog: React.FC<{ quotationId: string; revisionNo: number; onClose: 
             ]}
           />
           <DetailDivider />
-          {offer.data.pricing ? <PricingTable pricing={offer.data.pricing} /> : <p className="text-sm text-[var(--hz-text-muted)]">No pricing.</p>}
+          <DetailGroup title="Risk, as offered">
+            {Object.keys(offer.data.risk.factors).length === 0 && offer.data.risk.identifiers.length === 0 ? (
+              <p className="text-sm text-[var(--hz-text-muted)]">No risk recorded.</p>
+            ) : (
+              <DetailGrid
+                dense
+                columns={2}
+                items={[
+                  ...Object.entries(offer.data.risk.factors).map(([code, value]) => ({
+                    label: humanize(code),
+                    value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value),
+                  })),
+                  ...offer.data.risk.identifiers.map((item) => ({
+                    label: riskIdentifierLabel(item.identifier_type),
+                    value: <span className="font-mono">{item.value}</span>,
+                  })),
+                ]}
+              />
+            )}
+          </DetailGroup>
+          <DetailDivider />
+          <DetailGroup title="Premium, as offered">
+            {offer.data.pricing ? <PricingTable pricing={offer.data.pricing} /> : <p className="text-sm text-[var(--hz-text-muted)]">No pricing.</p>}
+          </DetailGroup>
+          <DetailDivider />
+          <DetailGroup title="Required documents, as offered">
+            {offer.data.required_documents.length ? (
+              <ul aria-label="Offered required documents" className="flex flex-col gap-1 text-sm text-[var(--hz-text-primary)]">
+                {offer.data.required_documents.map((doc) => (
+                  <li key={doc.code}>
+                    {doc.name}
+                    <span className="text-[13px] text-[var(--hz-text-muted)]"> · {humanize(doc.stage)}{doc.is_mandatory ? ' · required' : ' · optional'}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-[var(--hz-text-muted)]">None.</p>
+            )}
+          </DetailGroup>
         </div>
       )}
     </DialogFrame>

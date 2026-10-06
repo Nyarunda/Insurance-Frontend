@@ -2,6 +2,7 @@
 
 **Slice of:** NEW-BUSINESS-1 (`backend/docs/specs/new-business-1-scope.md`).
 **Branch:** `nb1-b` from `main` `96985c7`. Frontend only; no backend change (NB-D1).
+**Status:** NB1-B (`e6dab80`) reviewed: REQUEST CHANGES (B1, B2, B3). NB1-B-R1 makes those corrections; see *NB1-B-R1*.
 
 ## What it adds
 
@@ -19,7 +20,7 @@
 ## The record
 
 - **Risk (NB-D3):**
-  - **The form:** the rating factors come only from the product's published version in force. `DECIMAL` is a number field showing its bounds and unit, and is checked before sending. `CHOICE` offers the server's choices. `BOOLEAN` is a yes/no choice.
+  - **The form:** the rating factors come only from the product's published version in force. `DECIMAL` is a number field showing its bounds and unit, and is checked before sending. **One parser serves the check and the request** (`quotations/decimal.ts`, R1, B2): `1,200,000.50` is sent as `"1200000.50"` while the field keeps what was typed, and malformed grouping such as `1,2,00` is refused rather than read as another number. `CHOICE` offers the server's choices. `BOOLEAN` is a yes/no choice.
   - **Identifiers:** risk identifiers use the platform's fixed types.
   - **`risk.details`:** not shown. What a revision already holds is sent back unchanged.
   - **Saving:** `PUT …/risk` with the ETag. The server clears any pricing when the risk changes, and the screen says so.
@@ -34,7 +35,7 @@
 - **The offer:**
   - **The customer's answer:** **Customer accepted** records acceptance. **Customer declined** needs a reason.
   - **Other actions:** **Revise** makes a new draft revision. **Cancel quotation** needs a reason. **Change validity** is a PATCH on a draft.
-  - **History:** the revisions are listed, and **View offer** shows an issued revision as it was frozen.
+  - **History:** the revisions are listed. **View offer** shows the frozen `/offer` payload of an issued revision: customer, insurer, product, branch, dates, **the risk as offered** (factors and identifiers; no `risk.details`), **the premium as offered**, and **the required documents as offered**. It is never rebuilt from the current revision (R1, B1).
 - **A revision of an expired offer:**
   - The record says it needs a checker. **Issue** is withheld until it is approved.
   - The maker uses **Submit for a check**.
@@ -69,3 +70,18 @@ The 12 new tests:
 12. The version in force is picked by date.
 
 The real-backend journey is NB1-E's.
+
+## NB1-B-R1
+
+| Finding | Correction |
+| :--- | :--- |
+| **B1** (blocker): the offer view dropped the frozen risk and required documents. | `OfferDialog` renders the `/offer` payload's risk (factors and identifiers; `risk.details` stays hidden), its pricing and its required documents, each titled *as offered*. |
+| **B2**: DECIMAL validation stripped commas, but the request sent the original text. | `parseFactorDecimal` is used by both. It accepts plain digits or correct groups of three (optional decimals; zero allowed), sends canonical digits, and refuses malformed grouping with its own message. |
+| **B3**: there was no evidence for a stale risk save. | Two tests. (1) A 412, then a refetch with a newer ETag and the same risk: the typed value remains, and the retry has the same body and the same idempotency key under the refreshed ETag. (2) A 412 whose refetch carries a changed risk: the form starts again from the server. |
+
+**R1 evidence:**
+
+| Check | Result |
+| :--- | :--- |
+| `tsc --noEmit`, `build`, `build:backend` | Pass |
+| Vitest | **274/274** (270 + 4 new: B1, B2, and two for B3) |

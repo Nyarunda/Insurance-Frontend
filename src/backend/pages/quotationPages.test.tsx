@@ -6,7 +6,7 @@ import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { envelope, FakeCall, fakeFetch, json } from '../../test/fetchFake';
-import { NOT_FOUND_TEXT } from '../../lib/api/commandErrors';
+import { NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { ME_QUERY_KEY, Me } from '../../lib/auth/me';
 import { useSessionStore } from '../../lib/auth/sessionStore';
@@ -15,6 +15,7 @@ import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
 import type { Pricing, QuotationDetail, QuotationSummary, RevisionView } from '../quotations/types';
 import { versionInForce } from '../quotations/queries';
+import { DECIMAL_MESSAGES, parseFactorDecimal } from '../quotations/decimal';
 import { EMPTY_QUOTATIONS_TEXT } from './QuotationsPage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -101,10 +102,14 @@ const FACTORS = [
 interface Options {
   list?: QuotationSummary[];
   view?: QuotationDetail;
+  /** The detail (and its ETag) served on each GET, in order; the last repeats. */
+  views?: { view: QuotationDetail; etag: string }[];
+  offer?: Record<string, unknown>;
   command?: (call: FakeCall, action: string) => Response | null;
 }
 
 function quotationBackend(options: Options = {}) {
+  let gets = 0;
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
     if (path.startsWith('/quotations?')) {
@@ -124,6 +129,11 @@ function quotationBackend(options: Options = {}) {
       return json(200, { results: [{ id: CUSTOMER_ID, customer_no: 'CUS0000001', customer_type: 'INDIVIDUAL', display_name: 'Wanjiku Kamau', status: 'ACTIVE', kyc_status: 'VERIFIED', primary_phone: null, primary_email: null, home_branch: BRANCH }], count: 1, page: 1, page_size: 25 });
     }
     const view = options.view ?? detail();
+    if (path === `/quotations/${Q_ID}` && call.method === 'GET' && options.views) {
+      const served = options.views[Math.min(gets, options.views.length - 1)];
+      gets += 1;
+      return json(200, served.view, { ETag: served.etag });
+    }
     if (path === '/quotations' && call.method === 'POST') return json(201, detail({ quotation_no: 'QUO0000002' }), { ETag: ETAG });
     if (path === `/quotations/${Q_ID}` && call.method === 'GET') return json(200, view, { ETag: ETAG });
     if (path.startsWith(`/quotations/${Q_ID}`) && call.method !== 'GET') {
@@ -131,6 +141,7 @@ function quotationBackend(options: Options = {}) {
       return options.command?.(call, action) ?? json(200, view, { ETag: ETAG });
     }
     if (path === `/quotations/${Q_ID}/revisions/1/offer`) {
+      if (options.offer) return json(200, options.offer);
       return json(200, { quotation_no: 'QUO0000001', quote_date: '2026-10-06', valid_until: '2026-11-05', customer: { customer_no: 'CUS0000001', display_name: 'Wanjiku Kamau' }, insurer: { name: 'Jubilee Insurance' }, product: { name: 'Motor Private' }, branch: { name: 'Nairobi' }, revision_no: 1, risk: revision().risk, pricing: PRICING, required_documents: [], issued_at: '2026-10-06T11:00:00Z' });
     }
     throw new Error(`unexpected ${call.method} ${call.url}`);
@@ -358,6 +369,119 @@ describe('A revision of an expired offer', () => {
     renderAt(`/quotations/list/${Q_ID}`, CHECKER);
     expect(await screen.findByText('Waiting for: Quotation Checker')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Approve revision' })).not.toBeInTheDocument();
+  });
+});
+
+describe('NB1-B-R1', () => {
+  it('B1: View offer shows the frozen /offer payload (its risk, premium and documents), not the current revision', async () => {
+    const user = userEvent.setup();
+    const issuedRevisions = [
+      { revision_no: 1, status: 'ISSUED', issued_at: '2026-09-01T11:00:00Z', total_premium: '30000.00' },
+      { revision_no: 2, status: 'DRAFT', issued_at: null, total_premium: null },
+    ];
+    quotationBackend({
+      // The current draft revision is deliberately different from what was offered in revision 1.
+      view: detail({ current_revision_no: 2, revisions: issuedRevisions }, { revision_no: 2, risk: { factors: { sum_insured: '1500000' }, details: {}, identifiers: [] } }),
+      offer: {
+        quotation_no: 'QUO0000001', quote_date: '2026-09-01', valid_until: '2026-09-30',
+        customer: { customer_no: 'CUS0000001', display_name: 'Wanjiku Kamau' }, insurer: { name: 'Jubilee Insurance' },
+        product: { name: 'Motor Private' }, branch: { name: 'Nairobi' }, revision_no: 1,
+        risk: { factors: { sum_insured: '800000', has_tracker: false }, details: { colour: 'Red' }, identifiers: [{ identifier_type: 'VEHICLE_REGISTRATION', value: 'KAA 001A' }] },
+        pricing: { ...PRICING, total_premium: '30000.00' },
+        required_documents: [{ code: 'VALUATION', name: 'Valuation report', stage: 'QUOTATION', is_mandatory: false }],
+        issued_at: '2026-09-01T11:00:00Z',
+      },
+    });
+    renderAt(`/quotations/list/${Q_ID}`);
+    await user.click(await screen.findByRole('button', { name: 'View offer' }));
+    const offer = await screen.findByRole('dialog', { name: /Offer QUO0000001, revision 1/ });
+    await within(offer).findByText('Risk, as offered');
+    expect(offer).toHaveTextContent('800000');
+    expect(offer).toHaveTextContent('Has tracker');
+    expect(offer).toHaveTextContent('KAA 001A');
+    expect(offer).toHaveTextContent('KES 30,000.00');
+    expect(within(offer).getByRole('list', { name: 'Offered required documents' })).toHaveTextContent('Valuation report');
+    expect(offer).not.toHaveTextContent('1500000');
+    expect(offer).not.toHaveTextContent('Red');                       // risk.details stays hidden (NB-D3)
+  });
+
+  it('B2: a grouped number is sent as canonical digits; malformed grouping is refused, never read as another number', async () => {
+    expect(parseFactorDecimal('1,200,000.50')).toEqual({ value: '1200000.50', error: null });
+    expect(parseFactorDecimal('1200000')).toEqual({ value: '1200000', error: null });
+    expect(parseFactorDecimal('0')).toEqual({ value: '0', error: null });
+    expect(parseFactorDecimal('1,2,00')).toEqual({ value: null, error: DECIMAL_MESSAGES.grouping });
+    expect(parseFactorDecimal('12a')).toEqual({ value: null, error: DECIMAL_MESSAGES.notNumber });
+
+    const user = userEvent.setup();
+    const backend = quotationBackend();
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    const sum = within(risk).getByLabelText(/Sum insured \(KES\)/);
+    await user.clear(sum);
+    await user.type(sum, '1,2,00');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    expect(within(risk).getByText(DECIMAL_MESSAGES.grouping)).toBeInTheDocument();
+    expect(backend.sent('risk')).toHaveLength(0);
+
+    await user.clear(sum);
+    await user.type(sum, '1,200,000.50');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(backend.sent('risk')).toHaveLength(1));
+    expect(backend.sent('risk')[0].body).toMatchObject({ factors: { sum_insured: '1200000.50', vehicle_use: 'PRIVATE' } });
+    expect(within(risk).getByLabelText(/Sum insured \(KES\)/)).toHaveValue('1,200,000.50');   // the field keeps what was typed
+  });
+
+  it('B3: a stale risk save keeps what was typed and retries the same body and key with the refreshed ETag', async () => {
+    const user = userEvent.setup();
+    const NEWER = `"quotation-${Q_ID}-v5"`;
+    let puts = 0;
+    const backend = quotationBackend({
+      // Someone else touched the quotation (a new ETag) without changing its risk.
+      views: [
+        { view: detail(), etag: ETAG },
+        { view: detail({ row_version: 5 }), etag: NEWER },
+      ],
+      command: (_call, action) => {
+        if (action !== 'risk') return null;
+        puts += 1;
+        return puts === 1 ? envelope(412, 'CONCURRENCY_CONFLICT', 'the quotation was changed') : json(200, detail({ row_version: 6 }), { ETag: `"quotation-${Q_ID}-v6"` });
+      },
+    });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    const sum = within(risk).getByLabelText(/Sum insured \(KES\)/);
+    await user.clear(sum);
+    await user.type(sum, '1,300,000');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+
+    expect(await screen.findByText(STALE_TEXT)).toBeInTheDocument();
+    expect(within(risk).getByLabelText(/Sum insured \(KES\)/)).toHaveValue('1,300,000');        // what was typed remains
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(backend.sent('risk')).toHaveLength(2));
+    const [first, second] = backend.sent('risk');
+    expect(first.headers['if-match']).toBe(ETAG);
+    expect(second.headers['if-match']).toBe(NEWER);                                                 // the refreshed ETag
+    expect(second.body).toEqual(first.body);                                                        // the same body
+    expect(second.headers['x-idempotency-key']).toBe(first.headers['x-idempotency-key']);          // the same key
+  });
+
+  it('B3: when the server risk itself changed, the form starts again from the server', async () => {
+    const user = userEvent.setup();
+    quotationBackend({
+      views: [
+        { view: detail(), etag: ETAG },
+        { view: detail({ row_version: 5 }, { risk: { factors: { sum_insured: '2000000', vehicle_use: 'COMMERCIAL' }, details: {}, identifiers: [] } }), etag: `"quotation-${Q_ID}-v5"` },
+      ],
+      command: (_call, action) => (action === 'risk' ? envelope(412, 'CONCURRENCY_CONFLICT', 'the quotation was changed') : null),
+    });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    const sum = within(risk).getByLabelText(/Sum insured \(KES\)/);
+    await user.clear(sum);
+    await user.type(sum, '1300000');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(within(screen.getByRole('form', { name: 'Risk' })).getByLabelText(/Sum insured \(KES\)/)).toHaveValue('2000000'));
+    expect(within(screen.getByRole('form', { name: 'Risk' })).getByLabelText(/^Use/)).toHaveValue('COMMERCIAL');
   });
 });
 
