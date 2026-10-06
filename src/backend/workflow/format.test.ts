@@ -72,6 +72,10 @@ describe('display rules', () => {
     expect(
       actorLabel(entry({ actor_user_id: '9a9a9a9a-1d2a-4c3b-9e8f-0a1b2c3d4e5f', stage: null, action: 'SUBMIT', actor_email: 'maker@acme.test' }), me),
     ).toBe('maker@acme.test (requester)');
+    // DESIGN-1-R2: a caller without workflow.requester_identity.view gets null, shown as Requester.
+    expect(
+      actorLabel(entry({ actor_user_id: '9a9a9a9a-1d2a-4c3b-9e8f-0a1b2c3d4e5f', stage: null, action: 'SUBMIT', actor_email: null }), me),
+    ).toBe('Requester');
   });
 });
 

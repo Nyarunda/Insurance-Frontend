@@ -221,6 +221,9 @@ test.describe('FI1-E: the endorsement journey against the real backend', () => {
     await expect(change).toContainText('New limitKES 70,000.00');
     await expect(change).toContainText(`Policy${facts().alpha.policy.policy_no}`);
     await expect(change).toContainText("Maker's reasonCustomer asked for a higher windscreen limit");
+    // DESIGN-1-R2 (W6): this checker holds workflow.requester_identity.view (REQUESTER_IDENTITY_VIEWER
+    // through setup_tenant_access), so the Submit row names the requester.
+    await expect(page.getByRole('table', { name: 'Workflow history' })).toContainText(`${MAKER} (requester)`);
     await expectNoUuid(page);
 
     // The first answer is lost on the way back: the server has acted, the browser sees a network failure.

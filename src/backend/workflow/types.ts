@@ -49,7 +49,10 @@ export interface HistoryEntry {
   actor_kind: string;
   actor_user_id: string | null;
   acting_for_user_id: string | null;
-  /** The requester's email, on the SUBMIT row only (backend approve-comment branch on); approvers stay roles. */
+  /**
+   * The requester's email, on the SUBMIT row only, and only when the caller holds
+   * workflow.requester_identity.view in the instance's branch (DESIGN-1-R2); otherwise null. Approvers stay roles.
+   */
   actor_email?: string | null;
   new_status: string | null;
   stage: string | null;
