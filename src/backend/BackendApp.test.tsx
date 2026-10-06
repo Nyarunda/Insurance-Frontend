@@ -214,6 +214,10 @@ describe('sign-in against the backend contract', () => {
     expect(alert).toHaveTextContent('The email or password is not correct.');
     expect(within(alert).getByText('corr-login')).toBeInTheDocument();
     expect(useSessionStore.getState().status).toBe('signed-out');
+    // A toast: dismissed by its button, and what was typed stays.
+    await user.click(within(alert).getByRole('button', { name: 'Dismiss' }));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('name@company.co.ke')).toHaveValue('maker@acme.test');
   });
 
   it('counts down the OTP attempts the backend reports', async () => {

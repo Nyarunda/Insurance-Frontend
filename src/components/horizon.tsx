@@ -11,7 +11,7 @@ const TOAST_TONE_FREQUENCIES: Record<FeedbackToneForSound, number> = {
   neutral: 440.0,
 };
 
-function playToastSound(tone: FeedbackToneForSound) {
+export function playToastSound(tone: FeedbackToneForSound) {
   try {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;

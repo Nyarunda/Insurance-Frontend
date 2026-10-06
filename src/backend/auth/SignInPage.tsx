@@ -27,7 +27,7 @@ import { describeError } from '../../lib/api/errorText';
 import { forcedPasswordChange, login, OtpChallenge, resendOtp, verifyOtp } from '../../lib/auth/authApi';
 import { completeSignIn } from '../../lib/auth/session';
 import { SESSION_NOTICE_TEXT, useSessionStore } from '../../lib/auth/sessionStore';
-import { ApiErrorAlert } from '../components/ApiErrorAlert';
+import { ApiErrorToast } from '../components/ApiErrorAlert';
 
 type Step = 'credentials' | 'otp' | 'password';
 
@@ -181,7 +181,6 @@ export const SignInPage: React.FC = () => {
                 {SESSION_NOTICE_TEXT[notice]}
               </HorizonAlert>
             )}
-            {error ? <ApiErrorAlert error={error} /> : null}
             <EmailField value={email} onChange={setEmail} />
             <PasswordField
               label="Password"
@@ -211,7 +210,6 @@ export const SignInPage: React.FC = () => {
       {step === 'otp' && challenge && (
         <SignInPanel title="Verify your identity" subtitle="Two-factor authentication" onBack={() => startOver()}>
           <form onSubmit={submitCode} className="space-y-5" noValidate>
-            {error ? <ApiErrorAlert error={error} /> : null}
             <HorizonAlert tone="info" title="Verification code sent">
               A 6-digit code was sent to <strong>{challenge.delivery.destination}</strong>.
               {challenge.sandbox_code && (
@@ -234,7 +232,6 @@ export const SignInPage: React.FC = () => {
         <SignInPanel title="Update your password" subtitle="Your temporary password must be changed">
           <form onSubmit={submitNewPassword} className="space-y-5" noValidate>
             <HorizonAlert tone="warning">You signed in with a temporary password. Set a new one to continue.</HorizonAlert>
-            {error ? <ApiErrorAlert error={error} /> : null}
             <NewPasswordFields
               newPassword={newPassword}
               confirmPassword={confirmPassword}
@@ -249,6 +246,8 @@ export const SignInPage: React.FC = () => {
           </form>
         </SignInPanel>
       )}
+      {/* Errors arrive as a red toast with the error sound (DESIGN-1), with their reference. */}
+      <ApiErrorToast error={error} onClose={() => setError(null)} />
     </SignInFrame>
   );
 };
