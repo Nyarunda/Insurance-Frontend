@@ -20,6 +20,8 @@ import { PolicyRefRoute } from './policies/refs';
 import { EndorsementPage } from './pages/EndorsementPage';
 import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
+import { CertificatePage } from './pages/CertificatePage';
+import { CertificatesPage } from './pages/CertificatesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -32,6 +34,7 @@ import {
   QUOTATION_CREATE,
   QUOTATION_VIEW,
   TASK_VIEW,
+  CERT_VIEW,
 } from './permissions';
 import { ProposalRefRoute } from './proposals/refs';
 import { ProposalCreatePage } from './pages/ProposalCreatePage';
@@ -262,6 +265,25 @@ export const backendRoutes: RouteObject[] = [
               </div>
               <EndorsementPage />
             </PolicyRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // CS-B: find a certificate (issued only) by vehicle or serial, and the record by serial.
+      { path: 'certificates', element: <ToList to="/certificates/list" /> },
+      { path: 'certificates/:record/*', element: <IntoList /> },
+      {
+        path: 'certificates/list',
+        element: (
+          <RequirePermission permission={CERT_VIEW}>
+            <CertificatesPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'certificates/list/:serial',
+        element: (
+          <RequirePermission permission={CERT_VIEW}>
+            <CertificatePage />
           </RequirePermission>
         ),
       },

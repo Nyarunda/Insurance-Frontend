@@ -6,8 +6,8 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { ClipboardList, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
-import { CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, TASK_VIEW } from './permissions';
+import { ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, UsersRound, type LucideIcon } from 'lucide-react';
+import { CERT_VIEW, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, TASK_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -60,7 +60,11 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     id: 'policies',
     title: 'Policies',
     icon: FileCheck2,
-    items: [{ screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 }],
+    items: [
+      { screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 },
+      // CS-B: find an issued certificate by vehicle or serial.
+      { screen: 'certificates', label: 'Certificates', path: '/certificates/list', permission: CERT_VIEW, icon: FileBadge },
+    ],
   },
 ];
 
