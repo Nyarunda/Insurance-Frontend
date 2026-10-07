@@ -34,3 +34,5 @@ export const PROPOSAL_EXCEPTION_APPROVE = 'underwriting.exception.approve';
 export const CERT_VIEW = 'certificates.cert.view';
 export const CERT_ISSUE = 'certificates.cert.issue';
 export const CERT_CANCEL = 'certificates.cert.cancel';
+// CS-C: certificate types, batches, stock and allocation.
+export const CERT_STOCK = 'certificates.stock.manage';

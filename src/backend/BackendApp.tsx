@@ -22,6 +22,7 @@ import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { CertificatePage } from './pages/CertificatePage';
 import { CertificatesPage } from './pages/CertificatesPage';
+import { CertificateStockPage } from './pages/CertificateStockPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -34,6 +35,7 @@ import {
   QUOTATION_CREATE,
   QUOTATION_VIEW,
   TASK_VIEW,
+  CERT_STOCK,
   CERT_VIEW,
 } from './permissions';
 import { ProposalRefRoute } from './proposals/refs';
@@ -271,6 +273,15 @@ export const backendRoutes: RouteObject[] = [
       // CS-B: find a certificate (issued only) by vehicle or serial, and the record by serial.
       { path: 'certificates', element: <ToList to="/certificates/list" /> },
       { path: 'certificates/:record/*', element: <IntoList /> },
+      // CS-C: stock management (types, batches, available stock, allocation to a branch).
+      {
+        path: 'certificates/stock',
+        element: (
+          <RequirePermission permission={CERT_STOCK}>
+            <CertificateStockPage />
+          </RequirePermission>
+        ),
+      },
       {
         path: 'certificates/list',
         element: (

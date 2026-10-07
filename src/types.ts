@@ -35,6 +35,8 @@ export type ScreenId =
   | 'renewals'
   | 'cancellations'
   | 'certificates'
+  // Backend mode (CERTIFICATES-SURFACE-1 CS-C): its own id beside Certificates.
+  | 'certificate-stock'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'
