@@ -16,6 +16,9 @@
  *   insurer policy number; the new policy opens in the policy workspace. The re-checks the server
  *   makes at bind (still bindable, KYC verified, inception not passed without an approved
  *   backdating, still ready) are shown as its answers in words.
+ * - Submit guidance: unsaved terms, or no saved agreement or inception, stop Submit before anything
+ *   is sent; a warning toast says what to do and the field says it too (and takes the focus). A
+ *   server refusal for a terms problem (PROPOSAL_NOT_BINDABLE) is placed on the same fields.
  * Actions show only to users whose permissions could use them; the server decides every one.
  */
 
@@ -77,6 +80,23 @@ const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid 
 type Dialog = 'bind' | 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | { approve: ProposalException } | null;
 
 const OPEN_STATUSES = ['DRAFT', 'UNDER_REVIEW', 'REFERRED'];
+
+/** Bindability problems that are about the terms, and the field each belongs on. */
+const TERMS_PROBLEMS: Record<string, keyof TermsIssues> = {
+  AGREEMENT_REQUIRED: 'agreement_id',
+  AGREEMENT_NOT_ACTIVE: 'agreement_id',
+  AGREEMENT_NOT_IN_FORCE: 'agreement_id',
+  INCEPTION_REQUIRED: 'proposed_inception_date',
+  SUM_INSURED_REQUIRED: 'sum_insured',
+};
+type TermsIssues = Partial<Record<'agreement_id' | 'proposed_inception_date' | 'sum_insured', string>>;
+const FIELD_ID: Record<keyof TermsIssues, string> = {
+  agreement_id: 'proposal-agreement',
+  proposed_inception_date: 'proposal-inception-date',
+  sum_insured: 'proposal-sum-insured',
+};
+const sentence = (text: string) => `${text.charAt(0).toUpperCase()}${text.slice(1)}${/[.!?]$/.test(text) ? '' : '.'}`;
+const focusField = (id: string) => window.setTimeout(() => document.getElementById(id)?.focus(), 0);
 const SUBMITTED_STATUSES = ['UNDER_REVIEW', 'REFERRED'];
 
 /** A refusal in words: the server's list of problems when the proposal cannot be bound as it stands. */
@@ -115,6 +135,9 @@ export const ProposalPage: React.FC = () => {
   const canSeePolicies = usePermission(POLICY_VIEW);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [termsDirty, setTermsDirty] = useState(false);
+  const [termsIssues, setTermsIssues] = useState<TermsIssues>({});
   const [failure, setFailure] = useState<{ error: unknown; title: string } | null>(null);
   const [stale, setStale] = useState(false);
 
@@ -123,6 +146,11 @@ export const ProposalPage: React.FC = () => {
     const timer = window.setTimeout(() => setToast(null), 3500);
     return () => window.clearTimeout(timer);
   }, [toast]);
+  useEffect(() => {
+    if (!warning) return;
+    const timer = window.setTimeout(() => setWarning(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [warning]);
 
   const back = () => navigate(proposalsFrom(location.state));
 
@@ -163,6 +191,52 @@ export const ProposalPage: React.FC = () => {
     }
     if (outcome.kind === 'stale') setStale(true);
     else setFailure({ error: outcome.error, title });
+  };
+  /**
+   * Submit, guided: what the page already knows stops it before anything is sent (unsaved terms, no
+   * saved agreement or inception); a server refusal about the terms lands on their fields too.
+   */
+  const submit = async () => {
+    if (!etag) return;
+    setTermsIssues({});
+    setWarning(null);
+    if (termsDirty) {
+      setWarning('Save the terms first: your changes to the terms are not saved yet.');
+      focusField('proposal-save-terms');
+      return;
+    }
+    const missing: TermsIssues = {};
+    if (!view.agreement) missing.agreement_id = 'Choose the agreement, then Save terms.';
+    if (!view.proposed_inception_date) missing.proposed_inception_date = 'Set the proposed inception, then Save terms.';
+    const first = Object.keys(missing)[0] as keyof TermsIssues | undefined;
+    if (first) {
+      setTermsIssues(missing);
+      setWarning(`The proposal was not submitted. ${Object.values(missing).join(' ')}`);
+      focusField(FIELD_ID[first]);
+      return;
+    }
+    setFailure(null);
+    setStale(false);
+    const outcome = await commands.submit(view.id, etag);
+    if (outcome.ok === true) {
+      setToast(settled(outcome.view));
+      return;
+    }
+    if (outcome.kind === 'stale') return setStale(true);
+    const problems =
+      outcome.error instanceof ApiError && outcome.error.code === 'PROPOSAL_NOT_BINDABLE' && Array.isArray(outcome.error.details.problems)
+        ? (outcome.error.details.problems as { code: string; message: string }[])
+        : [];
+    const onTerms = problems.filter((problem) => TERMS_PROBLEMS[problem.code]);
+    if (onTerms.length) {
+      const placed: TermsIssues = {};
+      for (const problem of onTerms) placed[TERMS_PROBLEMS[problem.code]] ??= `${sentence(problem.message)} Then Save terms.`;
+      setTermsIssues(placed);
+      setWarning(`The proposal was not submitted. ${onTerms.map((problem) => sentence(problem.message)).join(' ')}`);
+      focusField(FIELD_ID[TERMS_PROBLEMS[onTerms[0].code]]);
+    }
+    // Anything that is not about the terms stays in the alert above the record, in words.
+    if (onTerms.length < problems.length || problems.length === 0) setFailure({ error: outcome.error, title: 'The proposal was not submitted' });
   };
   const settled = (after: ProposalDetail) => `${view.proposal_no}: ${PROPOSAL_STATUS_LABEL[after.status] ?? humanize(after.status)}`;
 
@@ -210,8 +284,7 @@ export const ProposalPage: React.FC = () => {
   }
   if (draft && canEdit) {
     actions.push(
-      <button key="submit" type="button" className="hz-button hz-button-primary" disabled={commands.pending}
-        onClick={() => void act('The proposal was not submitted', settled, (e) => commands.submit(view.id, e))}>
+      <button key="submit" type="button" className="hz-button hz-button-primary" disabled={commands.pending} onClick={() => void submit()}>
         Submit
       </button>,
     );
@@ -220,6 +293,7 @@ export const ProposalPage: React.FC = () => {
   return (
     <HorizonPage id="proposal-record" className="flex flex-col gap-4 !space-y-0">
       <HorizonToast message={toast} />
+      <HorizonToast message={warning} tone="warning" />
       <RecordHeader
         icon={ClipboardList}
         title={view.proposal_no}
@@ -261,7 +335,18 @@ export const ProposalPage: React.FC = () => {
         <RecordColumns
           main={
             <div className="flex flex-col">
-              <TermsSection view={view} etag={etag} editable={draft && canEdit} onSaved={() => setToast(`Terms saved: ${view.proposal_no}`)} />
+              <TermsSection
+                view={view}
+                etag={etag}
+                editable={draft && canEdit}
+                issues={termsIssues}
+                onDirty={setTermsDirty}
+                onSaved={() => {
+                  setTermsIssues({});
+                  setWarning(null);
+                  setToast(`Terms saved: ${view.proposal_no}`);
+                }}
+              />
               <DetailDivider />
               <RequirementsSection view={view} canRecord={open && canEdit} onRecord={(requirement) => setDialog({ evidence: requirement })} />
               <DetailDivider />
@@ -476,7 +561,16 @@ const termsOf = (view: ProposalDetail): Terms => ({
 
 const detailsBody = (rows: Terms['details']) => Object.fromEntries(rows.map((row) => [row.key.trim(), row.value.trim()]));
 
-const TermsSection: React.FC<{ view: ProposalDetail; etag: string | null; editable: boolean; onSaved: () => void }> = ({ view, etag, editable, onSaved }) => {
+const TermsSection: React.FC<{
+  view: ProposalDetail;
+  etag: string | null;
+  editable: boolean;
+  onSaved: () => void;
+  /** Field messages from a stopped or refused Submit; they stay until the terms are saved. */
+  issues?: TermsIssues;
+  /** Whether the form holds unsaved changes (so Submit can say "save the terms first"). */
+  onDirty?: (dirty: boolean) => void;
+}> = ({ view, etag, editable, onSaved, issues = {}, onDirty }) => {
   const agreements = useAgreements(view.insurer.id, editable);
   const { update, pending } = useProposalCommands();
   // Keyed on what the server holds: a refetch with the same terms keeps what is being typed.
@@ -491,6 +585,13 @@ const TermsSection: React.FC<{ view: ProposalDetail; etag: string | null; editab
   useEffect(() => setTerms(seed), [seed]);
 
   const rated = view.quoted_risk.factors.sum_insured;
+  const unsaved =
+    editable &&
+    (terms.agreement_id !== seed.agreement_id ||
+      terms.proposed_inception_date !== seed.proposed_inception_date ||
+      terms.sum_insured.trim() !== seed.sum_insured.trim() ||
+      JSON.stringify(terms.details) !== JSON.stringify(seed.details));
+  useEffect(() => onDirty?.(unsaved), [unsaved, onDirty]);
   if (!editable) {
     return (
       <DetailGroup title="Terms">
@@ -520,9 +621,10 @@ const TermsSection: React.FC<{ view: ProposalDetail; etag: string | null; editab
   if (JSON.stringify(detailsBody(terms.details)) !== JSON.stringify(detailsBody(seed.details)) || terms.details.length !== seed.details.length) {
     body.underwriting_details = detailsBody(terms.details);
   }
-  const dirty = Object.keys(body).length > 0;
+  const dirty = editable && Object.keys(body).length > 0;
   const choices = (agreements.data ?? []).filter((item) => item.status === 'ACTIVE' || item.id === seed.agreement_id);
-  const errorFor = (name: string, local?: string) => (attempted ? local : undefined) ?? serverFields[name];
+  const errorFor = (name: string, local?: string) =>
+    (attempted ? local : undefined) ?? serverFields[name] ?? issues[name as keyof TermsIssues];
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -633,7 +735,7 @@ const TermsSection: React.FC<{ view: ProposalDetail; etag: string | null; editab
 
         <div className="flex items-center justify-end gap-3">
           {dirty && <span className="text-[13px] text-[var(--hz-text-muted)]">Unsaved changes.</span>}
-          <button type="submit" className="hz-button hz-button-primary" disabled={pending || !dirty}>
+          <button id="proposal-save-terms" type="submit" className="hz-button hz-button-primary" disabled={pending || !dirty}>
             {pending ? 'Saving…' : 'Save terms'}
           </button>
         </div>

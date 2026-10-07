@@ -340,21 +340,69 @@ describe('The draft', () => {
     expect(second.headers['x-idempotency-key']).toBe(first.headers['x-idempotency-key']);
   });
 
-  it('a refusal to submit lists what stops it, in words', async () => {
+  it('a refusal to submit that is not about the terms lists what stops it, in words', async () => {
     const user = userEvent.setup();
     proposalBackend({
       command: (_call, action) =>
         action === 'submit'
           ? envelope(409, 'PROPOSAL_NOT_BINDABLE', 'the proposal cannot be bound as it stands', {
-              problems: [{ code: 'INCEPTION_REQUIRED', message: 'set the proposed inception date' }, { code: 'AGREEMENT_REQUIRED', message: 'choose the agreement the business is placed under' }],
+              problems: [{ code: 'PRODUCT_NOT_ACTIVE', message: 'the product is withdrawn' }, { code: 'INSURER_NOT_ACTIVE', message: 'the insurer is suspended' }],
             })
           : null,
     });
     renderAt(`/proposals/list/${P_ID}`);
     await user.click(await screen.findByRole('button', { name: 'Submit' }));
     const stops = await screen.findByRole('list', { name: 'What stops it' });
-    expect(stops).toHaveTextContent('Set the proposed inception date.');
-    expect(stops).toHaveTextContent('Choose the agreement the business is placed under.');
+    expect(stops).toHaveTextContent('The product is withdrawn.');
+    expect(stops).toHaveTextContent('The insurer is suspended.');
+  });
+
+  it('submit guidance: with no saved agreement, nothing is sent; a warning toast and the Agreement field say what to do', async () => {
+    const user = userEvent.setup();
+    const backend = proposalBackend({ view: detail({ agreement: null }) });
+    renderAt(`/proposals/list/${P_ID}`);
+    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('The proposal was not submitted. Choose the agreement, then Save terms.')).toBeInTheDocument();
+    const agreement = screen.getByLabelText('Agreement');
+    expect(agreement).toHaveAttribute('aria-invalid', 'true');
+    expect(within(screen.getByRole('form', { name: 'Terms' })).getByText('Choose the agreement, then Save terms.')).toBeInTheDocument();
+    await waitFor(() => expect(agreement).toHaveFocus());
+    expect(backend.sent('submit')).toHaveLength(0);
+    expect(screen.queryByRole('list', { name: 'What stops it' })).not.toBeInTheDocument();     // no alert box for this
+  });
+
+  it('submit guidance: unsaved terms stop Submit until they are saved', async () => {
+    const user = userEvent.setup();
+    const backend = proposalBackend();
+    renderAt(`/proposals/list/${P_ID}`);
+    const terms = await screen.findByRole('form', { name: 'Terms' });
+    await within(terms).findByRole('option', { name: /BD-007/ });
+    await user.selectOptions(within(terms).getByLabelText('Agreement'), BINDER_ID);
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Save the terms first: your changes to the terms are not saved yet.')).toBeInTheDocument();
+    await waitFor(() => expect(within(terms).getByRole('button', { name: 'Save terms' })).toHaveFocus());
+    expect(backend.sent('submit')).toHaveLength(0);
+
+    await user.click(within(terms).getByRole('button', { name: 'Save terms' }));
+    await waitFor(() => expect(backend.sent('update')).toHaveLength(1));
+  });
+
+  it("submit guidance: the server's refusal about the terms lands on their fields, with a warning toast", async () => {
+    const user = userEvent.setup();
+    proposalBackend({
+      command: (_call, action) =>
+        action === 'submit'
+          ? envelope(409, 'PROPOSAL_NOT_BINDABLE', 'the proposal cannot be bound as it stands', {
+              problems: [{ code: 'AGREEMENT_NOT_IN_FORCE', message: 'the agreement is not in force on the inception date' }],
+            })
+          : null,
+    });
+    renderAt(`/proposals/list/${P_ID}`);
+    await user.click(await screen.findByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('The proposal was not submitted. The agreement is not in force on the inception date.')).toBeInTheDocument();
+    expect(within(screen.getByRole('form', { name: 'Terms' })).getByText('The agreement is not in force on the inception date. Then Save terms.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Agreement')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByRole('list', { name: 'What stops it' })).not.toBeInTheDocument();
   });
 
   it('a checker sees the terms read-only and no maker actions', async () => {
