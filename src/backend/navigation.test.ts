@@ -1,3 +1,4 @@
+import { resolveNavScreen } from '../data/navigation';
 import { LayoutDashboard } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
 import { BACKEND_NAV, BackendNavGroup, pathForScreen, screenForPath, visibleNav } from './navigation';
@@ -51,14 +52,21 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/my-work/list/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toBe('my-work');
   });
 
+  it('every item is its own screen: no demo-era alias folds it into another item (Proposals, New policy)', () => {
+    for (const item of BACKEND_NAV.flatMap((group) => group.items)) expect(resolveNavScreen(item.screen), item.label).toBe(item.screen);
+    expect(screenForPath('/proposals/list/UWP0000002')).toBe('proposals');
+    expect(screenForPath('/new-policy')).toBe('new-policy');
+    expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
+  });
+
   it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view) and the Policy Directory (policies.policy.view)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', 'workflow.task.view'],
       ['customers', 'clients.customer.view'],
-      ['quote-workspace', 'quotations.quotation.create'],
+      ['new-policy', 'quotations.quotation.create'],
       ['quotations', 'quotations.quotation.view'],
-      ['applications', 'underwriting.proposal.view'],
+      ['proposals', 'underwriting.proposal.view'],
       ['policies', 'policies.policy.view'],
     ]);
   });

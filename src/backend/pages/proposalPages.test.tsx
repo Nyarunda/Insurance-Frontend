@@ -689,6 +689,19 @@ describe('NB1-D-R1: the guide offers only the routes the permissions open (D1)',
   });
 });
 
+describe('Navigation on a proposal', () => {
+  it('the sidebar marks Proposals as the current page, not Quotations, and the actions sit in the header', async () => {
+    proposalBackend();
+    renderAt(`/proposals/list/${P_ID}`);
+    await screen.findByRole('heading', { name: 'UWP0000001' });
+    const nav = screen.getByRole('complementary', { name: 'Primary navigation' });
+    expect(within(nav).getByRole('button', { name: 'Proposals' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('button', { name: 'Quotations' })).not.toHaveAttribute('aria-current');
+    const actions = screen.getByRole('group', { name: 'Proposal actions' });
+    expect(actions.parentElement).toContainElement(screen.getByRole('button', { name: 'Back to Proposals' }));
+  });
+});
+
 describe('Addresses', () => {
   it('a number the user cannot see is not found', async () => {
     proposalBackend({ list: [] });

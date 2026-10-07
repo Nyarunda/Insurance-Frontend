@@ -209,17 +209,19 @@ export const QuotationPage: React.FC = () => {
           </>
         }
         actions={
-          <button type="button" className="hz-button hz-button-secondary" onClick={back} aria-label="Back to Quotations" title="Back to Quotations">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </button>
+          <>
+            {actions.length > 0 && (
+              <div role="group" aria-label="Quotation actions" className="flex flex-wrap items-center gap-2">
+                {actions}
+              </div>
+            )}
+            <button type="button" className="hz-button hz-button-secondary" onClick={back} aria-label="Back to Quotations" title="Back to Quotations">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </button>
+          </>
         }
       />
-      {actions.length > 0 && (
-        <div role="group" aria-label="Quotation actions" className="flex flex-wrap items-center justify-end gap-2">
-          {actions}
-        </div>
-      )}
       {stale && (
         <div role="status">
           <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
