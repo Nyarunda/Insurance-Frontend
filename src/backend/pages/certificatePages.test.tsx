@@ -109,7 +109,11 @@ function certificateBackend(options: Options = {}) {
       if (!found) return envelope(404, 'CERTIFICATE_NOT_FOUND', 'certificate not found');
       if (call.method === 'GET') return json(200, found, { ETag: certEtag(found.id, found.row_version) });
       const answer = options.command?.(call, one[2]);
-      if (answer) return answer;
+      if (answer) {
+        // A 412 means someone else changed the certificate: its version (and so its ETag) moves on.
+        if (answer.status === 412) list = list.map((c) => (c.id === found.id ? { ...c, row_version: c.row_version + 1 } : c));
+        return answer;
+      }
       const after: Certificate =
         one[2] === 'request-cancellation'
           ? {
@@ -444,9 +448,12 @@ describe('Cancelling and spoiling', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Request cancellation' }));
     await waitFor(() => expect(backend.sent('/request-cancellation')).toHaveLength(2));
     const [first, second] = backend.sent('/request-cancellation');
+    const oldEtag = certEtag(C_ID, 1);
+    const freshEtag = certEtag(C_ID, 2);
+    expect(first.headers['if-match']).toBe(oldEtag);
+    expect(second.headers['if-match']).toBe(freshEtag);                                       // the refetched ETag
     expect(second.body).toEqual({ reason: 'stolen' });
     expect(second.headers['x-idempotency-key']).toBe(first.headers['x-idempotency-key']);
-    expect(second.headers['if-match']).toBe(certEtag(C_ID));
   });
 
   it('if the tenant stopped governing between the clicks, the server refusal is shown as it is', async () => {
