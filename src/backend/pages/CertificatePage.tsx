@@ -2,7 +2,8 @@
  * A certificate record by its serial (CERTIFICATES-SURFACE-1 CS-B): `/certificates/list/<serial>`.
  * The serial is resolved through `GET /certificates?serial_no=` (an exact match, within the
  * policies the user may see); one the user cannot see is "not found", exactly as an ID would be.
- * The record and its derived cover come from `GET /certificates/{id}`.
+ * The record and its derived cover come from `GET /certificates/{id}`: only its 404 is "not found";
+ * any other failure (403, 5xx, network, timeout) is shown as the error it is, with its reference.
  *
  * The record is read here. Issuing, printing, replacing, cancelling and spoiling stay on the policy's
  * Certificates tab (CS-A), which "Open on the policy" opens at this certificate.
@@ -26,6 +27,7 @@ import {
   StatusScreen,
 } from '../../components/horizon';
 import { NOT_FOUND_TEXT } from '../../lib/api/commandErrors';
+import { ApiError } from '../../lib/api/errors';
 import { usePermission } from '../../lib/auth/me';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { CERTIFICATE_STATUS_LABEL, CERTIFICATE_TONE, isLive, periodText } from '../certificates/format';
@@ -49,17 +51,19 @@ export const CertificatePage: React.FC = () => {
   const back = () => navigate(certificatesFrom(location.state));
 
   if (found.isPending || (match && loaded.isPending)) return <HorizonLoader tip="Loading the certificate..." />;
-  if (found.isError) {
+  const detailMissing = loaded.isError && loaded.error instanceof ApiError && loaded.error.status === 404;
+  const failure = found.isError ? found.error : loaded.isError && !detailMissing ? loaded.error : null;
+  if (failure) {
     return (
       <HorizonPage id="certificate">
         <HorizonPageTitle title="Certificate" onBack={back} backLabel="Back to Certificates" />
         <HorizonPageContent className="p-4">
-          <ApiErrorAlert error={found.error} title="The certificate could not be loaded" />
+          <ApiErrorAlert error={failure} title="The certificate could not be loaded" />
         </HorizonPageContent>
       </HorizonPage>
     );
   }
-  if (!match || loaded.isError) {
+  if (!match || detailMissing) {
     return (
       <HorizonPage id="not-found">
         <HorizonPageTitle title="Certificate" />

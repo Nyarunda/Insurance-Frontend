@@ -55,7 +55,7 @@ const certificate = (over: Partial<Certificate> = {}): Certificate => ({
   ...over,
 });
 
-function findBackend(results: Certificate[] = [certificate()]) {
+function findBackend(results: Certificate[] = [certificate()], detail?: () => Response) {
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
     if (path.startsWith('/certificates?')) {
@@ -65,6 +65,7 @@ function findBackend(results: Certificate[] = [certificate()]) {
     }
     const one = /^\/certificates\/([^/?]+)$/.exec(path);
     if (one) {
+      if (detail) return detail();
       const found = results.find((c) => c.id === one[1]);
       return found ? json(200, found, { ETag: `"certificate-${found.id}-v${found.row_version}"` }) : envelope(404, 'CERTIFICATE_NOT_FOUND', 'certificate not found');
     }
@@ -192,6 +193,22 @@ describe('The certificate record', () => {
     findBackend([]);
     renderAt('/certificates/list/CK9999999');
     expect(await screen.findByText(NOT_FOUND_TEXT)).toBeInTheDocument();
+  });
+
+  it('the serial resolves but the record fails (500): the error and its reference, never "not found"', async () => {
+    findBackend([certificate()], () => envelope(500, 'INTERNAL_ERROR', 'The server could not complete the request.', {}, 'corr-cert'));
+    renderAt('/certificates/list/CK0000011');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('The certificate could not be loaded');
+    expect(alert).toHaveTextContent('Reference corr-cert');
+    expect(screen.queryByText(NOT_FOUND_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('the serial resolves but the record is gone (404): not found', async () => {
+    findBackend([certificate()], () => envelope(404, 'CERTIFICATE_NOT_FOUND', 'certificate not found'));
+    renderAt('/certificates/list/CK0000011');
+    expect(await screen.findByText(NOT_FOUND_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText('The certificate could not be loaded')).not.toBeInTheDocument();
   });
 
   it('shows a pending cancellation request and a cover warning', async () => {
