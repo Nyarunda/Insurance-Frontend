@@ -12,7 +12,10 @@
  *   attestation after printing, and only it sends `/print`.
  * - Replace (CS-D6): the issue form for the same type and vehicle or shipment, with a reason; the
  *   old certificate is cancelled as replaced in the same transaction.
- * - Cancel and spoil (CS-D7): a reason each; spoil only an issued certificate not yet printed.
+ * - Cancel and spoil (CS-D7): a reason each; spoil only an issued certificate not yet printed. Where
+ *   the tenant governs cancellation, the server refuses the direct Cancel (WORKFLOW_APPROVAL_REQUIRED);
+ *   the dialog keeps the reason and offers Request cancellation, sent only on the user's click, as its
+ *   own command (CS-A-Q1, server-driven: no governance is known or guessed in advance).
  *
  * Buttons show only to users whose permissions could use them; the server decides every one.
  */
@@ -258,9 +261,13 @@ export const PolicyCertificatesTab: React.FC<{ policy: PolicyDetail; policyEtag:
           certificate={dialog.certificate}
           policyId={policy.id}
           onClose={() => setDialog(null)}
-          onDone={(after) => {
+          onDone={(after, requested) => {
             setDialog(null);
-            setToast(`Certificate ${after.serial_no} ${dialog.reason === 'cancel' ? 'cancelled' : 'spoilt'}`);
+            setToast(
+              requested
+                ? `Cancellation of certificate ${after.serial_no} requested`
+                : `Certificate ${after.serial_no} ${dialog.reason === 'cancel' ? 'cancelled' : 'spoilt'}`,
+            );
           }}
         />
       )}
@@ -668,24 +675,31 @@ const REASON_COPY = {
   },
 } as const;
 
-/** Said when the tenant governs certificate cancellation (CS-D7); the request path is not on this screen. */
-export const CANCELLATION_GOVERNED_TEXT =
-  'Cancelling a certificate needs approval at your company, so it cannot be cancelled directly. Requesting a cancellation for approval is not available on this screen yet.';
+/**
+ * Said after the server answers a direct Cancel with WORKFLOW_APPROVAL_REQUIRED (CS-D7, CS-A-Q1): the
+ * tenant governs certificate cancellation. The dialog then offers Request cancellation, sent only when
+ * the user chooses it.
+ */
+export const APPROVAL_NEEDED_TEXT =
+  'This cancellation needs approval. Request cancellation sends it, with your reason, to an approver; the certificate stays valid until it is approved.';
 
-const ReasonDialog: React.FC<{ kind: 'cancel' | 'spoil'; certificate: Certificate; policyId: string; onClose: () => void; onDone: (after: Certificate) => void }> = ({
-  kind,
-  certificate,
-  policyId,
-  onClose,
-  onDone,
-}) => {
+const ReasonDialog: React.FC<{
+  kind: 'cancel' | 'spoil';
+  certificate: Certificate;
+  policyId: string;
+  onClose: () => void;
+  onDone: (after: Certificate, requested: boolean) => void;
+}> = ({ kind, certificate, policyId, onClose, onDone }) => {
   const commands = useCertificateCommands(policyId);
   const loaded = useCertificate(certificate.id);
   const [reason, setReason] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
   const [stale, setStale] = useState(false);
+  // The server said the cancellation needs approval: the next step is the user's explicit request.
+  const [needsApproval, setNeedsApproval] = useState(false);
   const copy = REASON_COPY[kind];
+  // The current certificate ETag: a refused or stale command refetches the certificate first.
   const etag = loaded.data?.etag ?? null;
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -693,12 +707,17 @@ const ReasonDialog: React.FC<{ kind: 'cancel' | 'spoil'; certificate: Certificat
     if (!reason.trim() || !etag) return;
     setFailure(null);
     setStale(false);
-    const outcome = await commands[kind](certificate.id, reason.trim(), etag);
-    if (outcome.ok === true) return onDone(outcome.view);
-    if (outcome.kind === 'stale') setStale(true);
-    else setFailure(outcome.error);
+    const outcome = needsApproval
+      ? await commands.requestCancellation(certificate.id, reason.trim(), etag)
+      : await commands[kind](certificate.id, reason.trim(), etag);
+    if (outcome.ok === true) return onDone(outcome.view, needsApproval);
+    if (outcome.kind === 'stale') return setStale(true);
+    if (kind === 'cancel' && !needsApproval && outcome.error instanceof ApiError && outcome.error.code === 'WORKFLOW_APPROVAL_REQUIRED') {
+      return setNeedsApproval(true);
+    }
+    setFailure(outcome.error);
   };
-  const governed = failure instanceof ApiError && failure.code === 'WORKFLOW_APPROVAL_REQUIRED';
+  const submit = needsApproval ? 'Request cancellation' : copy.submit;
   return (
     <DialogFrame
       titleId="certificate-reason-title"
@@ -711,8 +730,8 @@ const ReasonDialog: React.FC<{ kind: 'cancel' | 'spoil'; certificate: Certificat
           <button type="button" className="hz-button hz-button-secondary" onClick={onClose} disabled={commands.pending}>
             Back
           </button>
-          <button type="submit" form="certificate-reason-form" className="hz-button hz-button-primary" disabled={commands.pending || !etag || governed}>
-            {commands.pending ? 'Saving…' : copy.submit}
+          <button type="submit" form="certificate-reason-form" className="hz-button hz-button-primary" disabled={commands.pending || !etag}>
+            {commands.pending ? 'Saving…' : submit}
           </button>
         </>
       }
@@ -722,16 +741,14 @@ const ReasonDialog: React.FC<{ kind: 'cancel' | 'spoil'; certificate: Certificat
           <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
         </div>
       )}
-      {governed ? (
-        <div role="alert">
-          <HorizonAlert tone="warning" title={copy.failed}>
-            {CANCELLATION_GOVERNED_TEXT}
-            <ErrorReference reference={referenceOf(failure)} />
+      {needsApproval && (
+        <div role="status">
+          <HorizonAlert tone="info" title="Approval needed">
+            {APPROVAL_NEEDED_TEXT}
           </HorizonAlert>
         </div>
-      ) : (
-        failure !== null && <Refusal error={failure} title={copy.failed} />
       )}
+      {failure !== null && <Refusal error={failure} title={needsApproval ? 'The cancellation was not requested' : copy.failed} />}
       <form id="certificate-reason-form" noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-2">
         <p className="text-sm text-[var(--hz-text-secondary)]">{copy.hint}</p>
         <label htmlFor="certificate-close-reason" className={label}>

@@ -6,6 +6,9 @@
  *   issue    POST /policies/{id}/certificates        If-Match = the policy's ETag (also a replacement)
  *   print    POST /certificates/{id}/print           the user's attestation that it was printed (CS-D4)
  *   cancel   POST /certificates/{id}/cancel          a reason; direct, where the tenant does not govern it
+ *   request_cancellation  POST /certificates/{id}/request-cancellation   a reason; where it governs it,
+ *            after the server refused the direct cancel and the user chose to request (CS-A-Q1). Its
+ *            own command and key lifecycle, never the refused cancel's.
  *   spoil    POST /certificates/{id}/spoil           a reason; an issued certificate not yet printed
  */
 
@@ -23,7 +26,7 @@ export type CertificateOutcome =
   | { ok: true; view: Certificate; replayed: boolean }
   | { ok: false; kind: CommandErrorKind; error: unknown };
 
-type Name = 'issue' | 'print' | 'cancel' | 'spoil';
+type Name = 'issue' | 'print' | 'cancel' | 'spoil' | 'request_cancellation';
 
 export function useCertificateCommands(policyId: string) {
   const queryClient = useQueryClient();
@@ -83,5 +86,7 @@ export function useCertificateCommands(policyId: string) {
     print: (id: string, etag: string) => run('print', {}, at(id, 'print'), etag, `certificate:${id}`, id),
     cancel: (id: string, reason: string, etag: string) => run('cancel', { reason }, at(id, 'cancel'), etag, `certificate:${id}`, id),
     spoil: (id: string, reason: string, etag: string) => run('spoil', { reason }, at(id, 'spoil'), etag, `certificate:${id}`, id),
+    requestCancellation: (id: string, reason: string, etag: string) =>
+      run('request_cancellation', { reason }, at(id, 'request-cancellation'), etag, `certificate:${id}`, id),
   };
 }

@@ -2,7 +2,7 @@
 
 **Slice of:** CERTIFICATES-SURFACE-1 (`backend/docs/specs/certificates-surface-1-scope.md`; scope closed and merged at `60787e2`, CS-P0 profiles at `4a2d731`).
 **Branch:** `cs-a` from `main` `4f9c7db`. Frontend only; no certificate API or domain change (CS-D1).
-**Status:** for review. One item is stopped and brought back rather than worked around: see *CS-A-Q1*.
+**Status:** CS-A (`57ffa7e`) reviewed: REQUEST CHANGES on CS-A-Q1 only (option 1 approved; the rest accepted). CS-A-R1 implements it; see *Governed cancellation (CS-A-Q1, R1)*.
 
 ## Where
 
@@ -38,7 +38,7 @@ A certificate is addressed by its serial, never by an ID. A bind already lands o
 | **Print view** | live (issued or printed) | none | view |
 | **Mark as printed** | issued | `POST /certificates/{id}/print`, the certificate's ETag | `.issue` |
 | **Replace** | live, on an issuable policy | `POST /policies/{id}/certificates` with `replaces_certificate_id` + reason | `.issue` |
-| **Cancel certificate** | live, no cancellation awaiting approval | `POST /certificates/{id}/cancel`, reason | `.cancel` |
+| **Cancel certificate** | live, no cancellation awaiting approval | `POST /certificates/{id}/cancel`, reason; where governed, then **Request cancellation** (below) | `.cancel` |
 | **Spoil** | issued (not printed) | `POST /certificates/{id}/spoil`, reason | `.cancel` |
 
 ## Printing (CS-D4)
@@ -51,18 +51,21 @@ A certificate is addressed by its serial, never by an ID. A bind already lands o
 
 The issue form for the same type and the same vehicle or shipment (fixed), with a required reason. Valid from is empty by default (the server's rule: today, or the replaced certificate's start if later). It sends `replaces_certificate_id`; the old certificate is cancelled as replaced in the same transaction, and the toast names both.
 
-## CS-A-Q1: governed cancellation (stopped, brought back)
+## Governed cancellation (CS-A-Q1, R1)
 
-CS-D7 says that where a tenant governs `CERTIFICATE_CANCELLATION`, the button is **Request cancellation**. No read available to a canceller says whether the tenant governs it: `GET /workflows/standard-definitions` is for workflow administrators, and the certificate's `workflow` block exists only after a request. So the screen cannot choose the button in advance.
+CS-A brought this back: no read tells a canceller whether the tenant governs `CERTIFICATE_CANCELLATION`. Ruling: option 1, **server-driven** discovery, the sequence the backend's own workflow test follows. No governance flag, no backend change, no client-side governance state.
 
-Built, without working around it:
-- **Cancel certificate** (direct). Where the tenant governs it, the server refuses with `WORKFLOW_APPROVAL_REQUIRED`; the dialog says "Cancelling a certificate needs approval at your company, so it cannot be cancelled directly. Requesting a cancellation for approval is not available on this screen yet." and sends nothing else.
-- A certificate whose cancellation is already awaiting approval shows "Cancellation requested", the reason and who it waits for (`waiting_on`), and no Cancel; a rejected request says so.
+1. **Cancel certificate** sends the direct `POST /certificates/{id}/cancel` with the reason.
+2. Where the tenant governs it, the server answers `409 WORKFLOW_APPROVAL_REQUIRED`; the certificate is refetched (the command's refusal path), so its current ETag is in hand.
+3. The dialog stays open with the typed reason and says: "This cancellation needs approval. Request cancellation sends it, with your reason, to an approver; the certificate stays valid until it is approved." Its button becomes **Request cancellation**. **Nothing is sent automatically.**
+4. Only the user's click sends `POST /certificates/{id}/request-cancellation` (`CERTIFICATE_REQUEST_CANCELLATION`, `{reason}`, `If-Match` = the current certificate ETag), through **its own idempotency lifecycle**: never the refused cancel's key.
+5. On success the toast says the cancellation was requested, and the certificate shows "Cancellation requested", the reason and who it waits for (`waiting_on`); Cancel is no longer offered.
 
-Not built: the **Request cancellation** entry (`POST /certificates/{id}/request-cancellation`). For a ruling, two ways:
-1. **Frontend only:** after the server's `WORKFLOW_APPROVAL_REQUIRED` on Cancel, the dialog offers **Request cancellation** with the same reason, sent only on the user's click. Uses only documented answers; nothing is guessed in advance.
-2. **A backend read:** a governance flag for the canceller (for example on the certificate or policy detail). Not authorized now.
+- **412 on the request:** the certificate reloads and the dialog says so, keeping the reason and the request's key; it is sent again only on the user's click, with the new ETag.
+- **`WORKFLOW_NOT_CONFIGURED`** (governance switched off between the two clicks): the server's refusal is shown as it is, titled "The cancellation was not requested".
 
 ## Tests
 
-`src/backend/pages/certificatePages.test.tsx` (16): tab and actions by profile (none, issuer, canceller); no issue on a cancelled policy; Overview → issue form, class and active types only, sent with the policy ETag, opens by serial, no IDs on screen; vehicle asked only when several; marine shipment; already certified → words → **Replace it** → reason required → `replaces_certificate_id`; 412 keeps the key with the new ETag; no stock in words; print view sends nothing, Mark as printed sends `/print` with the certificate ETag; terms changed in words with both versions and Replace; cover warning; cancel and spoil with reasons and the certificate ETag; governed refusal in words with nothing else sent; a pending request shows who it waits for.
+`src/backend/pages/certificatePages.test.tsx` (16 at CS-A): tab and actions by profile (none, issuer, canceller); no issue on a cancelled policy; Overview → issue form, class and active types only, sent with the policy ETag, opens by serial, no IDs on screen; vehicle asked only when several; marine shipment; already certified → words → **Replace it** → reason required → `replaces_certificate_id`; 412 keeps the key with the new ETag; no stock in words; print view sends nothing, Mark as printed sends `/print` with the certificate ETag; terms changed in words with both versions and Replace; cover warning; cancel and spoil with reasons and the certificate ETag; a pending request shows who it waits for.
+
+CS-A-R1 (18 in all): the governed Cancel is refused, **Request cancellation** appears only then, with the reason kept and no request sent automatically; one click sends exactly one request with the same reason, the current ETag and a key distinct from the cancel's; success shows the pending approval and who it waits for; a stale request keeps the reason and its key and is resent only on a click with the new ETag; `WORKFLOW_NOT_CONFIGURED` is shown as the server says it.

@@ -13,7 +13,7 @@ import { useSessionStore } from '../../lib/auth/sessionStore';
 import { setAccessToken } from '../../lib/auth/tokens';
 import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
-import { CANCELLATION_GOVERNED_TEXT, NO_CERTIFICATES_TEXT, todayIso } from '../certificates/PolicyCertificatesTab';
+import { APPROVAL_NEEDED_TEXT, NO_CERTIFICATES_TEXT, todayIso } from '../certificates/PolicyCertificatesTab';
 import type { Certificate, CertificateType } from '../certificates/types';
 import type { PolicyDetail } from '../policies/types';
 import { detail, MAKER, POLICY_ETAG, POLICY_ID, summary, version } from '../../test/policyFixtures';
@@ -110,8 +110,19 @@ function certificateBackend(options: Options = {}) {
       if (call.method === 'GET') return json(200, found, { ETag: certEtag(found.id, found.row_version) });
       const answer = options.command?.(call, one[2]);
       if (answer) return answer;
-      const status = { print: 'PRINTED', cancel: 'CANCELLED', spoil: 'SPOILT' }[one[2] as 'print'] as Certificate['status'];
-      const after = { ...found, status, row_version: found.row_version + 1 };
+      const after: Certificate =
+        one[2] === 'request-cancellation'
+          ? {
+              ...found,
+              row_version: found.row_version + 1,
+              cancellation_request: { reason: String((call.body as { reason: string }).reason), requested_at: '2026-06-03T09:00:00Z' },
+              workflow: { instance_id: '24242424-2424-4242-8242-242424242424', status: 'PENDING_APPROVAL', waiting_on: ['Certificate Checker'] },
+            }
+          : {
+              ...found,
+              status: ({ print: 'PRINTED', cancel: 'CANCELLED', spoil: 'SPOILT' } as Record<string, Certificate['status']>)[one[2]],
+              row_version: found.row_version + 1,
+            };
       list = list.map((c) => (c.id === found.id ? after : c));
       return json(200, after, { ETag: certEtag(found.id, after.row_version) });
     }
@@ -376,7 +387,7 @@ describe('Cancelling and spoiling', () => {
     expect(backend.sent('/spoil')[0].body).toEqual({ reason: 'jammed in the printer' });
   });
 
-  it('where the tenant governs cancellation, the refusal says so and nothing else is sent', async () => {
+  it('governed: the refused Cancel turns the dialog into an explicit Request cancellation, with the reason kept; nothing is sent automatically', async () => {
     const user = userEvent.setup();
     const backend = certificateBackend({
       certificates: [certificate()],
@@ -385,11 +396,79 @@ describe('Cancelling and spoiling', () => {
     renderAt(`${AT}?tab=certificates&certificate=CK0000011`, CANCELLER);
     await user.click(await screen.findByRole('button', { name: 'Cancel certificate' }));
     const dialog = await screen.findByRole('dialog', { name: 'Cancel the certificate' });
+    expect(within(dialog).queryByRole('button', { name: 'Request cancellation' })).not.toBeInTheDocument();   // not before the refusal
+    await user.type(within(dialog).getByLabelText(/Reason/), 'stolen with the vehicle');
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel certificate' }));
+
+    expect(await within(dialog).findByText(APPROVAL_NEEDED_TEXT)).toBeInTheDocument();
+    const request = within(dialog).getByRole('button', { name: 'Request cancellation' });
+    expect(within(dialog).queryByRole('button', { name: 'Cancel certificate' })).not.toBeInTheDocument();
+    expect((within(dialog).getByLabelText(/Reason/) as HTMLTextAreaElement).value).toBe('stolen with the vehicle');
+    expect(backend.sent('/cancel')).toHaveLength(1);
+    expect(backend.sent('/request-cancellation')).toHaveLength(0);                              // never automatic
+
+    await user.click(request);
+    await waitFor(() => expect(backend.sent('/request-cancellation')).toHaveLength(1));
+    const [cancel] = backend.sent('/cancel');
+    const [sent] = backend.sent('/request-cancellation');
+    expect(sent.body).toEqual({ reason: 'stolen with the vehicle' });
+    expect(sent.headers['if-match']).toBe(certEtag(C_ID));                                     // the current (refetched) ETag
+    expect(sent.headers['x-idempotency-key']).toBeTruthy();
+    expect(sent.headers['x-idempotency-key']).not.toBe(cancel.headers['x-idempotency-key']);   // its own command
+    expect(await screen.findByText('Cancellation of certificate CK0000011 requested')).toBeInTheDocument();
+    expect(await screen.findByText('Cancellation requested')).toBeInTheDocument();
+    expect(mainText()).toContain('Waiting for: Certificate Checker.');
+    expect(screen.queryByRole('button', { name: 'Cancel certificate' })).not.toBeInTheDocument();
+  });
+
+  it('a stale request keeps the reason and its key, and is retried only on a click, with the new ETag', async () => {
+    const user = userEvent.setup();
+    let requests = 0;
+    const backend = certificateBackend({
+      certificates: [certificate()],
+      command: (_call, action) => {
+        if (action === 'cancel') return envelope(409, 'WORKFLOW_APPROVAL_REQUIRED', 'approval required');
+        if (action === 'request-cancellation' && requests++ === 0) return envelope(412, 'PRECONDITION_FAILED', 'the certificate changed');
+        return null;
+      },
+    });
+    renderAt(`${AT}?tab=certificates&certificate=CK0000011`, CANCELLER);
+    await user.click(await screen.findByRole('button', { name: 'Cancel certificate' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel the certificate' });
     await user.type(within(dialog).getByLabelText(/Reason/), 'stolen');
     await user.click(within(dialog).getByRole('button', { name: 'Cancel certificate' }));
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent(CANCELLATION_GOVERNED_TEXT);
-    expect(within(dialog).getByRole('button', { name: 'Cancel certificate' })).toBeDisabled();
-    expect(backend.sent('/request-cancellation')).toHaveLength(0);
+    await user.click(await within(dialog).findByRole('button', { name: 'Request cancellation' }));
+    expect(await within(dialog).findByText(STALE_TEXT)).toBeInTheDocument();
+    expect((within(dialog).getByLabelText(/Reason/) as HTMLTextAreaElement).value).toBe('stolen');
+    expect(backend.sent('/request-cancellation')).toHaveLength(1);                              // not resent by itself
+    await user.click(within(dialog).getByRole('button', { name: 'Request cancellation' }));
+    await waitFor(() => expect(backend.sent('/request-cancellation')).toHaveLength(2));
+    const [first, second] = backend.sent('/request-cancellation');
+    expect(second.body).toEqual({ reason: 'stolen' });
+    expect(second.headers['x-idempotency-key']).toBe(first.headers['x-idempotency-key']);
+    expect(second.headers['if-match']).toBe(certEtag(C_ID));
+  });
+
+  it('if the tenant stopped governing between the clicks, the server refusal is shown as it is', async () => {
+    const user = userEvent.setup();
+    certificateBackend({
+      certificates: [certificate()],
+      command: (_call, action) =>
+        action === 'cancel'
+          ? envelope(409, 'WORKFLOW_APPROVAL_REQUIRED', 'approval required')
+          : action === 'request-cancellation'
+            ? envelope(409, 'WORKFLOW_NOT_CONFIGURED', 'certificate cancellation is not configured for approval; cancel the certificate directly')
+            : null,
+    });
+    renderAt(`${AT}?tab=certificates&certificate=CK0000011`, CANCELLER);
+    await user.click(await screen.findByRole('button', { name: 'Cancel certificate' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel the certificate' });
+    await user.type(within(dialog).getByLabelText(/Reason/), 'stolen');
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel certificate' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'Request cancellation' }));
+    const alert = await within(dialog).findByRole('alert');
+    expect(alert).toHaveTextContent('The cancellation was not requested');
+    expect(alert).toHaveTextContent('Certificate cancellation is not configured for approval; cancel the certificate directly.');
   });
 
   it('a pending cancellation request shows who it waits for', async () => {
