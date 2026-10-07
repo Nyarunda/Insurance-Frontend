@@ -3,6 +3,8 @@
  * chassis number) or `?serial_no=`. Issued certificates only, never blank stock, within the
  * policies the user may see; the server matches and normalises. The search lives in the URL
  * (`?vehicle=` or `?serial=`), and a result opens at `/certificates/list/<serial>`.
+ * Before any search the page lists the latest issued certificates, as `GET /certificates` returns
+ * them (the server's own cap; product owner, 2026-10-07).
  */
 
 import React, { useState } from 'react';
@@ -29,7 +31,7 @@ import { humanize } from '../workflow/format';
 
 export const CERTIFICATES_PATH = '/certificates/list';
 export const certificateHref = (serial: string) => `${CERTIFICATES_PATH}/${encodeURIComponent(serial)}`;
-export const SEARCH_FIRST_TEXT = 'Search for a certificate';
+export const NONE_ISSUED_TEXT = 'No certificates have been issued yet';
 export const NO_MATCH_TEXT = 'No certificate matches this search';
 
 type By = 'vehicle' | 'serial';
@@ -67,10 +69,14 @@ export const CertificatesPage: React.FC = () => {
     <HorizonPage id="certificates">
       <HorizonPageTitle
         title="Certificates"
-        subtitle={results.data && searched ? `${results.data.length} ${results.data.length === 1 ? 'certificate' : 'certificates'} found` : 'Find an issued certificate by vehicle or serial number'}
+        subtitle={
+          results.data && searched
+            ? `${results.data.length} ${results.data.length === 1 ? 'certificate' : 'certificates'} found`
+            : 'The latest certificates issued on policies you can see; search by vehicle or serial number'
+        }
       />
       <ListCard
-        title="Find a certificate"
+        title={searched ? 'Search results' : 'Recent certificates'}
         toolbar={
           <form role="search" className="flex flex-wrap items-center gap-2" onSubmit={submit}>
             <FilterGroup<By> label="Search by" options={BY} value={by} onChange={(next) => setBy(next)} />
@@ -89,12 +95,9 @@ export const CertificatesPage: React.FC = () => {
           </form>
         }
       >
-        {!searched && (
-          <EmptyState icon={FileBadge} title={SEARCH_FIRST_TEXT} hint="Enter a vehicle's registration or chassis number, or a certificate's serial number." />
-        )}
-        {searched && results.isPending && (
+        {results.isPending && (
           <div className="p-6">
-            <HorizonLoader tip="Searching..." />
+            <HorizonLoader tip={searched ? 'Searching...' : 'Loading certificates...'} />
           </div>
         )}
         {results.isError && (
@@ -105,7 +108,10 @@ export const CertificatesPage: React.FC = () => {
         {searched && results.data && results.data.length === 0 && (
           <EmptyState icon={FileBadge} title={NO_MATCH_TEXT} hint="Only issued certificates on policies you can see are found." />
         )}
-        {searched && results.data && results.data.length > 0 && (
+        {!searched && results.data && results.data.length === 0 && (
+          <EmptyState icon={FileBadge} title={NONE_ISSUED_TEXT} hint="Certificates are issued from a policy's Certificates tab." />
+        )}
+        {results.data && results.data.length > 0 && (
           <div className="overflow-x-auto">
             <table className="hz-grid w-full" aria-label="Certificates">
               <thead>

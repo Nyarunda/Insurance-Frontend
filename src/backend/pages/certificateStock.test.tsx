@@ -24,7 +24,7 @@ const NBO = { id: '77777777-7777-4777-8777-777777777777', code: 'NBO', name: 'Na
 const MSA = { id: '78787878-7878-4787-8787-787878787878', code: 'MSA', name: 'Mombasa', scope: 'BRANCH' };
 const INSURER = { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', code: 'JUB', name: 'Jubilee Insurance', status: 'ACTIVE' };
 const OLD_INSURER = { id: 'efefefef-efef-4efe-8efe-efefefefefef', code: 'OLD', name: 'Old Mutual Legacy', status: 'SUSPENDED' };
-const MOTOR_CLASS = { id: '15151515-1515-4151-8151-151515151515', code: 'MOTOR', name: 'Motor', line: 'GENERAL', is_active: true };
+const MOTOR_CLASS = { id: '15151515-1515-4151-8151-151515151515', code: 'MOT-C59413', name: 'Motor private', line: 'GENERAL', is_active: true };
 const BATCH_ID = '30303030-3030-4303-8303-303030303030';
 const USER_ID = '31313131-3131-4313-8313-313131313131';
 
@@ -35,8 +35,8 @@ const KEEPER = person(['certificates.stock.manage', 'certificates.cert.view', 'i
 const ISSUER = person(['certificates.cert.view', 'certificates.cert.issue', 'policies.policy.view', 'products.product.view']);
 
 const TYPES: CertificateType[] = [
-  { id: '19191919-1919-4191-8191-191919191919', code: 'MOT-A', name: 'Motor certificate', category: 'MOTOR', insurance_class: { id: MOTOR_CLASS.id, code: 'MOTOR' }, is_active: true },
-  { id: '20202020-2020-4202-8202-202020202020', code: 'MOT-OLD', name: 'Old motor', category: 'MOTOR', insurance_class: { id: MOTOR_CLASS.id, code: 'MOTOR' }, is_active: false },
+  { id: '19191919-1919-4191-8191-191919191919', code: 'MOT-A', name: 'Motor certificate', category: 'MOTOR', insurance_class: { id: MOTOR_CLASS.id, code: 'MOT-C59413' }, is_active: true },
+  { id: '20202020-2020-4202-8202-202020202020', code: 'MOT-OLD', name: 'Old motor', category: 'MOTOR', insurance_class: { id: MOTOR_CLASS.id, code: 'MOT-C59413' }, is_active: false },
 ];
 const batch = (over: Partial<Batch> = {}): Batch => ({
   id: BATCH_ID, batch_no: 'CBT0000001', insurer: { id: INSURER.id, code: 'JUB' }, certificate_type: { id: TYPES[0].id, code: 'MOT-A' },
@@ -62,7 +62,7 @@ function stockBackend(options: Options = {}) {
       if (answer) return answer;
       if (path === '/certificate-types') {
         const body = call.body as { code: string; name: string; category: string };
-        return json(201, { id: '32323232-3232-4323-8323-323232323232', ...body, insurance_class: { id: MOTOR_CLASS.id, code: 'MOTOR' }, is_active: true, row_version: 1 }, { ETag: '"certificate-type-x-v1"' });
+        return json(201, { id: '32323232-3232-4323-8323-323232323232', ...body, insurance_class: { id: MOTOR_CLASS.id, code: 'MOT-C59413' }, is_active: true, row_version: 1 }, { ETag: '"certificate-type-x-v1"' });
       }
       if (path === '/certificate-batches') return json(201, batch({ batch_no: 'CBT0000002', first_serial: 'MK0000101', last_serial: 'MK0000150', quantity: 50 }));
       if (path === '/certificate-stock/allocate') {
@@ -147,12 +147,14 @@ describe('Types', () => {
     const table = await screen.findByRole('table', { name: 'Certificate types' });
     expect(table).toHaveTextContent('Motor certificate');
     expect(table).toHaveTextContent('Inactive');
+    const [, first] = within(table).getAllByRole('row');
+    expect(first).toHaveTextContent('Motor privateMOT-C59413');                    // the class's name from setup, then its code
     expect(screen.queryByRole('button', { name: /Rename|Deactivate|Edit/ })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'New type' }));
     const dialog = await screen.findByRole('dialog', { name: 'New certificate type' });
     const classes = within(dialog).getByLabelText(/Insurance class/) as HTMLSelectElement;
-    expect([...classes.options].map((o) => o.textContent)).toEqual(['Choose…', 'Motor (MOTOR)']);   // active classes only
+    expect([...classes.options].map((o) => o.textContent)).toEqual(['Choose…', 'Motor private (MOT-C59413)']);   // active classes only
     await user.click(within(dialog).getByRole('button', { name: 'Create type' }));
     expect(within(dialog).getByText('Enter a code.')).toBeInTheDocument();
     expect(backend.sent('/certificate-types')).toHaveLength(0);
@@ -302,5 +304,20 @@ describe('Allocation', () => {
     await user.type(last, '20');
     await user.click(within(dialog).getByRole('button', { name: 'Allocate' }));
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Only available stock is allocated; already used: CK0000011.');
+  });
+
+  it('a batch no longer available says what to do, without claiming a reload', async () => {
+    const user = userEvent.setup();
+    stockBackend({
+      command: (_call, path) => (path === '/certificate-stock/allocate' ? envelope(404, 'CERTIFICATE_BATCH_NOT_FOUND', 'certificate batch not found') : null),
+    });
+    renderAt(`${AT}?tab=batches`);
+    await user.click(await screen.findByRole('button', { name: 'Allocate from CBT0000001' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Allocate to a branch' });
+    await user.selectOptions(within(dialog).getByLabelText(/To branch/), MSA.id);
+    await user.click(within(dialog).getByRole('button', { name: 'Allocate' }));
+    const alert = await within(dialog).findByRole('alert');
+    expect(alert).toHaveTextContent('That batch is not available to you any more. Close this and refresh the list.');
+    expect(alert).not.toHaveTextContent('reloaded');
   });
 });

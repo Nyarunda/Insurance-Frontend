@@ -16,7 +16,7 @@ import { backendRoutes } from '../BackendApp';
 import type { Certificate } from '../certificates/types';
 import { BACKEND_NAV, visibleNav } from '../navigation';
 import { MAKER, POLICY_ID } from '../../test/policyFixtures';
-import { NO_MATCH_TEXT, SEARCH_FIRST_TEXT } from './CertificatesPage';
+import { NO_MATCH_TEXT, NONE_ISSUED_TEXT } from './CertificatesPage';
 
 const UUID_IN_TEXT = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 const C_ID = '17171717-1717-4171-8171-171717171717';
@@ -107,12 +107,20 @@ describe('Find a certificate', () => {
     expect(items(MAKER)).not.toContain('certificates');
   });
 
-  it('/certificates moves to the list, which asks for a search and fetches nothing until then', async () => {
+  it('/certificates moves to the list, which shows the latest issued certificates before any search', async () => {
     const backend = findBackend();
     const router = renderAt('/certificates');
     await waitFor(() => expect(router.state.location.pathname).toBe('/certificates/list'));
-    expect(await screen.findByText(SEARCH_FIRST_TEXT)).toBeInTheDocument();
-    expect(backend.searches()).toEqual([]);
+    expect(await screen.findByRole('row', { name: /CK0000011/ })).toBeInTheDocument();
+    expect(screen.getByText('Recent certificates')).toBeInTheDocument();
+    expect(backend.searches()).toEqual(['/certificates?']);                    // no filter: the server's latest
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it('says so when none have been issued yet', async () => {
+    findBackend([]);
+    renderAt('/certificates/list');
+    expect(await screen.findByText(NONE_ISSUED_TEXT)).toBeInTheDocument();
   });
 
   it('searches by vehicle on the server, keeps it in the URL, and opens a result by its serial', async () => {
@@ -122,7 +130,7 @@ describe('Find a certificate', () => {
     await user.type(await screen.findByLabelText('Registration or chassis number'), ' kda 123a ');
     await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => expect(router.state.location.search).toBe('?vehicle=kda+123a'));
-    expect(backend.searches()).toEqual(['/certificates?vehicle=kda+123a']);
+    expect(backend.searches()).toEqual(['/certificates?', '/certificates?vehicle=kda+123a']);
     const row = await screen.findByRole('row', { name: /CK0000011/ });
     expect(row).toHaveTextContent('KDA 123A');
     expect(row).toHaveTextContent('Wanjiku Holdings');
@@ -142,7 +150,7 @@ describe('Find a certificate', () => {
     await user.type(screen.getByLabelText('Serial number'), 'ck0000011');
     await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => expect(router.state.location.search).toBe('?serial=ck0000011'));
-    expect(backend.searches()).toEqual(['/certificates?serial_no=ck0000011']);
+    expect(backend.searches()).toEqual(['/certificates?', '/certificates?serial_no=ck0000011']);
     expect(await screen.findByRole('row', { name: /CK0000011/ })).toBeInTheDocument();
   });
 

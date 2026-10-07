@@ -67,10 +67,10 @@ export function useProductClass(productId: string, enabled: boolean) {
 /**
  * Find a certificate (CS-B): `GET /certificates?vehicle=` (registration or chassis) or `?serial_no=`.
  * Issued certificates only, never blank stock, within the user's policy scope; the server matches
- * and caps the results. Nothing is fetched without a search term.
+ * and caps the results. With no term, the server's latest issued certificates (CS-POLISH, product
+ * owner 2026-10-07).
  */
 export function useCertificateSearch(search: { vehicle?: string; serial?: string }) {
-  const term = search.vehicle || search.serial || '';
   return useQuery({
     queryKey: ['certificates', 'search', search] as const,
     queryFn: async () => {
@@ -79,6 +79,5 @@ export function useCertificateSearch(search: { vehicle?: string; serial?: string
       if (search.serial) params.set('serial_no', search.serial);
       return (await api.request<{ results: Certificate[] }>(`/certificates?${params}`)).data.results;
     },
-    enabled: !!term,
   });
 }

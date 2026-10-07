@@ -198,7 +198,7 @@ export const STOCK_REFUSALS: Record<string, (error: ApiError) => string> = {
   CERTIFICATE_TYPE_UNKNOWN: () => 'That certificate type is not active any more. Choose another.',
   INSURER_UNKNOWN: () => 'That insurer is not known. Choose another.',
   INSURANCE_CLASS_UNKNOWN: () => 'That insurance class is not known. Choose another.',
-  CERTIFICATE_BATCH_NOT_FOUND: () => 'That batch is not available to you any more. It has been reloaded.',
+  CERTIFICATE_BATCH_NOT_FOUND: () => 'That batch is not available to you any more. Close this and refresh the list.',
 };
 
 export const stockRefusal = (error: unknown): string | null =>

@@ -35,3 +35,7 @@ Blank-stock lookup, stock management (CS-C), movement history and new search fie
 ## Tests
 
 `src/backend/pages/certificateFind.test.tsx` (11): the nav item for `cert.view` only (issuer, stock manager; not a policy-only user); `/certificates` → the list, which fetches nothing before a search; vehicle search on the server, kept in the URL, results in words without IDs, a row opens `/certificates/list/<serial>`; serial search; no match; the record by serial in words, the replacement link, Back to the originating search; Open on the policy at this certificate; no policy link without `policies.policy.view`; an unseen serial is not found; the cover warning and pending request; the sidebar highlights Certificates. `navigation.test.ts`: the registry gains Certificates, and its list and records resolve to it.
+
+## CS-POLISH (product owner, 2026-10-07, after the pilot preview)
+
+- **Recent certificates before a search.** With no search term, the page asks `GET /certificates` with no filter, which returns the latest issued certificates the user may see (the server's own scope and cap), titled "Recent certificates"; a search narrows them as before ("Search results"). With none issued: "No certificates have been issued yet". This reverses CS-B's "nothing fetched before a term", on the product owner's instruction; still issued certificates only, never blank stock, and no new search field.

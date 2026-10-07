@@ -98,6 +98,8 @@ export const CertificateStockPage: React.FC = () => {
   const batches = useBatches();
   const types = useCertificateTypes(true);
   const insurers = useInsurers();
+  // The class's name from setup (`GET /insurance-classes`), not only its code.
+  const classes = useInsuranceClasses(tab === 'types');
   const { name: branchName } = useBranchNames();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -109,6 +111,7 @@ export const CertificateStockPage: React.FC = () => {
   }, [toast]);
 
   const insurerName = (id: string) => insurers.data?.find((insurer) => insurer.id === id)?.name ?? 'Insurer';
+  const className = (id: string) => classes.data?.find((item) => item.id === id)?.name;
   const show = (next: TabId) => {
     const changed = new URLSearchParams(params);
     if (next === 'stock') changed.delete('tab');
@@ -270,7 +273,12 @@ export const CertificateStockPage: React.FC = () => {
                           <td className="font-mono">{t.code}</td>
                           <td>{t.name}</td>
                           <td>{humanize(t.category)}</td>
-                          <td className="font-mono">{t.insurance_class.code}</td>
+                          <td>
+                            {className(t.insurance_class.id) ?? t.insurance_class.code}
+                            {className(t.insurance_class.id) && (
+                              <span className="ml-1.5 font-mono text-[13px] text-[var(--hz-text-muted)]">{t.insurance_class.code}</span>
+                            )}
+                          </td>
                           <td>
                             <StatusBadge square label={t.is_active ? 'Active' : 'Inactive'} tone={t.is_active ? 'success' : 'neutral'} />
                           </td>

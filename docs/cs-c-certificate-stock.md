@@ -43,3 +43,8 @@ Allocation to a named user, manual ID entry, spoiling a blank serial, a movement
 ## Tests
 
 `src/backend/pages/certificateStock.test.tsx` (11): sidebar for `stock.manage` only and the route refuses an issuer without fetching; stock in words (insurer and branch by name, a named holder without its ID, count, range) and empty; types list without rename/deactivate, create with active classes only, required fields, the body without If-Match and with a key, a taken code in words; batches list in words; receive with active insurers and types, the serial preview, the exact body; a reused serial in words; the server's range limit on the field; allocate to a branch only (no user field), range preview, the exact body, the returned result shown; the range kept within the batch and stock-not-available in words. `navigation.test.ts`: the registry gains Certificate stock, and `/certificates/stock` resolves to it.
+
+## CS-POLISH (product owner, 2026-10-07, after the pilot preview)
+
+- **Types show the class by name.** The Types tab reads the class names from setup (`GET /insurance-classes`) and shows "Motor private" with its code beside it, instead of the code alone.
+- **A batch no longer available** now says "That batch is not available to you any more. Close this and refresh the list.", no longer claiming a reload that the command does not do (the reviewer's non-blocking note).
