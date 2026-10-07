@@ -379,6 +379,8 @@ test.describe('NB1-E: a new policy, from a customer to a bound policy, against t
     await expect(evidence).toHaveCount(0);
     await expect(page.getByRole('table', { name: 'Requirements' })).toContainText(`LOGBOOK-${tag}`);
 
+    // The exceptions are on their own tab (proposal tabs), with the count still open.
+    await page.getByRole('tab', { name: /Exceptions/ }).click();
     const referral = page.getByRole('listitem', { name: "Underwriter's referral" });
     await expect(referral).toContainText(/Waiting for/);
     await expect(referral).toContainText('in My Work Queue');
@@ -404,7 +406,7 @@ test.describe('NB1-E: a new policy, from a customer to a bound policy, against t
     await page.getByRole('button', { name: 'Confirm approval' }).click();
     await expect(page.getByText(/^Approved: /)).toBeVisible();
 
-    await maker.page.goto(`${alpha()}${record.proposal.path}`);
+    await maker.page.goto(`${alpha()}${record.proposal.path}?tab=exceptions`);
     await expect(maker.page.getByText(/Nothing is outstanding since/)).toBeVisible();
     await expect(maker.page.getByRole('listitem', { name: "Underwriter's referral" })).toContainText('Approved');
   });

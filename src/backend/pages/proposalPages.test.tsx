@@ -278,12 +278,34 @@ describe('The draft', () => {
     const terms = await screen.findByRole('form', { name: 'Terms' });
     expect(await within(terms).findByRole('option', { name: /Binder · BD-007/ })).toBeInTheDocument();
     expect(within(terms).queryByRole('option', { name: /OLD-1/ })).not.toBeInTheDocument();         // terminated, not current
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Risk & premium' }));
     expect(mainText()).toContain('KAA 001A');
     expect(mainText()).not.toContain('Blue');                                                       // risk.details is not shown (NB-D3)
     expect(screen.getByRole('table', { name: 'Premium' })).toHaveTextContent('Training levy');
     expect(screen.getByRole('table', { name: 'Premium' })).not.toHaveTextContent('Commission');
+    expect(mainText()).not.toMatch(UUID_IN_TEXT);
+    await user.click(screen.getByRole('tab', { name: 'Cover' }));
     expect(screen.getByRole('region', { name: 'Own damage' })).toHaveTextContent('Windscreen');
     expect(mainText()).not.toMatch(UUID_IN_TEXT);
+  });
+
+  it('tabs: Terms by default; Exceptions shows how many are still open; the tab is kept in the address', async () => {
+    const user = userEvent.setup();
+    const referred = detail({ status: 'REFERRED', submitted_at: '2026-10-06T12:00:00Z', exceptions: [exception()] });
+    proposalBackend({ view: referred });
+    const router = renderAt(`/proposals/list/${P_ID}`);
+    expect(await screen.findByRole('tab', { name: 'Terms' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: 'Terms' })).toHaveTextContent('Requirements');
+    expect(screen.queryByRole('list', { name: 'Exceptions' })).not.toBeInTheDocument();
+    const exceptionsTab = screen.getByRole('tab', { name: /Exceptions/ });
+    expect(exceptionsTab).toHaveTextContent('1');
+    await user.click(exceptionsTab);
+    expect(router.state.location.search).toBe('?tab=exceptions');
+    expect(screen.getByRole('listitem', { name: "Underwriter's referral" })).toBeInTheDocument();
+    // The banner and the summary stay on every tab.
+    expect(screen.getByText('Referred: waiting for an approval')).toBeInTheDocument();
+    expect(screen.getByText('Total premium')).toBeInTheDocument();
   });
 
   it('saves only the changed terms with the ETag: sum insured as canonical digits, the details as a whole', async () => {
@@ -470,7 +492,7 @@ describe('Submitted', () => {
   it('the maker checks again and reopens with the ETag, and cannot approve an exception', async () => {
     const user = userEvent.setup();
     const backend = proposalBackend({ view: referred() });
-    renderAt(`/proposals/list/${P_ID}`);
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`);
     await user.click(await screen.findByRole('button', { name: 'Check again' }));
     await waitFor(() => expect(backend.sent('evaluate')).toHaveLength(1));
     await user.click(screen.getByRole('button', { name: 'Reopen' }));
@@ -503,7 +525,7 @@ describe('Submitted', () => {
   it('a checker approves an exception here when not governed; when governed it waits in My Work Queue', async () => {
     const user = userEvent.setup();
     const backend = proposalBackend({ view: referred() });
-    renderAt(`/proposals/list/${P_ID}`, CHECKER);
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, CHECKER);
     await user.click(await screen.findByRole('button', { name: "Approve: Underwriter's referral" }));
     const dialog = await screen.findByRole('dialog', { name: 'Approve exception' });
     await user.type(within(dialog).getByLabelText('Note'), 'Checked the loss history');
@@ -518,7 +540,7 @@ describe('Submitted', () => {
     const governed = referred();
     governed.exceptions = governed.exceptions.map((item) => ({ ...item, workflow: { instance_id: 'w-1', status: 'PENDING_APPROVAL', stage_label: 'Underwriting review', waiting_on: ['Underwriting Checker'] } }));
     proposalBackend({ view: governed });
-    renderAt(`/proposals/list/${P_ID}`, CHECKER);
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, CHECKER);
     const referral = await screen.findByRole('listitem', { name: "Underwriter's referral" });
     expect(referral).toHaveTextContent('Waiting for: Underwriting Checker (Underwriting review), in My Work Queue.');
     expect(screen.queryByRole('button', { name: /^Approve/ })).not.toBeInTheDocument();
@@ -531,7 +553,7 @@ describe('Submitted', () => {
     declined.decision_reason = 'Exception UNDERWRITER_REFERRAL rejected: loss history';
     declined.exceptions = [exception({ workflow: { instance_id: 'w-1', status: 'REJECTED', stage_label: 'Underwriting review', waiting_on: [] } })];
     proposalBackend({ view: declined });
-    renderAt(`/proposals/list/${P_ID}`, person([...CHECKER.permissions, 'workflow.task.view']));
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, person([...CHECKER.permissions, 'workflow.task.view']));
     const referral = await screen.findByRole('listitem', { name: "Underwriter's referral" });
     expect(referral).toHaveTextContent('Rejected');
     expect(referral).toHaveTextContent('Rejected in My Work Queue.');
@@ -544,7 +566,7 @@ describe('Submitted', () => {
     const voided = referred();
     voided.exceptions = [exception({ workflow: { instance_id: 'w-2', status: 'VOID', stage_label: null, waiting_on: [] } })];
     proposalBackend({ view: voided });
-    renderAt(`/proposals/list/${P_ID}`, person([...CHECKER.permissions, 'workflow.task.view']));
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, person([...CHECKER.permissions, 'workflow.task.view']));
     const referral = await screen.findByRole('listitem', { name: "Underwriter's referral" });
     expect(referral).toHaveTextContent('Void');
     expect(referral).not.toHaveTextContent('Awaiting approval');
@@ -567,7 +589,7 @@ describe('Submitted', () => {
     const ready = detail({ status: 'READY_TO_BIND', ready_at: '2026-10-06T14:00:00Z', submitted_at: '2026-10-06T12:00:00Z' });
     ready.premium = { ...ready.premium, commission: { amount: '3800.00', rate_percent: '10' } };
     proposalBackend({ view: ready });
-    renderAt(`/proposals/list/${P_ID}`);
+    renderAt(`/proposals/list/${P_ID}?tab=risk`);
     expect(await screen.findByText(/Nothing is outstanding since/)).toBeInTheDocument();
     expect(screen.getByRole('table', { name: 'Premium' })).toHaveTextContent('Commission (10%)');
     expect(screen.getByRole('button', { name: 'Cancel proposal' })).toBeInTheDocument();

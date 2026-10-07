@@ -19,11 +19,14 @@
  * - Submit guidance: unsaved terms, or no saved agreement or inception, stop Submit before anything
  *   is sent; a warning toast says what to do and the field says it too (and takes the focus). A
  *   server refusal for a terms problem (PROPOSAL_NOT_BINDABLE) is placed on the same fields.
+ * - Sections in tabs (product owner, 2026-10-07): Terms (terms and requirements, the default),
+ *   Exceptions (with the count still open), Risk & premium, Cover. The tab lives in the URL
+ *   (`?tab=`); the banner, the actions and the summary column stay visible on every tab.
  * Actions show only to users whose permissions could use them; the server decides every one.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { ArrowLeft, ClipboardList, FileCheck2, Plus, Trash2 } from 'lucide-react';
 import {
   DetailDivider,
@@ -42,6 +45,7 @@ import {
   SideSection,
   StatusBadge,
   SummaryList,
+  WorkspaceTabs,
   type StatusTone,
 } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
@@ -80,6 +84,11 @@ const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid 
 type Dialog = 'bind' | 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | { approve: ProposalException } | null;
 
 const OPEN_STATUSES = ['DRAFT', 'UNDER_REVIEW', 'REFERRED'];
+
+type TabId = 'terms' | 'exceptions' | 'risk' | 'cover';
+const TAB_LABEL: Record<TabId, string> = { terms: 'Terms', exceptions: 'Exceptions', risk: 'Risk & premium', cover: 'Cover' };
+const TAB_IDS: TabId[] = ['terms', 'exceptions', 'risk', 'cover'];
+const isTab = (value: string | null): value is TabId => TAB_IDS.includes(value as TabId);
 
 /** Bindability problems that are about the terms, and the field each belongs on. */
 const TERMS_PROBLEMS: Record<string, keyof TermsIssues> = {
@@ -125,6 +134,14 @@ export const ProposalPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const proposal = useProposal(proposalId);
+  const [params, setParams] = useSearchParams();
+  const tab: TabId = isTab(params.get('tab')) ? (params.get('tab') as TabId) : 'terms';
+  const showTab = (next: TabId) => {
+    const changed = new URLSearchParams(params);
+    if (next === 'terms') changed.delete('tab');
+    else changed.set('tab', next);
+    setParams(changed, { replace: true, state: location.state });
+  };
   const commands = useProposalCommands();
   const canEdit = usePermission(PROPOSAL_EDIT);
   const canDecline = usePermission(PROPOSAL_DECLINE);
@@ -201,6 +218,7 @@ export const ProposalPage: React.FC = () => {
     setTermsIssues({});
     setWarning(null);
     if (termsDirty) {
+      showTab('terms');
       setWarning('Save the terms first: your changes to the terms are not saved yet.');
       focusField('proposal-save-terms');
       return;
@@ -210,6 +228,7 @@ export const ProposalPage: React.FC = () => {
     if (!view.proposed_inception_date) missing.proposed_inception_date = 'Set the proposed inception, then Save terms.';
     const first = Object.keys(missing)[0] as keyof TermsIssues | undefined;
     if (first) {
+      showTab('terms');
       setTermsIssues(missing);
       setWarning(`The proposal was not submitted. ${Object.values(missing).join(' ')}`);
       focusField(FIELD_ID[first]);
@@ -229,6 +248,7 @@ export const ProposalPage: React.FC = () => {
         : [];
     const onTerms = problems.filter((problem) => TERMS_PROBLEMS[problem.code]);
     if (onTerms.length) {
+      showTab('terms');
       const placed: TermsIssues = {};
       for (const problem of onTerms) placed[TERMS_PROBLEMS[problem.code]] ??= `${sentence(problem.message)} Then Save terms.`;
       setTermsIssues(placed);
@@ -238,6 +258,11 @@ export const ProposalPage: React.FC = () => {
     // Anything that is not about the terms stays in the alert above the record, in words.
     if (onTerms.length < problems.length || problems.length === 0) setFailure({ error: outcome.error, title: 'The proposal was not submitted' });
   };
+  /** Exceptions still waiting for a decision: open, and not closed by a governed outcome. */
+  const openExceptions = view.exceptions.filter((item) => {
+    const state = exceptionState(item);
+    return state.kind === 'lightweight' || state.kind === 'waiting';
+  }).length;
   const settled = (after: ProposalDetail) => `${view.proposal_no}: ${PROPOSAL_STATUS_LABEL[after.status] ?? humanize(after.status)}`;
 
   const actions: React.ReactNode[] = [];
@@ -331,47 +356,67 @@ export const ProposalPage: React.FC = () => {
         onPolicy={canSeePolicies && view.policy_no ? () => navigate(policyHref(view.policy_no as string)) : undefined}
       />
 
-      <div className="hz-record-body">
+      <div>
+        <WorkspaceTabs
+          tabs={[
+            { id: 'terms', label: 'Terms' },
+            { id: 'exceptions', label: 'Exceptions', count: openExceptions || undefined },
+            { id: 'risk', label: 'Risk & premium' },
+            { id: 'cover', label: 'Cover' },
+          ]}
+          activeTab={tab}
+          label="Proposal sections"
+          variant="line"
+          onChange={showTab}
+        />
+      <div role="tabpanel" aria-label={TAB_LABEL[tab]} className="hz-record-body">
         <RecordColumns
           main={
             <div className="flex flex-col">
-              <TermsSection
-                view={view}
-                etag={etag}
-                editable={draft && canEdit}
-                issues={termsIssues}
-                onDirty={setTermsDirty}
-                onSaved={() => {
-                  setTermsIssues({});
-                  setWarning(null);
-                  setToast(`Terms saved: ${view.proposal_no}`);
-                }}
-              />
-              <DetailDivider />
-              <RequirementsSection view={view} canRecord={open && canEdit} onRecord={(requirement) => setDialog({ evidence: requirement })} />
-              <DetailDivider />
-              <ExceptionsSection
-                view={view}
-                canApprove={view.status === 'REFERRED' && canApprove}
-                canSeeTasks={canSeeTasks}
-                onApprove={(exception) => setDialog({ approve: exception })}
-                onTask={(instanceId) => navigate(`/my-work/list/${encodeURIComponent(instanceId)}`)}
-              />
-              <DetailDivider />
-              <DetailGroup title="Risk, as quoted" description={`From ${view.quotation.quotation_no}, revision ${view.quotation_revision_no}; it does not change here.`}>
-                <DetailGrid
-                  items={[
-                    ...Object.entries(view.quoted_risk.factors).map(([code, value]) => ({ label: humanize(code), value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value) })),
-                    ...view.quoted_risk.identifiers.map((item) => ({ label: riskIdentifierLabel(item.identifier_type), value: <span className="font-mono">{item.value}</span> })),
-                  ]}
+              {tab === 'terms' && (
+                <>
+                  <TermsSection
+                    view={view}
+                    etag={etag}
+                    editable={draft && canEdit}
+                    issues={termsIssues}
+                    onDirty={setTermsDirty}
+                    onSaved={() => {
+                      setTermsIssues({});
+                      setWarning(null);
+                      setToast(`Terms saved: ${view.proposal_no}`);
+                    }}
+                  />
+                  <DetailDivider />
+                  <RequirementsSection view={view} canRecord={open && canEdit} onRecord={(requirement) => setDialog({ evidence: requirement })} />
+                </>
+              )}
+              {tab === 'exceptions' && (
+                <ExceptionsSection
+                  view={view}
+                  canApprove={view.status === 'REFERRED' && canApprove}
+                  canSeeTasks={canSeeTasks}
+                  onApprove={(exception) => setDialog({ approve: exception })}
+                  onTask={(instanceId) => navigate(`/my-work/list/${encodeURIComponent(instanceId)}`)}
                 />
-              </DetailGroup>
-              <DetailDivider />
-              <DetailGroup title="Premium, as accepted" description="Copied from the accepted offer; never recalculated.">
-                <PremiumTable premium={view.premium} />
-              </DetailGroup>
-              <DetailDivider />
-              <CoverSection view={view} />
+              )}
+              {tab === 'risk' && (
+                <>
+                  <DetailGroup title="Risk, as quoted" description={`From ${view.quotation.quotation_no}, revision ${view.quotation_revision_no}; it does not change here.`}>
+                    <DetailGrid
+                      items={[
+                        ...Object.entries(view.quoted_risk.factors).map(([code, value]) => ({ label: humanize(code), value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value) })),
+                        ...view.quoted_risk.identifiers.map((item) => ({ label: riskIdentifierLabel(item.identifier_type), value: <span className="font-mono">{item.value}</span> })),
+                      ]}
+                    />
+                  </DetailGroup>
+                  <DetailDivider />
+                  <DetailGroup title="Premium, as accepted" description="Copied from the accepted offer; never recalculated.">
+                    <PremiumTable premium={view.premium} />
+                  </DetailGroup>
+                </>
+              )}
+              {tab === 'cover' && <CoverSection view={view} />}
             </div>
           }
           side={
@@ -392,6 +437,7 @@ export const ProposalPage: React.FC = () => {
             </>
           }
         />
+      </div>
       </div>
 
       {dialog === 'bind' && etag && (
