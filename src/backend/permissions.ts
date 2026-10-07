@@ -29,3 +29,8 @@ export const PROPOSAL_EDIT = 'underwriting.proposal.edit';
 export const PROPOSAL_DECLINE = 'underwriting.proposal.decline';
 export const PROPOSAL_CANCEL = 'underwriting.proposal.cancel';
 export const PROPOSAL_EXCEPTION_APPROVE = 'underwriting.exception.approve';
+
+// CERTIFICATES-SURFACE-1 (CS-A): certificates, judged on the certificate's policy.
+export const CERT_VIEW = 'certificates.cert.view';
+export const CERT_ISSUE = 'certificates.cert.issue';
+export const CERT_CANCEL = 'certificates.cert.cancel';

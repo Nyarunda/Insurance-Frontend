@@ -4,14 +4,16 @@
  * Only sections the backend provides are shown. Claims, billing, documents, accounting and the
  * audit timeline have no backend yet and are left out in backend mode, never filled from mock
  * data. The Endorsements tab (FI1-D) lists `GET /policies/{id}/endorsements`. The policy's ETag
- * (from the header) is kept with the query for endorsement creation.
+ * (from the header) is kept with the query for endorsement creation and certificate issue.
+ * The Certificates tab (CERTIFICATES-SURFACE-1 CS-A) shows to users who may view or issue
+ * certificates; "Issue certificate" in the header (also where a bind lands) opens its issue form.
  *
  * Laid out as the Studio Admin record (profile) page: a header with the policy period as a ring,
  * line tabs, label-over-value groups split by rules, and on Overview a status column.
  */
 
 import React from 'react';
-import { ArrowLeft, CalendarDays, CircleCheck, CircleX, Clock3, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CircleCheck, CircleX, Clock3, FileBadge, ShieldCheck } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useRouteRefs } from '../policies/refs';
 import {
@@ -30,7 +32,10 @@ import {
 } from '../../components/horizon';
 import { NOT_FOUND_TEXT } from '../../lib/api/commandErrors';
 import { ApiError } from '../../lib/api/errors';
+import { usePermission } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
+import { issuable, PolicyCertificatesTab } from '../certificates/PolicyCertificatesTab';
+import { CERT_ISSUE, CERT_VIEW } from '../permissions';
 import { COVERAGE_TONE, formatDate, LIFECYCLE_TONE, levyRate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
 import { PolicyEndorsementsTab } from '../endorsements/PolicyEndorsementsTab';
@@ -45,6 +50,7 @@ export const POLICY_TABS = [
   { id: 'premium', label: 'Premium & Levies' },
   { id: 'versions', label: 'Versions' },
   { id: 'endorsements', label: 'Endorsements' },
+  { id: 'certificates', label: 'Certificates' },
 ] as const;
 
 type TabId = (typeof POLICY_TABS)[number]['id'];
@@ -83,6 +89,18 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
   const tab: TabId = fixedTab ?? (isTab(params.get('tab')) ? (params.get('tab') as TabId) : 'overview');
   const policy = usePolicy(policyId);
   const versions = usePolicyVersions(policyId, tab === 'versions' && policy.isSuccess);
+  const canIssueCertificates = usePermission(CERT_ISSUE);
+  const canSeeCertificates = usePermission(CERT_VIEW) || canIssueCertificates;
+  const tabs = POLICY_TABS.filter((item) => item.id !== 'certificates' || canSeeCertificates);
+  const showTab = (next: TabId, extra?: Record<string, string>) => {
+    const changed = new URLSearchParams(params);
+    for (const name of ['certificate', 'issue']) changed.delete(name);
+    if (next === 'overview') changed.delete('tab');
+    else changed.set('tab', next);
+    for (const [name, value] of Object.entries(extra ?? {})) changed.set(name, value);
+    // Keep the router state, so Back still knows the originating list after a tab change.
+    setParams(changed, { replace: true, state: location.state });
+  };
 
   // Back to the list this policy was opened from, with its filters and page (FI1-C-R1).
   const back = () => navigate(directoryFrom(location.state));
@@ -107,7 +125,7 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
     );
   }
 
-  const { view } = policy.data;
+  const { view, etag } = policy.data;
   const current = view.current_version;
 
   const cancelled = view.lifecycle_status === 'CANCELLED' || !!view.cancellation;
@@ -131,26 +149,22 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
           </>
         }
         actions={
-          <button type="button" className="hz-button hz-button-secondary" onClick={back} title="Back to Policy Directory" aria-label="Back to Policy Directory">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </button>
+          <>
+            {canIssueCertificates && issuable(view) && tab !== 'certificates' && (
+              <button type="button" className="hz-button hz-button-primary" onClick={() => showTab('certificates', { issue: '1' })}>
+                <FileBadge className="h-3.5 w-3.5" />
+                Issue certificate
+              </button>
+            )}
+            <button type="button" className="hz-button hz-button-secondary" onClick={back} title="Back to Policy Directory" aria-label="Back to Policy Directory">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </button>
+          </>
         }
       />
       <div>
-        <WorkspaceTabs
-          tabs={POLICY_TABS}
-          activeTab={tab}
-          label="Policy sections"
-          variant="line"
-          onChange={(next) => {
-            const changed = new URLSearchParams(params);
-            if (next === 'overview') changed.delete('tab');
-            else changed.set('tab', next);
-            // Keep the router state, so Back still knows the originating list after a tab change.
-            setParams(changed, { replace: true, state: location.state });
-          }}
-        />
+        <WorkspaceTabs tabs={tabs} activeTab={tab} label="Policy sections" variant="line" onChange={(next) => showTab(next)} />
         <div role="tabpanel" aria-label={POLICY_TABS.find((t) => t.id === tab)?.label} className="hz-record-body">
           {tab === 'overview' ? (
             <div className="grid lg:grid-cols-[minmax(0,1fr)_auto_18rem]">
@@ -176,6 +190,7 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
                   <Versions versions={versions.data.results} inForce={current.version_no} currency={view.currency} />
                 ))}
               {tab === 'endorsements' && <PolicyEndorsementsTab policy={view} />}
+              {tab === 'certificates' && canSeeCertificates && <PolicyCertificatesTab policy={view} policyEtag={etag} />}
             </div>
           )}
         </div>
