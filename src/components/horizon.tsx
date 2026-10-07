@@ -712,7 +712,7 @@ export function RecordHeader({
           {badges && <div className="flex flex-wrap gap-2">{badges}</div>}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 lg:justify-end">{actions}</div>}
     </div>
   );
 }

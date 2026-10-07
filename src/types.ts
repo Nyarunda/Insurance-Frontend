@@ -15,6 +15,9 @@ export type ScreenId =
   | 'provider-workspace'
   // SALES & DISTRIBUTION
   | 'quotations'
+  // Backend mode (NEW-BUSINESS-1): own ids, so no demo-era alias folds them into Quotations.
+  | 'proposals'
+  | 'new-policy'
   | 'applications'
   | 'brokers'
   | 'agents'

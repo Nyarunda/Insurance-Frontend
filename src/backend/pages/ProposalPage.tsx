@@ -232,17 +232,19 @@ export const ProposalPage: React.FC = () => {
           </>
         }
         actions={
-          <button type="button" className="hz-button hz-button-secondary" onClick={back} aria-label="Back to Proposals" title="Back to Proposals">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </button>
+          <>
+            {actions.length > 0 && (
+              <div role="group" aria-label="Proposal actions" className="flex flex-wrap items-center gap-2">
+                {actions}
+              </div>
+            )}
+            <button type="button" className="hz-button hz-button-secondary" onClick={back} aria-label="Back to Proposals" title="Back to Proposals">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </button>
+          </>
         }
       />
-      {actions.length > 0 && (
-        <div role="group" aria-label="Proposal actions" className="flex flex-wrap items-center justify-end gap-2">
-          {actions}
-        </div>
-      )}
       {stale && (
         <div role="status">
           <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
