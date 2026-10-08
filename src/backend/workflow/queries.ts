@@ -19,12 +19,22 @@ export const WORKFLOW_KEYS = {
  * needed, again when the user returns to the window, on Refresh, and after a decision or a domain
  * command invalidates it. The shell's navigation count and reminder read this same cached answer.
  */
-export function useWorkQueue(enabled = true) {
+/** NTF-1: how often the shell refreshes an approver's queue while the window is visible. */
+export const QUEUE_POLL_MS = 60_000;
+
+/**
+ * The caller's live approval tasks. ``poll`` (the shell only) refreshes them every minute while the
+ * window is visible, never in the background, so a new approval is announced without leaving the screen
+ * (NTF-1, reversing DESIGN-1-R1's no-polling for approvers). Every other reader shares the same query.
+ */
+export function useWorkQueue(enabled = true, { poll = false }: { poll?: boolean } = {}) {
   return useQuery({
     queryKey: WORKFLOW_KEYS.queue,
     queryFn: async () => (await api.request<WorkQueue>('/work-queue')).data,
     enabled,
     staleTime: 0, // refreshed whenever the user comes back to the tab
+    refetchInterval: poll && enabled ? QUEUE_POLL_MS : false,
+    refetchIntervalInBackground: false,
   });
 }
 
