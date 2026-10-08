@@ -7,7 +7,7 @@
  */
 
 import { Boxes, CalendarClock, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
-import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE } from './permissions';
+import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -81,8 +81,12 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'vehicle-makes', label: 'Vehicle makes', path: '/vehicle-makes/list', permission: REFERENCE_MANAGE, icon: Car },
       // WRC-1: the reasons checkers choose from in My Work Queue, for tenant-wide workflow administrators.
       { screen: 'approval-reasons', label: 'Approval reasons', path: '/approval-reasons/list', permission: WORKFLOW_MANAGE, icon: ListChecks },
-      // SD-E: the renewal window and offer validity, for those who draft and those who publish them.
-      { screen: 'renewal-settings', label: 'Renewal settings', path: '/renewal-settings/list', permission: [RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH], icon: CalendarClock },
+      // SD-E: the renewal window and offer validity. Its readers, as the route and the server: those who
+      // draft and publish them, and those who prepare or approve renewals (SD-E R1).
+      {
+        screen: 'renewal-settings', label: 'Renewal settings', path: '/renewal-settings/list', icon: CalendarClock,
+        permission: [RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH, RENEWAL_CREATE, RENEWAL_APPROVE],
+      },
     ],
   },
 ];

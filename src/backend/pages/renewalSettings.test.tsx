@@ -159,11 +159,12 @@ describe('Renewal settings (SD-E)', () => {
     expect(await within(dialog).findByText(/Today is already decided by the settings in force/)).toBeInTheDocument();
   });
 
-  it('is in Setup for those who draft or publish, and the route lets renewal staff read it but not others', async () => {
+  it('is in Setup for each of its readers, as the route and the server, and for nobody else', async () => {
     const setup = (permissions: string[]) => visibleNav(BACKEND_NAV, permissions).find((group) => group.id === 'setup');
-    expect(setup(['policies.renewal_settings.manage'])?.items.map((item) => item.label)).toEqual(['Renewal settings']);
-    expect(setup(['products.config.publish'])?.items.map((item) => item.label)).toEqual(['Renewal settings']);
-    expect(setup(['policies.renewal.create'])).toBeUndefined();
+    for (const reader of ['policies.renewal_settings.manage', 'products.config.publish', 'policies.renewal.create', 'policies.renewal.approve']) {
+      expect(setup([reader])?.items.map((item) => item.label)).toEqual(['Renewal settings']);
+    }
+    expect(setup(['policies.policy.view', 'quotations.quotation.view'])).toBeUndefined();
     settingsBackend();
     renderAt('/renewal-settings/list', QUOTER);
     expect(await screen.findByText('You do not have access to this screen')).toBeInTheDocument();
