@@ -5,6 +5,7 @@
  * audit timeline have no backend yet and are left out in backend mode, never filled from mock
  * data. The Endorsements tab (FI1-D) lists `GET /policies/{id}/endorsements`. The policy's ETag
  * (from the header) is kept with the query for endorsement creation and certificate issue.
+ * The Renewals tab (RENEWALS-SURFACE-1 RS-A) lists the policy's renewals; "Prepare renewal" is on it.
  * The Certificates tab (CERTIFICATES-SURFACE-1 CS-A) shows to users who may view or issue
  * certificates; "Issue certificate" in the header (also where a bind lands) opens its issue form.
  *
@@ -39,6 +40,7 @@ import { CERT_ISSUE, CERT_VIEW } from '../permissions';
 import { COVERAGE_TONE, formatDate, LIFECYCLE_TONE, levyRate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
 import { PolicyEndorsementsTab } from '../endorsements/PolicyEndorsementsTab';
+import { PolicyRenewalsTab } from '../renewals/PolicyRenewalsTab';
 import { directoryFrom } from '../policies/returnTo';
 import type { PolicyDetail, PolicyVersion } from '../policies/types';
 import { displayFacts, formatDateTime, formatMoney, humanize } from '../workflow/format';
@@ -50,6 +52,7 @@ export const POLICY_TABS = [
   { id: 'premium', label: 'Premium & Levies' },
   { id: 'versions', label: 'Versions' },
   { id: 'endorsements', label: 'Endorsements' },
+  { id: 'renewals', label: 'Renewals' },
   { id: 'certificates', label: 'Certificates' },
 ] as const;
 
@@ -190,6 +193,7 @@ export const PolicyWorkspacePage: React.FC<{ tab?: TabId }> = ({ tab: fixedTab }
                   <Versions versions={versions.data.results} inForce={current.version_no} currency={view.currency} />
                 ))}
               {tab === 'endorsements' && <PolicyEndorsementsTab policy={view} />}
+              {tab === 'renewals' && <PolicyRenewalsTab policy={view} />}
               {tab === 'certificates' && canSeeCertificates && <PolicyCertificatesTab policy={view} policyEtag={etag} />}
             </div>
           )}

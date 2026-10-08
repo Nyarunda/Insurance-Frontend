@@ -284,7 +284,7 @@ describe('the policy workspace', () => {
     expect(queryClient.getQueryData<LoadedPolicy>(POLICY_KEYS.detail(POLICY_ID))?.etag).toBeNull();
   });
 
-  it('offers only the sections the backend provides (endorsements since FI1-D)', async () => {
+  it('offers only the sections the backend provides (endorsements since FI1-D, renewals since RS-A)', async () => {
     policyBackend();
     renderAt(`/policies/list/${POLICY_ID}`);
     const tabs = within(await screen.findByRole('tablist', { name: 'Policy sections' })).getAllByRole('tab');
@@ -295,6 +295,7 @@ describe('the policy workspace', () => {
       'Premium & Levies',
       'Versions',
       'Endorsements', // FI1-D
+      'Renewals', // RS-A
     ]);
     for (const absent of ['Claims', 'Billing', 'Documents', 'Accounting', 'Audit Timeline']) {
       expect(screen.queryByRole('tab', { name: absent })).not.toBeInTheDocument();

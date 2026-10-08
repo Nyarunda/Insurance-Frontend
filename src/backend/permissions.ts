@@ -39,3 +39,7 @@ export const CERT_STOCK = 'certificates.stock.manage';
 
 // SETUP-DRIVEN-1 SD-C: the tenant's vehicle makes and models (tenant-wide; the server refuses a branch grant).
 export const REFERENCE_MANAGE = 'products.reference.manage';
+
+// RENEWALS-SURFACE-1 RS-A: renewals, judged on the renewal's policy.
+export const RENEWAL_CREATE = 'policies.renewal.create';
+export const RENEWAL_APPROVE = 'policies.renewal.approve';

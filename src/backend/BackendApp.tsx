@@ -18,6 +18,8 @@ import { HomePage, NotFoundPage } from './pages/HomePage';
 import { EndorsementCreatePage } from './pages/EndorsementCreatePage';
 import { PolicyRefRoute } from './policies/refs';
 import { EndorsementPage } from './pages/EndorsementPage';
+import { RenewalPage } from './pages/RenewalPage';
+import { RenewalPreparePage } from './pages/RenewalPreparePage';
 import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { CertificatePage } from './pages/CertificatePage';
@@ -38,6 +40,7 @@ import {
   TASK_VIEW,
   CERT_STOCK,
   REFERENCE_MANAGE,
+  RENEWAL_CREATE,
   CERT_VIEW,
 } from './permissions';
 import { ProposalRefRoute } from './proposals/refs';
@@ -268,6 +271,35 @@ export const backendRoutes: RouteObject[] = [
                 <PolicyWorkspacePage tab="endorsements" />
               </div>
               <EndorsementPage />
+            </PolicyRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // RS-A: prepare a renewal, and a renewal's record, as dialogs over the policy's Renewals tab.
+      {
+        path: 'policies/list/:policyId/renewals/new',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <RequirePermission permission={RENEWAL_CREATE}>
+              <PolicyRefRoute>
+                <div inert aria-hidden="true">
+                  <PolicyWorkspacePage tab="renewals" />
+                </div>
+                <RenewalPreparePage />
+              </PolicyRefRoute>
+            </RequirePermission>
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'policies/list/:policyId/renewals/:renewalId',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <PolicyRefRoute>
+              <div inert aria-hidden="true">
+                <PolicyWorkspacePage tab="renewals" />
+              </div>
+              <RenewalPage />
             </PolicyRefRoute>
           </RequirePermission>
         ),
