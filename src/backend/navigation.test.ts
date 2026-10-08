@@ -65,7 +65,7 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
   });
 
-  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C) and Renewal settings (policies.renewal_settings.manage or products.config.publish, SD-E)', () => {
+  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C) and Renewal settings (any of its four readers, SD-E R1)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', 'workflow.task.view'],
@@ -78,7 +78,7 @@ describe('permission-driven navigation', () => {
       ['certificates', 'certificates.cert.view'],
       ['certificate-stock', 'certificates.stock.manage'],
       ['vehicle-makes', 'products.reference.manage'],
-      ['renewal-settings', ['policies.renewal_settings.manage', 'products.config.publish']],
+      ['renewal-settings', ['policies.renewal_settings.manage', 'products.config.publish', 'policies.renewal.create', 'policies.renewal.approve']],
     ]);
   });
 });
