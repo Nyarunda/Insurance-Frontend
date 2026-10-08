@@ -4,14 +4,22 @@
  *
  * DESIGN-1: the template's list page: metric cards over one card holding a search toolbar and the
  * table. The search only narrows what the server listed; it never adds or hides tasks otherwise.
+ *
+ * WFH-1: a **History** tab, `GET /workflows/my-history`: what the user decided ("Decided by me": their
+ * approvals and rejections, with the reason and where each approval stands now) and what they asked
+ * to be approved ("Requested by me"), past and pending, filtered by outcome and paged on the server.
+ * Only the user's own; a row opens the approval. The tab, view, filter and page live in the URL.
  */
 
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { CalendarClock, Clock3, FileText, Inbox, RefreshCw, UsersRound } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router';
+import { CalendarClock, Clock3, FileText, History, Inbox, RefreshCw, UsersRound } from 'lucide-react';
 import {
   DotTag,
   EmptyState,
+  FilterGroup,
+  StatusBadge,
+  WorkspaceTabs,
   HorizonLoader,
   HorizonPage,
   HorizonPageTitle,
@@ -26,8 +34,8 @@ import {
 } from '../../components/horizon';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { changeSummary, formatDateTime, formatMoney, humanize } from '../workflow/format';
-import { useWorkQueue } from '../workflow/queries';
-import type { WorkQueueItem } from '../workflow/types';
+import { HISTORY_PAGE_SIZE, useMyHistory, useWorkQueue } from '../workflow/queries';
+import type { HistoryRow, WorkQueueItem } from '../workflow/types';
 
 export const EMPTY_QUEUE_TEXT = 'Nothing is waiting for you';
 
@@ -95,7 +103,149 @@ export const TaskTable: React.FC<{ items: WorkQueueItem[]; compact?: boolean }> 
   );
 };
 
+export const NO_HISTORY_TEXT = 'Nothing here yet';
+
+const VIEWS = [
+  { id: 'DECIDED', label: 'Decided by me' },
+  { id: 'REQUESTED', label: 'Requested by me' },
+];
+const OUTCOMES = [
+  { id: '', label: 'All' },
+  { id: 'PENDING', label: 'Pending' },
+  { id: 'APPROVED', label: 'Approved' },
+  { id: 'REJECTED', label: 'Rejected' },
+  { id: 'CLOSED', label: 'Closed' },
+];
+const STATUS_WORDS: Record<string, [string, 'neutral' | 'info' | 'success' | 'warning' | 'danger']> = {
+  PENDING_APPROVAL: ['Pending', 'info'],
+  REFERRED: ['Referred', 'info'],
+  RETURNED_FOR_REWORK: ['Returned for rework', 'warning'],
+  APPROVED: ['Approved', 'success'],
+  REJECTED: ['Rejected', 'danger'],
+  CANCELLED: ['Cancelled', 'neutral'],
+  EXPIRED: ['Expired', 'neutral'],
+  VOID: ['No longer applies', 'neutral'],
+};
+
+const HistoryTable: React.FC<{ rows: HistoryRow[]; decided: boolean }> = ({ rows, decided }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="overflow-x-auto">
+      <table className="hz-grid w-full" aria-label={decided ? 'Decided by me' : 'Requested by me'}>
+        <thead>
+          <tr>
+            <th>Record</th>
+            <th>{decided ? 'My decision' : 'Asked'}</th>
+            <th>Reason</th>
+            <th>Now</th>
+            <th aria-hidden="true" />
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const [words, tone] = STATUS_WORDS[row.status] ?? [humanize(row.status), 'neutral'];
+            return (
+              <tr key={`${row.workflow_instance_id}:${row.acted_at ?? row.submitted_at}`}
+                {...openableRow(() => navigate(`/my-work/list/${encodeURIComponent(row.workflow_instance_id)}`))}>
+                <td>
+                  <RecordCell icon={FileText} title={`${humanize(row.resource_type)} ${row.resource_reference}`} detail={row.stage_label ?? row.definition_name} />
+                </td>
+                <td className="whitespace-nowrap">
+                  {decided ? (
+                    <StackedCell value={row.my_action === 'REJECT' ? 'Rejected' : 'Approved'} detail={formatDateTime(row.acted_at ?? null)} />
+                  ) : (
+                    <StackedCell value={row.definition_name} detail={formatDateTime(row.submitted_at ?? null)} />
+                  )}
+                </td>
+                <td>{row.reason_label || row.reason_code ? <StackedCell value={row.reason_label ?? humanize(row.reason_code!)} detail={row.reason_text ?? undefined} /> : '—'}</td>
+                <td>
+                  <StatusBadge square label={words} tone={tone} />
+                </td>
+                <RowChevron />
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const HistoryTab: React.FC = () => {
+  const [params, setParams] = useSearchParams();
+  const role = params.get('view') === 'REQUESTED' ? 'REQUESTED' : 'DECIDED';
+  const outcome = OUTCOMES.some((item) => item.id && item.id === params.get('outcome')) ? params.get('outcome') : null;
+  const page = Math.max(1, Number(params.get('page')) || 1);
+  const history = useMyHistory(role, outcome, page);
+  const update = (changes: Record<string, string | null>) => {
+    const next = new URLSearchParams(params);
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    setParams(next);
+  };
+  const data = history.data;
+  const pages = data ? Math.max(1, Math.ceil(data.count / HISTORY_PAGE_SIZE)) : 1;
+  return (
+    <ListCard
+      title="History"
+      toolbar={
+        <>
+          <FilterGroup label="View" options={VIEWS} value={role} onChange={(id) => update({ view: id === 'DECIDED' ? null : id, page: null })} />
+          <FilterGroup label="Outcome" options={OUTCOMES} value={outcome ?? ''} onChange={(id) => update({ outcome: id || null, page: null })} />
+        </>
+      }
+      footer={
+        data && data.results.length > 0 ? (
+          <>
+            <span>
+              Showing {data.results.length} of {data.count}
+            </span>
+            {pages > 1 && (
+              <nav aria-label="Pages" className="flex items-center gap-2">
+                <button type="button" className="hz-button hz-button-secondary" disabled={page <= 1} onClick={() => update({ page: page - 1 > 1 ? String(page - 1) : null })}>
+                  Previous
+                </button>
+                <span className="text-[var(--hz-text-primary)]">
+                  Page {page} of {pages}
+                </span>
+                <button type="button" className="hz-button hz-button-secondary" disabled={page >= pages} onClick={() => update({ page: String(page + 1) })}>
+                  Next
+                </button>
+              </nav>
+            )}
+          </>
+        ) : undefined
+      }
+    >
+      {history.isPending && (
+        <div className="p-6">
+          <HorizonLoader tip="Loading your history..." />
+        </div>
+      )}
+      {history.isError && (
+        <div className="p-4">
+          <ApiErrorAlert error={history.error} title="Your history could not be loaded" />
+        </div>
+      )}
+      {data && data.results.length === 0 && (
+        <EmptyState icon={History} title={NO_HISTORY_TEXT}
+          hint={role === 'DECIDED' ? 'Approvals and rejections you make appear here.' : 'Approvals you ask for appear here.'} />
+      )}
+      {data && data.results.length > 0 && <HistoryTable rows={data.results} decided={role === 'DECIDED'} />}
+    </ListCard>
+  );
+};
+
+const PAGE_TABS = [
+  { id: 'queue', label: 'Waiting for me' },
+  { id: 'history', label: 'History' },
+];
+
 export const WorkQueuePage: React.FC = () => {
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'history' ? 'history' : 'queue';
   const queue = useWorkQueue();
   const [search, setSearch] = useState('');
   const items = useMemo(() => queue.data?.results ?? [], [queue.data]);
@@ -127,8 +277,13 @@ export const WorkQueuePage: React.FC = () => {
           </button>
         }
       />
+      <div className="px-4">
+        <WorkspaceTabs tabs={PAGE_TABS} activeTab={tab} label="Work queue sections" variant="line"
+          onChange={(next) => setParams(next === 'history' ? { tab: 'history' } : {})} />
+      </div>
+      {tab === 'history' && <HistoryTab />}
 
-      {queue.isSuccess && (
+      {tab === 'queue' && queue.isSuccess && (
         <StatGrid>
           <StatCard icon={Inbox} label="Waiting" value={items.length} caption="Approvals assigned to you" />
           <StatCard
@@ -152,6 +307,7 @@ export const WorkQueuePage: React.FC = () => {
         </StatGrid>
       )}
 
+      {tab === 'queue' && (
       <ListCard
         title="Tasks"
         toolbar={
@@ -190,6 +346,7 @@ export const WorkQueuePage: React.FC = () => {
         )}
         {shown.length > 0 && <TaskTable items={shown} />}
       </ListCard>
+      )}
     </HorizonPage>
   );
 };

@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api/instance';
-import type { Decision, InstanceView, ReasonCode, WorkQueue } from './types';
+import type { Decision, HistoryPage, InstanceView, ReasonCode, WorkQueue } from './types';
 
 export const WORKFLOW_KEYS = {
   all: ['workflow'] as const,
@@ -53,5 +53,21 @@ export function useReasonCodes(action: Decision, enabled: boolean) {
       (await api.request<{ results: ReasonCode[] }>(`/workflows/reason-codes?action=${action}`)).data.results,
     enabled,
     staleTime: 60_000,
+  });
+}
+
+export const HISTORY_PAGE_SIZE = 25;
+
+/** WFH-1: the caller's own decisions or requests, newest first; `outcome` is where each stands now. */
+export function useMyHistory(role: 'DECIDED' | 'REQUESTED', outcome: string | null, page: number, enabled = true) {
+  return useQuery({
+    queryKey: ['workflow', 'history', role, outcome ?? '', page] as const,
+    queryFn: async () => {
+      const params = new URLSearchParams({ role, page: String(page), page_size: String(HISTORY_PAGE_SIZE) });
+      if (outcome) params.set('outcome', outcome);
+      return (await api.request<HistoryPage>(`/workflows/my-history?${params}`)).data;
+    },
+    enabled,
+    staleTime: 0,
   });
 }
