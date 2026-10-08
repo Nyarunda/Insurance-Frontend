@@ -29,7 +29,8 @@ import {
 import { CHANGED_TEXT, NOT_FOUND_TEXT, STALE_TEXT } from '../../lib/api/commandErrors';
 import { describeError } from '../../lib/api/errorText';
 import { ApiError } from '../../lib/api/errors';
-import { useMe } from '../../lib/auth/me';
+import { hasPermission, useMe } from '../../lib/auth/me';
+import { TASK_VIEW } from '../permissions';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { DecisionDialog, DecisionInput } from '../workflow/DecisionDialog';
@@ -85,8 +86,10 @@ export const InstancePage: React.FC = () => {
   const { instanceId = '' } = useParams();
   const navigate = useNavigate();
   const instance = useInstance(instanceId);
-  const queue = useWorkQueue();
   const me = useMe().data;
+  // WFH-1 R1: a requester opens their own approval from History; only an approver's queue is read,
+  // and only an approver can act (the server decides who may see the approval at all).
+  const queue = useWorkQueue(hasPermission(me, TASK_VIEW));
   const { submit, pending } = useDecision(instanceId);
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [pageNotice, setPageNotice] = useState<PageNotice>(null);

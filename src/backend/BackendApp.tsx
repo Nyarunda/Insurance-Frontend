@@ -82,23 +82,18 @@ export const backendRoutes: RouteObject[] = [
       { path: 'my-work', element: <ToList to="/my-work/list" /> },
       // A record outside its list (`/my-work/<id>`, an older address) moves under it.
       { path: 'my-work/:record/*', element: <IntoList /> },
-      {
-        path: 'my-work/list',
-        element: (
-          <RequirePermission permission={TASK_VIEW}>
-            <WorkQueuePage />
-          </RequirePermission>
-        ),
-      },
+      // WFH-1 R1: every signed-in user has History; the page shows the queue only with workflow.task.view, and
+      // the server decides which approvals a user may open (404 otherwise).
+      { path: 'my-work/list', element: <WorkQueuePage /> },
       {
         path: 'my-work/list/:instanceId',
         element: (
-          <RequirePermission permission={TASK_VIEW}>
+          <>
             <div inert aria-hidden="true">
               <WorkQueuePage />
             </div>
             <InstancePage />
-          </RequirePermission>
+          </>
         ),
       },
       // NB1-A: customers, as policies: the list, the new-customer dialog over it, and the record by number.
