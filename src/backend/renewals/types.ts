@@ -45,6 +45,8 @@ export interface RenewalPricing {
 export interface RenewalDetail extends RenewalSummary {
   policy: { id: string; policy_no: string };
   source_version_no: number;
+  /** The amendments as asked (AMENDED); empty for AS_IS. */
+  requested_changes: RenewalChanges;
   pricing: RenewalPricing | null;
   check: { required: boolean; reasons: string[]; approved_by: string | null; approved_at: string | null };
   offer_valid_until: string | null;
@@ -57,11 +59,28 @@ export interface RenewalDetail extends RenewalSummary {
   row_version: number;
 }
 
-/** RS-A prepares AS_IS renewals only; amended renewals are RS-B. Empty dates take the server's defaults. */
+/** The controlled amendments the server accepts on an AMENDED renewal (R1-D4); only what changes is sent. */
+export interface RenewalChanges {
+  factors?: Record<string, string | boolean>;
+  sum_insured?: string;
+  add_benefits?: string[];
+  remove_benefits?: string[];
+  limits?: Record<string, string>;
+  geographical_limit?: string;
+}
+
+/** As is (RS-A) or amended (RS-B). Empty dates take the server's defaults. */
 export interface PrepareBody {
-  renewal_type: 'AS_IS';
+  renewal_type: 'AS_IS' | 'AMENDED';
   inception_date?: string;
   expiry_date?: string;
+  changes?: RenewalChanges;
+}
+
+/** Change the amendments of a Draft or Priced renewal; it returns to draft. */
+export interface AmendBody {
+  renewal_type: 'AS_IS' | 'AMENDED';
+  changes: RenewalChanges;
 }
 
 export interface DatesBody {

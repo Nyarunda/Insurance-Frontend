@@ -40,7 +40,7 @@ const PRICING = {
 };
 
 const renewal = (over: Partial<RenewalDetail> = {}): RenewalDetail => ({
-  ...renewalSummary(), policy: { id: POLICY_ID, policy_no: 'POL0000001' }, source_version_no: 2, pricing: null,
+  ...renewalSummary(), policy: { id: POLICY_ID, policy_no: 'POL0000001' }, source_version_no: 2, requested_changes: {}, pricing: null,
   check: { required: false, reasons: [], approved_by: null, approved_at: null }, offer_valid_until: null, offered_at: null,
   decision_reason: '', decided_at: null, resulting_version_no: null, renewed_at: null, workflow: null, row_version: 1, ...over,
 });

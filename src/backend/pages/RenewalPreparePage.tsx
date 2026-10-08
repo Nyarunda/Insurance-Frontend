@@ -1,7 +1,8 @@
 /**
  * Prepare a renewal (RENEWALS-SURFACE-1 RS-A, RS-D4): `/policies/list/<POL>/renewals/new`, a dialog
- * over the policy's Renewals tab. **As is** only (amended renewals are RS-B): the terms in force are
- * carried to the next period.
+ * over the policy's Renewals tab. **As is** carries the terms in force to the next period; **Amended**
+ * (RS-B) changes them with the controlled amendments (`AmendmentFields`), validated by the server
+ * against the product version in force when the new period starts.
  *
  * The dates may be left empty: the server then starts the period the day after the policy expires and
  * runs it for a year less a day. A later start is allowed; the form says the days between are not
@@ -22,6 +23,7 @@ import { formatDate } from '../policies/format';
 import { usePolicy } from '../policies/queries';
 import { policyHref, renewalHref, useRouteRefs } from '../policies/refs';
 import { RenewalRefusalAlert } from './RenewalPage';
+import { AmendmentFields, amendmentErrors, AmendmentState, changesOf, initialAmendment, useRenewalTariff } from '../renewals/AmendmentFields';
 import { useRenewalCommands } from '../renewals/useRenewalCommands';
 
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
@@ -50,6 +52,12 @@ export const RenewalPreparePage: React.FC = () => {
   const [failure, setFailure] = useState<unknown>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [stale, setStale] = useState(false);
+  const [amended, setAmended] = useState(false);
+  const [amendment, setAmendment] = useState<AmendmentState | null>(null);
+  const [attempted, setAttempted] = useState(false);
+  const productId = policy.data?.view.product.id ?? '';
+  const startDay = inception || (policy.data ? dayAfter(policy.data.view.expiry_date) : '');
+  const tariff = useRenewalTariff(productId, startDay);
 
   const back = () => navigate(`${policyHref(policyRef)}?tab=renewals`, { state });
   const frame = { titleId: 'renewal-prepare-title', title: 'Prepare renewal', onClose: back, closeLabel: 'Back to the policy', size: 'md' as const,
@@ -78,18 +86,29 @@ export const RenewalPreparePage: React.FC = () => {
   const { view, etag } = policy.data;
   const defaultStart = dayAfter(view.expiry_date);
   const gap = inception && inception > defaultStart ? { from: defaultStart, to: dayBefore(inception) } : null;
+  const terms = amendment ?? initialAmendment(view);
+  const declared = tariff.document.data?.content.rating_factors ?? [];
+  const changes = amended ? changesOf(terms, view, declared) : {};
   const local: Record<string, string | undefined> = {
     expiry_date: expiry && inception && expiry <= inception ? 'The new period must end after it starts.' : undefined,
+    changes: amended && Object.keys(changes).length === 0 ? 'Change at least one thing, or prepare it as is.' : undefined,
   };
+  const amendmentProblems = amended ? amendmentErrors(terms, declared) : {};
   const errorFor = (key: string) => local[key] ?? fields[key];
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (Object.values(local).some(Boolean) || !etag) return;
+    setAttempted(true);
+    if (Object.values(local).some(Boolean) || Object.keys(amendmentProblems).length || !etag) return;
     setFailure(null);
     setFields({});
     setStale(false);
-    const body = { renewal_type: 'AS_IS' as const, ...(inception ? { inception_date: inception } : {}), ...(expiry ? { expiry_date: expiry } : {}) };
+    const body = {
+      renewal_type: amended ? ('AMENDED' as const) : ('AS_IS' as const),
+      ...(inception ? { inception_date: inception } : {}),
+      ...(expiry ? { expiry_date: expiry } : {}),
+      ...(amended ? { changes } : {}),
+    };
     const outcome = await commands.prepare(view.id, body, etag);
     if (outcome.ok === true) {
       navigate(renewalHref(view.policy_no, outcome.view.renewal_no), { state });
@@ -97,7 +116,7 @@ export const RenewalPreparePage: React.FC = () => {
     }
     if (outcome.kind === 'stale') return setStale(true);
     const found = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
-    if (found.inception_date || found.expiry_date) setFields(found);
+    if (Object.keys(found).length) setFields(found);
     else setFailure(outcome.error);
   };
 
@@ -144,6 +163,26 @@ export const RenewalPreparePage: React.FC = () => {
             <FieldError message={errorFor('expiry_date')} />
           </div>
         </div>
+        <fieldset>
+          <legend className={label}>Terms</legend>
+          <div className="flex gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="renewal-type" checked={!amended} onChange={() => setAmended(false)} />
+              As is
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="renewal-type" checked={amended} onChange={() => setAmended(true)} />
+              Amended
+            </label>
+          </div>
+          <p className={hint}>{amended ? 'Change the sum insured, cover, limits or other details for the new period.' : 'The terms in force carry to the new period.'}</p>
+        </fieldset>
+        {amended && (
+          <AmendmentFields policy={view} day={startDay} state={terms} onChange={setAmendment} attempted={attempted}
+            serverFields={fields} />
+        )}
+        {attempted && local.changes && <FieldError message={local.changes} />}
+        {fields.changes && <FieldError message={fields.changes} />}
         {gap && (
           <div role="note">
             <HorizonAlert tone="warning" title="A gap in cover">
