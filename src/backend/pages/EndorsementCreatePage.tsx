@@ -1,6 +1,18 @@
 /**
- * Prepare an endorsement (FI1-D): the change-limit type only, the benefit and its new limit, with
- * the effective date and the reason. Other types come later.
+ * Prepare an endorsement (FI1-D; every type since ENDORSEMENT-TYPES): what changes, with the
+ * effective date and the reason.
+ *
+ * - **Change a limit**: the benefit and its new limit.
+ * - **Change the sum insured**: the new sum insured.
+ * - **Change the cover**: rating details and optional cover, from the tariff the policy was priced on
+ *   (the amendment fields RS-B shares).
+ * - **Change the geographical limit**: the new limit.
+ * - **Change the policy period**: the new expiry date.
+ * - **Cancel the policy**: no change to give; cover ends the day before the effective date. Offered
+ *   only with `policies.policy.cancel`.
+ *
+ * Adding or removing a risk item is never offered: the server refuses it (items cannot be priced yet).
+ * Every type re-rates on the server, and whether it needs a checker is the server's rule.
  *
  * The endorsement is built on the policy's **latest** version, so the benefits offered are that
  * version's (from `/versions`), not a list kept in the client. The policy's ETag from the response
@@ -27,17 +39,32 @@ import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErr
 import { NO_ETAG_TEXT, useEndorsementCommands } from '../endorsements/useEndorsementCommands';
 import { parseAmount } from '../endorsements/amount';
 import { useEndorsement } from '../endorsements/queries';
-import type { ChangeLimitBody } from '../endorsements/types';
 import { formatDate } from '../policies/format';
 import { usePolicy, usePolicyVersions } from '../policies/queries';
+import { hasPermission, useMe } from '../../lib/auth/me';
+import { POLICY_CANCEL } from '../permissions';
+import { AmendmentFields, AmendmentState, changesOf, initialAmendment, useRenewalTariff } from '../renewals/AmendmentFields';
+import type { EndorsementBody, EndorsementKind } from '../endorsements/types';
 import { endorsementHref, policyHref, useRouteRefs } from '../policies/refs';
 import { formatMoney, requiredActionText } from '../workflow/format';
 
 export const REASON_MAX = 500;
 
 
-/** The backend's field names this form shows errors on (`changes` is the benefit). */
-const FORM_FIELDS = ['benefit', 'changes', 'limit_amount', 'effective_date', 'reason'];
+/** The backend's field names this form shows errors on (`changes` is the change as a whole). */
+const FORM_FIELDS = ['benefit', 'changes', 'limit_amount', 'effective_date', 'reason', 'sum_insured', 'factors', 'add_benefits',
+  'remove_benefits', 'geographical_limit', 'expiry_date'];
+
+export const KIND_LABEL: Record<EndorsementKind, string> = {
+  CHANGE_LIMIT: 'Change a limit',
+  CHANGE_SUM_INSURED: 'Change the sum insured',
+  CHANGE_COVER: 'Change the cover',
+  CHANGE_GEOGRAPHICAL_LIMIT: 'Change the geographical limit',
+  CHANGE_POLICY_PERIOD: 'Change the policy period',
+  CANCELLATION: 'Cancel the policy',
+};
+const KINDS = Object.keys(KIND_LABEL) as EndorsementKind[];
+export const isKind = (value: unknown): value is EndorsementKind => typeof value === 'string' && KINDS.includes(value as EndorsementKind);
 
 const todayIso = () => {
   const now = new Date();
@@ -87,6 +114,12 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
   const { create, update, pending } = useEndorsementCommands();
 
   const again = editing ? null : prefillOf(location.state);
+  const canCancel = hasPermission(useMe().data, POLICY_CANCEL);
+  const [kind, setKind] = useState<EndorsementKind>('CHANGE_LIMIT');
+  const [sumInsured, setSumInsured] = useState('');
+  const [geo, setGeo] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cover, setCover] = useState<AmendmentState | null>(null);
   const [benefit, setBenefit] = useState(again?.benefit ?? '');
   const [limit, setLimit] = useState(again?.limit ?? '');
   const [effectiveDate, setEffectiveDate] = useState(todayIso);
@@ -97,9 +130,13 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
   useEffect(() => {
     if (seeded || !existing.data) return;
     const { view } = existing.data;
-    const changes = view.requested_changes as { benefit?: unknown; limit_amount?: unknown };
+    const changes = view.requested_changes as Record<string, unknown>;
+    if (isKind(view.endorsement_type)) setKind(view.endorsement_type);
     setBenefit(typeof changes.benefit === 'string' ? changes.benefit.toUpperCase() : '');
     setLimit(typeof changes.limit_amount === 'string' ? changes.limit_amount : '');
+    setSumInsured(typeof changes.sum_insured === 'string' ? changes.sum_insured : '');
+    setGeo(typeof changes.geographical_limit === 'string' ? changes.geographical_limit : '');
+    setExpiry(typeof changes.expiry_date === 'string' ? changes.expiry_date : '');
     setEffectiveDate(view.effective_date);
     setReason(view.reason);
     setSeeded(true);
@@ -114,6 +151,8 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
     const rows = versions.data?.results ?? [];
     return rows.reduce<(typeof rows)[number] | null>((top, row) => (!top || row.version_no > top.version_no ? row : top), null);
   }, [versions.data]);
+  // Change the cover re-rates on the tariff the latest version was priced on (E1-D5).
+  const tariff = useRenewalTariff(policy.data?.view.product.id ?? '', latest?.annual_premium.rating_date ?? '');
 
   // Back to the policy as the address named it (by number, or by ID for an old link); an edit goes back to the draft.
   const back = () =>
@@ -172,9 +211,21 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
   // RUP1 F-8: "55,000" is accepted; the server receives "55000".
   const amount = parseAmount(limit);
 
+  const sum = parseAmount(sumInsured);
+  // The cover fields start from the latest version's terms; only what differs is sent.
+  const policyForCover = { ...view, current_version: latest };
+  const coverState = cover ?? initialAmendment(policyForCover, kind === 'CHANGE_COVER' && editing && existing.data ? (existing.data.view.requested_changes as never) : {});
+  const coverChanges = changesOf(coverState, policyForCover, tariff.document.data?.content.rating_factors ?? []);
+  const coverPart = { factors: coverChanges.factors, add_benefits: coverChanges.add_benefits, remove_benefits: coverChanges.remove_benefits };
+  const coverChanged = Object.values(coverPart).some(Boolean);
+
   const clientErrors: Record<string, string | undefined> = {
-    benefit: chosen ? undefined : 'Choose the benefit whose limit changes.',
-    limit_amount: amount.error ?? undefined,
+    benefit: kind !== 'CHANGE_LIMIT' || chosen ? undefined : 'Choose the benefit whose limit changes.',
+    limit_amount: kind === 'CHANGE_LIMIT' ? amount.error ?? undefined : undefined,
+    sum_insured: kind === 'CHANGE_SUM_INSURED' ? (sumInsured.trim() ? sum.error ?? undefined : 'Give the new sum insured.') : undefined,
+    changes: kind === 'CHANGE_COVER' && !coverChanged ? 'Change a rating detail or an optional cover.' : undefined,
+    geographical_limit: kind === 'CHANGE_GEOGRAPHICAL_LIMIT' && !geo.trim() ? 'Give the new geographical limit.' : undefined,
+    expiry_date: kind === 'CHANGE_POLICY_PERIOD' && !expiry ? 'Give the new expiry date.' : undefined,
     effective_date: effectiveDate ? undefined : 'Give the date the change takes effect.',
     reason: reason.trim() ? undefined : 'Give the reason for the change.',
   };
@@ -194,9 +245,15 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
     setNotice(null);
     setServerFields({});
     setServerFieldsReference(null);
-    const changes = { benefit, limit_amount: amount.value ?? limit.trim() };
-    const body: ChangeLimitBody = {
-      endorsement_type: 'CHANGE_LIMIT',
+    const changes: Record<string, unknown> =
+      kind === 'CHANGE_LIMIT' ? { benefit, limit_amount: amount.value ?? limit.trim() }
+        : kind === 'CHANGE_SUM_INSURED' ? { sum_insured: sum.value ?? sumInsured.trim() }
+          : kind === 'CHANGE_COVER' ? Object.fromEntries(Object.entries(coverPart).filter(([, value]) => value !== undefined))
+            : kind === 'CHANGE_GEOGRAPHICAL_LIMIT' ? { geographical_limit: geo.trim() }
+              : kind === 'CHANGE_POLICY_PERIOD' ? { expiry_date: expiry }
+                : {};
+    const body: EndorsementBody = {
+      endorsement_type: kind,
       effective_date: effectiveDate,
       reason: reason.trim(),
       changes,
@@ -230,9 +287,9 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
   const requiredAction =
     failure instanceof ApiError && typeof failure.details.required_action === 'string' ? failure.details.required_action : null;
 
-  const typed = Boolean(benefit || limit.trim() || reason.trim());
+  const typed = Boolean(benefit || limit.trim() || reason.trim() || sumInsured.trim() || geo.trim() || expiry);
   const preview =
-    chosen && amount.value !== null
+    kind === 'CHANGE_LIMIT' && chosen && amount.value !== null
       ? {
           from: chosen.limit_amount !== null ? formatMoney(chosen.limit_amount, currency) : 'No limit stated',
           to: formatMoney(amount.value, currency),
@@ -243,7 +300,7 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
     <DialogFrame
       titleId={TITLE_ID}
       title={editing && existing.data ? `Edit ${existing.data.view.endorsement_no}` : again ? 'Prepare again' : 'New endorsement'}
-      subtitle={`Change a limit · ${view.policy_no} · prepared on version ${latest.version_no}`}
+      subtitle={`${KIND_LABEL[kind]} · ${view.policy_no} · prepared on version ${latest.version_no}`}
       onClose={back}
       closeLabel={frame.closeLabel}
       dismissOnBackdrop={!typed}
@@ -298,6 +355,58 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
 
       <h2 className="text-base font-medium leading-tight text-[var(--hz-text-primary)]">Change</h2>
       <form id={FORM_ID} noValidate onSubmit={(event) => void onSubmit(event)} className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="endorsement-kind" className={label}>What changes</label>
+          <select id="endorsement-kind" value={kind} disabled={editing || !!again} onChange={(event) => setKind(event.target.value as EndorsementKind)} className={field(false)}>
+            {KINDS.filter((item) => item !== 'CANCELLATION' || canCancel || kind === 'CANCELLATION').map((item) => (
+              <option key={item} value={item}>{KIND_LABEL[item]}</option>
+            ))}
+          </select>
+        </div>
+        {kind === 'CHANGE_SUM_INSURED' && (
+          <div className="sm:col-span-2">
+            <label htmlFor="endorsement-sum-insured" className={label}>New sum insured ({currency}) <span className="text-[var(--hz-danger)]">*</span></label>
+            <input id="endorsement-sum-insured" inputMode="decimal" value={sumInsured} onChange={(event) => setSumInsured(event.target.value)}
+              aria-invalid={!!errorFor('sum_insured')} className={field(!!errorFor('sum_insured'))} />
+            <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Now {latest.sum_insured ? formatMoney(latest.sum_insured, currency) : 'not stated'}.</p>
+            <FieldError message={errorFor('sum_insured')} />
+          </div>
+        )}
+        {kind === 'CHANGE_COVER' && (
+          <div className="sm:col-span-2">
+            <AmendmentFields policy={policyForCover} day={latest.annual_premium.rating_date} state={coverState} onChange={setCover} attempted={attempted}
+              serverFields={serverFields} sections={['factors', 'optional']}
+              intro={(no) => `Against product version ${no}, the tariff this policy was priced on. Only what differs is sent; the change is re-rated.`} />
+            <FieldError message={errorFor('changes')} />
+          </div>
+        )}
+        {kind === 'CHANGE_GEOGRAPHICAL_LIMIT' && (
+          <div className="sm:col-span-2">
+            <label htmlFor="endorsement-geo" className={label}>New geographical limit <span className="text-[var(--hz-danger)]">*</span></label>
+            <input id="endorsement-geo" value={geo} maxLength={255} onChange={(event) => setGeo(event.target.value)}
+              aria-invalid={!!errorFor('geographical_limit')} className={field(!!errorFor('geographical_limit'))} />
+            <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Now {String(latest.terms.geographical_limit ?? '') || 'not stated'}.</p>
+            <FieldError message={errorFor('geographical_limit')} />
+          </div>
+        )}
+        {kind === 'CHANGE_POLICY_PERIOD' && (
+          <div className="sm:col-span-2">
+            <label htmlFor="endorsement-expiry" className={label}>New expiry date <span className="text-[var(--hz-danger)]">*</span></label>
+            <input id="endorsement-expiry" type="date" value={expiry} onChange={(event) => setExpiry(event.target.value)}
+              aria-invalid={!!errorFor('expiry_date')} className={field(!!errorFor('expiry_date'))} />
+            <p className="mt-1.5 text-[13px] text-[var(--hz-text-muted)]">Now {formatDate(latest.expiry_date)}. The premium is re-rated for the changed period.</p>
+            <FieldError message={errorFor('expiry_date')} />
+          </div>
+        )}
+        {kind === 'CANCELLATION' && (
+          <div className="sm:col-span-2" role="note">
+            <HorizonAlert tone="warning" title="The policy will be cancelled">
+              Cover ends the day before the effective date. The refund or charge is worked out by the server, and a checker approves it.
+            </HorizonAlert>
+          </div>
+        )}
+        {kind === 'CHANGE_LIMIT' && (
+        <>
         <div>
           <label htmlFor="endorsement-benefit" className={label}>
             Benefit <span className="text-[var(--hz-danger)]">*</span>
@@ -340,6 +449,8 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
           />
           <FieldError message={errorFor('limit_amount')} />
         </div>
+        </>
+        )}
         <div>
           <label htmlFor="endorsement-date" className={label}>
             Effective from <span className="text-[var(--hz-danger)]">*</span>
@@ -397,8 +508,11 @@ export const EndorsementCreatePage: React.FC<{ mode?: 'create' | 'edit' }> = ({ 
           ) : undefined
         }
       >
-        {!(preview && chosen) && (
+        {kind === 'CHANGE_LIMIT' && !(preview && chosen) && (
           <p className="text-[13px] text-[var(--hz-text-muted)]">Choose a benefit and give the new limit to see the change.</p>
+        )}
+        {kind !== 'CHANGE_LIMIT' && (
+          <p className="text-[13px] text-[var(--hz-text-muted)]">{KIND_LABEL[kind]}. The premium change is worked out by the server when it is created.</p>
         )}
       </ChangeCallout>
     </DialogFrame>

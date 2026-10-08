@@ -52,6 +52,7 @@ import { policyHref, useRouteRefs } from '../policies/refs';
 import type { EndorsementDetail } from '../endorsements/types';
 import { NO_ETAG_TEXT, useEndorsementCommands } from '../endorsements/useEndorsementCommands';
 import { WithdrawDialog } from '../endorsements/WithdrawDialog';
+import { isKind } from './EndorsementCreatePage';
 import { ENDORSEMENT_CREATE } from '../permissions';
 import { formatDate } from '../policies/format';
 import { displayFacts, formatDateTime, formatMoney, humanize, requiredActionText } from '../workflow/format';
@@ -146,7 +147,8 @@ export const EndorsementPage: React.FC = () => {
   const blocked = isNoLongerActionable(view);
   const canSubmit = canPrepare && view.status === 'DRAFT';
   const canWithdraw = canPrepare && (view.status === 'DRAFT' || view.status === 'REFERRED');
-  const canEdit = canPrepare && view.status === 'DRAFT' && view.endorsement_type === 'CHANGE_LIMIT';
+  // Every type the screens prepare can be edited as a draft (ENDORSEMENT-TYPES); prepare-again stays change-limit.
+  const canEdit = canPrepare && view.status === 'DRAFT' && isKind(view.endorsement_type);
   const canPrepareAgain =
     canPrepare && (view.status === 'DECLINED' || view.status === 'CANCELLED') && view.endorsement_type === 'CHANGE_LIMIT';
   const base = `${policyHref(view.policy.policy_no)}/endorsements`;

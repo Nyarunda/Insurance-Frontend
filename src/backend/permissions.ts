@@ -46,3 +46,6 @@ export const RENEWAL_APPROVE = 'policies.renewal.approve';
 
 // WRC-1: the tenant's approval reasons (tenant-wide; the server refuses a branch grant).
 export const WORKFLOW_MANAGE = 'admin.workflow.manage';
+
+// Endorsements of every type (after FI1-D's change-limit): cancelling a policy needs its own permission.
+export const POLICY_CANCEL = 'policies.policy.cancel';
