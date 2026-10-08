@@ -52,6 +52,9 @@ interface Options {
   stock?: StockRow[];
   batches?: Batch[];
   command?: (call: FakeCall, path: string) => Response | null;
+  /** SD-D: the tenant's batch maximum, and the answer to a change. */
+  batchMax?: number;
+  settingsPatch?: (call: FakeCall) => Response;
 }
 
 function stockBackend(options: Options = {}) {
@@ -69,6 +72,12 @@ function stockBackend(options: Options = {}) {
         const body = call.body as { first_number: number; last_number: number; branch_id: string };
         return json(200, { movement_id: '33333333-3333-4333-8333-333333333333', batch_no: 'CBT0000001', first_serial: previewSerial('CK', body.first_number, 7), last_serial: previewSerial('CK', body.last_number, 7), quantity: body.last_number - body.first_number + 1, to_branch_id: body.branch_id, to_user_id: null });
       }
+    }
+    if (path === '/certificate-settings' && call.method === 'PATCH') {
+      return (options.settingsPatch ?? ((c: FakeCall) => json(200, { batch_max_serials: (c.body as { batch_max_serials: number }).batch_max_serials, platform_max_serials: 10000, updated_at: null, row_version: 2 }, { ETag: '"certificate-settings-v2"' })))(call);
+    }
+    if (path === '/certificate-settings') {
+      return json(200, { batch_max_serials: options.batchMax ?? 10000, platform_max_serials: 10000, updated_at: null, row_version: 1 }, { ETag: '"certificate-settings-v1"' });
     }
     if (path === '/certificate-stock') return json(200, { results: options.stock ?? STOCK });
     if (path === '/certificate-batches') return json(200, { results: options.batches ?? [batch()] });
@@ -241,6 +250,8 @@ describe('Batches', () => {
   it('a range the server refuses as too large shows its message on the field', async () => {
     const user = userEvent.setup();
     stockBackend({
+      // The form's own SD-D check is out of the way: this is about the server's refusal shown on the field.
+      batchMax: 1_000_000,
       command: (_call, path) => (path === '/certificate-batches' ? envelope(422, 'CERTIFICATE_RANGE_INVALID', 'a batch is 1 to 10000 consecutive numbers', { field: 'last_number' }) : null),
     });
     renderAt(AT);
@@ -319,5 +330,49 @@ describe('Allocation', () => {
     const alert = await within(dialog).findByRole('alert');
     expect(alert).toHaveTextContent('That batch is not available to you any more. Close this and refresh the list.');
     expect(alert).not.toHaveTextContent('reloaded');
+  });
+});
+
+describe('Certificate settings (SD-D)', () => {
+  it("shows the tenant's batch maximum and changes it with the server's ETag", async () => {
+    const user = userEvent.setup();
+    const backend = stockBackend();
+    renderAt('/certificates/stock?tab=settings');
+    expect((await screen.findAllByText('10,000 certificates')).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: 'Change' }));
+    const input = screen.getByLabelText('Largest batch');
+    await user.clear(input);
+    await user.type(input, '10001');
+    expect(screen.getByText('A whole number from 1 to 10,000.')).toBeInTheDocument();
+    await user.clear(input);
+    await user.type(input, '500');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(backend.calls.filter((call) => call.method === 'PATCH')).toHaveLength(1));
+    const [patch] = backend.calls.filter((call) => call.method === 'PATCH');
+    expect(patch.body).toEqual({ batch_max_serials: 500 });
+    expect(patch.headers['if-match']).toBe('"certificate-settings-v1"');
+  });
+
+  it('a branch-only manager is told in words that only a tenant-wide one can change it', async () => {
+    const user = userEvent.setup();
+    stockBackend({ settingsPatch: () => envelope(403, 'PERMISSION_DENIED', 'requires certificates.stock.manage') });
+    renderAt('/certificates/stock?tab=settings');
+    await user.click(await screen.findByRole('button', { name: 'Change' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('The setting was not changed')).toBeInTheDocument();
+  });
+
+  it('the receive form states the maximum and refuses a larger range before sending', async () => {
+    const user = userEvent.setup();
+    const backend = stockBackend({ batchMax: 50 });
+    renderAt('/certificates/stock');
+    await user.click(await screen.findByRole('button', { name: 'Receive batch' }));
+    const dialog = screen.getByRole('dialog');
+    expect(await within(dialog).findByText('At most 50 in one batch.')).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText(/First number/), '1');
+    await user.type(within(dialog).getByLabelText(/Last number/), '51');
+    await user.click(within(dialog).getByRole('button', { name: /Receive/ }));
+    expect(within(dialog).getByText('A batch is at most 50 certificates.')).toBeInTheDocument();
+    expect(backend.sent('/certificate-batches')).toHaveLength(0);
   });
 });
