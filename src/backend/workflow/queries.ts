@@ -15,11 +15,12 @@ export const WORKFLOW_KEYS = {
 };
 
 /**
- * The user's work queue. There is no background polling (DESIGN-1-R1): it is fetched when first
- * needed, again when the user returns to the window, on Refresh, and after a decision or a domain
- * command invalidates it. The shell's navigation count and reminder read this same cached answer.
+ * Polling (reviewer ruling, 2026-10-08, superseding DESIGN-1-R1 narrowly): only workflow notifications
+ * poll. The shell refreshes an approver's queue (NTF-1) and everyone's outcome notifications (NTF-2)
+ * every QUEUE_POLL_MS while the window is visible, never in the background. 60 seconds is the minimum
+ * cadence; no other business API polls. Otherwise the queue is fetched when first needed, when the user
+ * returns to the window, on Refresh, and after a decision or a domain command invalidates it.
  */
-/** NTF-1: how often the shell refreshes an approver's queue while the window is visible. */
 export const QUEUE_POLL_MS = 60_000;
 
 /**

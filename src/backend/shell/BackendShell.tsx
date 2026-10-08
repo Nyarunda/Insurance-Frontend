@@ -63,10 +63,9 @@ export const BackendShell: React.FC = () => {
     if (path) navigate(path);
   };
 
-  // An approver's queue (no polling: focus, Refresh and invalidation refresh it) gives the
-  // navigation its count and announces tasks that arrived since the last answer.
+  // An approver's queue gives the navigation its count and announces tasks that arrived since the last
+  // answer. NTF-1: refreshed every minute while the window is visible (the polling ruling in queries.ts).
   const canDecide = hasPermission(me.data, TASK_VIEW);
-  // NTF-1: an approver's queue is refreshed every minute while the window is visible.
   const queue = useWorkQueue(canDecide, { poll: true });
 
   const toggleSidebar = () => {
