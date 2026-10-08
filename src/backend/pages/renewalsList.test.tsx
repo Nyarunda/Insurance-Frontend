@@ -50,7 +50,7 @@ function listBackend(options: { due?: ReturnType<typeof summary>[]; dueCount?: n
     if (path === `/policies/${POLICY_ID}`) return json(200, detail(), { ETag: POLICY_ETAG });
     if (path === `/policies/${POLICY_ID}/renewals`) return json(200, { policy_no: 'POL0000001', results: [item()] });
     if (path === `/renewals/${R_ID}`) {
-      return json(200, { ...item(), source_version_no: 2, pricing: null, check: { required: false, reasons: [], approved_by: null, approved_at: null },
+      return json(200, { ...item(), source_version_no: 2, requested_changes: {}, pricing: null, check: { required: false, reasons: [], approved_by: null, approved_at: null },
         offer_valid_until: '2026-12-20', offered_at: null, decision_reason: '', decided_at: null, resulting_version_no: null, renewed_at: null,
         workflow: null, row_version: 1 }, { ETag: `"renewal-${R_ID}-v1"` });
     }

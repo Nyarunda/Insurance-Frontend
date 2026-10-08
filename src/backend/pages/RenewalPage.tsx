@@ -2,7 +2,7 @@
  * A renewal (RENEWALS-SURFACE-1 RS-A): `/policies/list/<POL>/renewals/<REN>`, a dialog over the
  * policy's Renewals tab, from `GET /renewals/{id}` with its ETag. Every command sends that ETag.
  *
- * - DRAFT: change the dates, price, withdraw.
+ * - DRAFT: change the dates or the amendments (RS-B), price, withdraw.
  * - PRICED: the expiring and renewal annual figures, the difference and movement (information, not a
  *   charge), and the reasons a checker is needed. When one is needed and the tenant governs renewal
  *   approval, the renewal shows who it waits for and the checker decides in My Work Queue; otherwise a
@@ -29,10 +29,13 @@ import { hasPermission, useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
 import { RENEWAL_APPROVE, RENEWAL_CREATE } from '../permissions';
 import { formatDate } from '../policies/format';
+import { usePolicy } from '../policies/queries';
+import type { PolicyDetail } from '../policies/types';
+import { AmendmentFields, amendmentErrors, AmendmentState, changesOf, initialAmendment, useRenewalTariff } from '../renewals/AmendmentFields';
 import { policyHref, useRouteRefs } from '../policies/refs';
 import { checkReasonText, RENEWAL_STATUS_LABEL, RENEWAL_TONE, renewalRefusal } from '../renewals/format';
 import { useRenewal } from '../renewals/queries';
-import type { RenewalDetail } from '../renewals/types';
+import type { RenewalChanges, RenewalDetail } from '../renewals/types';
 import { RenewalAction, useRenewalCommands } from '../renewals/useRenewalCommands';
 import { formatDateTime, formatMoney } from '../workflow/format';
 
@@ -60,7 +63,19 @@ export const RenewalRefusalAlert: React.FC<{ error: unknown; title: string }> = 
   );
 };
 
-type Dialog = 'dates' | 'offer' | 'decline' | 'withdraw' | null;
+type Dialog = 'dates' | 'amend' | 'offer' | 'decline' | 'withdraw' | null;
+
+/** The amendments asked, in words (the server keeps the exact values). */
+const amendmentLines = (changes: RenewalChanges): string[] => {
+  const lines: string[] = [];
+  if (changes.sum_insured) lines.push(`Sum insured ${Number(changes.sum_insured).toLocaleString()}`);
+  for (const [code, value] of Object.entries(changes.factors ?? {})) lines.push(`${code.replace(/_/g, ' ')}: ${String(value)}`);
+  for (const code of changes.add_benefits ?? []) lines.push(`Add ${code.replace(/_/g, ' ').toLowerCase()}`);
+  for (const code of changes.remove_benefits ?? []) lines.push(`Remove ${code.replace(/_/g, ' ').toLowerCase()}`);
+  for (const [code, value] of Object.entries(changes.limits ?? {})) lines.push(`${code.replace(/_/g, ' ').toLowerCase()} limit ${Number(value).toLocaleString()}`);
+  if (changes.geographical_limit) lines.push(`Geographical limit: ${changes.geographical_limit}`);
+  return lines;
+};
 
 /** Today on this device, as an ISO date: only to choose a hint; the server decides with the tenant's date. */
 const localToday = () => {
@@ -151,7 +166,10 @@ export const RenewalPage: React.FC = () => {
   if (canCreate && status === 'DRAFT') {
     actions.push(button('Price', () => void act('price', {}, 'Priced', 'The renewal was not priced'), <Calculator className="h-3.5 w-3.5" />, true));
   }
-  if (canCreate && (status === 'DRAFT' || status === 'PRICED')) actions.push(button('Change dates', () => setDialog('dates'), null));
+  if (canCreate && (status === 'DRAFT' || status === 'PRICED')) {
+    actions.push(button('Change dates', () => setDialog('dates'), null));
+    actions.push(button(view.renewal_type === 'AMENDED' ? 'Change amendments' : 'Amend', () => setDialog('amend'), null));
+  }
   if (status === 'PRICED' && needsCheck && !waiting && canApprove) {
     actions.push(button('Approve', () => void act('approve', {}, 'Approved', 'The renewal was not approved'), <Check className="h-3.5 w-3.5" />, true));
   }
@@ -210,6 +228,16 @@ export const RenewalPage: React.FC = () => {
             ]}
           />
         </DetailGroup>
+
+        {view.renewal_type === 'AMENDED' && (
+          <DetailGroup title="Amendments" description="What changes for the new period; the premium comes from the tariff.">
+            <ul className="list-disc pl-5 text-sm text-[var(--hz-text-primary)]">
+              {amendmentLines(view.requested_changes ?? {}).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </DetailGroup>
+        )}
 
         {view.pricing ? (
           <DetailGroup title="Premium" description={`Priced on product version ${view.pricing.version_no}, the tariff in force on ${formatDate(view.pricing.rating_date)}. The difference is information, not a charge.`}>
@@ -277,6 +305,25 @@ export const RenewalPage: React.FC = () => {
             if (outcome.kind === 'stale') setStale(true);
             const fields = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
             if (!Object.keys(fields).length && outcome.kind !== 'stale') setFailure({ error: outcome.error, title: 'The dates were not changed' });
+            return fields;
+          }}
+        />
+      )}
+      {dialog === 'amend' && (
+        <AmendDialog view={view} pending={commands.pending} onClose={() => setDialog(null)}
+          onSave={async (body) => {
+            if (!etag) return {};
+            setFailure(null);
+            setStale(false);
+            const outcome = await commands.amend(view.id, body, etag);
+            if (outcome.ok === true) {
+              setDialog(null);
+              setToast(body.renewal_type === 'AS_IS' ? 'Back to as is; price it again' : 'Amendments saved; price it again');
+              return {};
+            }
+            if (outcome.kind === 'stale') setStale(true);
+            const fields = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
+            if (!Object.keys(fields).length && outcome.kind !== 'stale') setFailure({ error: outcome.error, title: 'The amendments were not saved' });
             return fields;
           }}
         />
@@ -431,6 +478,68 @@ const ReasonDialog: React.FC<{ mode: 'decline' | 'withdraw'; pending: boolean; o
         <textarea id="renewal-reason" rows={3} maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)}
           aria-invalid={!!error} className={`hz-field w-full px-3 py-2 text-sm ${error ? 'hz-field-invalid' : ''}`} />
         <FieldError message={error} />
+      </form>
+    </DialogFrame>
+  );
+};
+
+const AmendDialog: React.FC<{
+  view: RenewalDetail;
+  pending: boolean;
+  onClose: () => void;
+  onSave: (body: { renewal_type: 'AS_IS' | 'AMENDED'; changes: RenewalChanges }) => Promise<Record<string, string>>;
+}> = ({ view, pending, onClose, onSave }) => {
+  const policy = usePolicy(view.policy.id);
+  const tariff = useRenewalTariff(policy.data?.view.product.id ?? '', view.inception_date);
+  const [terms, setTerms] = useState<AmendmentState | null>(null);
+  const [attempted, setAttempted] = useState(false);
+  const [fields, setFields] = useState<Record<string, string>>({});
+  if (policy.isPending) {
+    return (
+      <DialogFrame titleId="renewal-amend-title" title="Amendments" onClose={onClose} size="lg"
+        footer={<button type="button" className="hz-button hz-button-secondary" onClick={onClose}>Back</button>}>
+        <HorizonLoader tip="Loading the policy..." />
+      </DialogFrame>
+    );
+  }
+  if (policy.isError) {
+    return (
+      <DialogFrame titleId="renewal-amend-title" title="Amendments" onClose={onClose} size="lg"
+        footer={<button type="button" className="hz-button hz-button-secondary" onClick={onClose}>Back</button>}>
+        <ApiErrorAlert error={policy.error} title="The policy could not be loaded" />
+      </DialogFrame>
+    );
+  }
+  const detail: PolicyDetail = policy.data.view;
+  const state = terms ?? initialAmendment(detail, view.requested_changes ?? {});
+  const declared = tariff.document.data?.content.rating_factors ?? [];
+  const changes = changesOf(state, detail, declared);
+  const nothing = Object.keys(changes).length === 0;
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAttempted(true);
+    if (nothing || Object.keys(amendmentErrors(state, declared)).length) return;
+    setFields(await onSave({ renewal_type: 'AMENDED', changes }));
+  };
+  return (
+    <DialogFrame titleId="renewal-amend-title" title="Amendments" onClose={onClose} size="lg"
+      footer={
+        <>
+          <button type="button" className="hz-button hz-button-secondary" onClick={onClose} disabled={pending}>Back</button>
+          {view.renewal_type === 'AMENDED' && (
+            <button type="button" className="hz-button hz-button-secondary" disabled={pending}
+              onClick={() => void onSave({ renewal_type: 'AS_IS', changes: {} }).then(setFields)}>
+              Back to as is
+            </button>
+          )}
+          <button type="submit" form="renewal-amend-form" className="hz-button hz-button-primary" disabled={pending}>{pending ? 'Saving…' : 'Save amendments'}</button>
+        </>
+      }>
+      <p className="text-sm text-[var(--hz-text-primary)]">The renewal returns to draft: any price or approval lapses, and it is priced again.</p>
+      <form id="renewal-amend-form" noValidate onSubmit={(event) => void save(event)} className="flex flex-col gap-4">
+        <AmendmentFields policy={detail} day={view.inception_date} state={state} onChange={setTerms} attempted={attempted} serverFields={fields} />
+        {attempted && nothing && <FieldError message="Change at least one thing, or go back to as is." />}
+        {fields.changes && <FieldError message={fields.changes} />}
       </form>
     </DialogFrame>
   );

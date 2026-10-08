@@ -3,6 +3,7 @@
  *
  * - prepare: `POST /policies/{id}/renewals` with the **policy's** ETag (the source is the version seen);
  * - dates:   `PATCH /renewals/{id}` with the renewal's ETag (it returns to DRAFT; price and approval lapse);
+ * - amend:   the same PATCH with the type and amendments (RS-B; AMENDED, or back to AS_IS);
  * - price, approve, offer, accept, decline, renew, cancel (withdraw): `POST /renewals/{id}/<action>`
  *   with the renewal's ETag. `/approve` is only offered where the tenant does not govern renewal
  *   approval; where it does, the checker acts on the workflow task in My Work Queue.
@@ -19,7 +20,7 @@ import { api } from '../../lib/api/instance';
 import { POLICY_KEYS } from '../policies/queries';
 import { WORKFLOW_KEYS } from '../workflow/queries';
 import { LoadedRenewal, RENEWAL_KEYS } from './queries';
-import type { DatesBody, PrepareBody, RenewalDetail } from './types';
+import type { AmendBody, DatesBody, PrepareBody, RenewalDetail } from './types';
 
 export type RenewalOutcome =
   | { ok: true; view: RenewalDetail; replayed: boolean }
@@ -78,6 +79,9 @@ export function useRenewalCommands() {
     prepare: (policyId: string, body: PrepareBody, policyEtag: string) =>
       run(`prepare:${policyId}`, { type: 'RENEWAL_CREATE', resource: `policy:${policyId}`, body },
         `/policies/${encodeURIComponent(policyId)}/renewals`, policyEtag, reloadPolicy(policyId)),
+    amend: (renewalId: string, body: AmendBody, etag: string) =>
+      run(`amend:${renewalId}`, { type: 'RENEWAL_UPDATE', resource: `renewal:${renewalId}`, body },
+        `/renewals/${encodeURIComponent(renewalId)}`, etag, reloadRenewal(renewalId), 'PATCH'),
     dates: (renewalId: string, body: DatesBody, etag: string) =>
       run(`dates:${renewalId}`, { type: 'RENEWAL_UPDATE', resource: `renewal:${renewalId}`, body },
         `/renewals/${encodeURIComponent(renewalId)}`, etag, reloadRenewal(renewalId), 'PATCH'),

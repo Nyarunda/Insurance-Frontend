@@ -151,5 +151,10 @@ export interface RatingFactor {
 
 export interface ProductVersionDocument extends ProductVersionSummary {
   /** `reference_fields` only when the version declares some (SD-B); otherwise details are free text. */
-  content: { rating_factors: RatingFactor[]; reference_fields?: ReferenceField[] };
+  content: {
+    rating_factors: RatingFactor[];
+    reference_fields?: ReferenceField[];
+    /** RS-B: the product's benefits; the optional ones may be added or removed at renewal. */
+    benefits?: { code: string; name: string; is_optional: boolean; limit_amount: string | null }[];
+  };
 }
