@@ -39,6 +39,8 @@ export type ScreenId =
   | 'certificate-stock'
   // Backend mode (SETUP-DRIVEN-1 SD-C): the tenant's vehicle makes and models.
   | 'vehicle-makes'
+  // Backend mode (NTF-2): which approval outcomes requesters are told about.
+  | 'approval-notifications'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'

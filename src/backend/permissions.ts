@@ -43,3 +43,7 @@ export const REFERENCE_MANAGE = 'products.reference.manage';
 // RENEWALS-SURFACE-1 RS-A: renewals, judged on the renewal's policy.
 export const RENEWAL_CREATE = 'policies.renewal.create';
 export const RENEWAL_APPROVE = 'policies.renewal.approve';
+
+// NTF-2: the tenant's approval notification settings (read with view; a tenant-wide manager changes them).
+export const WORKFLOW_VIEW = 'admin.workflow.view';
+export const WORKFLOW_MANAGE = 'admin.workflow.manage';

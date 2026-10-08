@@ -27,6 +27,7 @@ import { CertificatePage } from './pages/CertificatePage';
 import { CertificatesPage } from './pages/CertificatesPage';
 import { CertificateStockPage } from './pages/CertificateStockPage';
 import { VehicleMakesPage } from './pages/VehicleMakesPage';
+import { ApprovalNotificationsPage } from './pages/ApprovalNotificationsPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -41,6 +42,7 @@ import {
   TASK_VIEW,
   CERT_STOCK,
   REFERENCE_MANAGE,
+  WORKFLOW_VIEW,
   RENEWAL_CREATE,
   CERT_VIEW,
 } from './permissions';
@@ -340,6 +342,15 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={REFERENCE_MANAGE}>
             <VehicleMakesPage />
+          </RequirePermission>
+        ),
+      },
+      // NTF-2: the tenant's approval notification settings.
+      {
+        path: 'approval-notifications',
+        element: (
+          <RequirePermission permission={WORKFLOW_VIEW}>
+            <ApprovalNotificationsPage />
           </RequirePermission>
         ),
       },
