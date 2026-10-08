@@ -65,7 +65,8 @@ export const BackendShell: React.FC = () => {
   // An approver's queue (no polling: focus, Refresh and invalidation refresh it) gives the
   // navigation its count and announces tasks that arrived since the last answer.
   const canDecide = hasPermission(me.data, TASK_VIEW);
-  const queue = useWorkQueue(canDecide);
+  // NTF-1: an approver's queue is refreshed every minute while the window is visible.
+  const queue = useWorkQueue(canDecide, { poll: true });
 
   const toggleSidebar = () => {
     const next = !sidebarCollapsed;

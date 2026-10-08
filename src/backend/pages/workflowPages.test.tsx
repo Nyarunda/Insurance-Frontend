@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { envelope, FakeCall, fakeFetch, json } from '../../test/fetchFake';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { ME_QUERY_KEY, Me } from '../../lib/auth/me';
-import { WORKFLOW_KEYS } from '../workflow/queries';
+import { QUEUE_POLL_MS, WORKFLOW_KEYS } from '../workflow/queries';
 import { useSessionStore } from '../../lib/auth/sessionStore';
 import { setAccessToken } from '../../lib/auth/tokens';
 import { queryClient } from '../../lib/query/queryClient';
@@ -161,13 +161,37 @@ describe('My Work Queue', () => {
     expect(screen.queryByText('1 approval is waiting for you')).not.toBeInTheDocument(); // not again this session
   });
 
-  it('DESIGN-1-R1: the shell never polls the queue; it refreshes on focus, Refresh and invalidation', async () => {
+  it('NTF-1 (replaces DESIGN-1-R1): the shell refreshes the queue every minute, only while the window is visible', async () => {
     workflowBackend({});
     renderAt('/');
     await screen.findByText('1 approval is waiting for you');
     const queue = queryClient.getQueryCache().find({ queryKey: WORKFLOW_KEYS.queue })!;
-    expect(queue.observers.length).toBeGreaterThan(0);
-    for (const observer of queue.observers) expect(observer.options.refetchInterval ?? false).toBe(false);
+    const polling = queue.observers.filter((observer) => observer.options.refetchInterval);
+    expect(polling.map((observer) => observer.options.refetchInterval)).toEqual([QUEUE_POLL_MS]);
+    expect(polling[0].options.refetchIntervalInBackground).toBe(false);
+    expect(QUEUE_POLL_MS).toBe(60_000);
+  });
+
+  it('NTF-1: an approval that arrives while the user stays on a screen is announced at the next refresh', async () => {
+    const backend = workflowBackend({ queue: [] });
+    renderAt('/');
+    await screen.findByRole('heading', { name: 'Home' });
+    // The empty queue has been answered and seen before anything arrives.
+    await waitFor(() => expect(queryClient.getQueryData(WORKFLOW_KEYS.queue)).toEqual({ results: [] }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByText('1 approval is waiting for you')).not.toBeInTheDocument();
+    backend.state.queue = [task({ resource_type: 'POLICY_RENEWAL', resource_reference: 'REN0000002', stage_label: 'Renewal check' })];
+    await queryClient.refetchQueries({ queryKey: WORKFLOW_KEYS.queue }); // what the one-minute refresh does
+    const toast = await screen.findByText('New approval waiting');
+    expect(toast.closest('[role="status"]')).toHaveTextContent('Policy renewal REN0000002 · Renewal check');
+    expect(screen.getByRole('button', { name: /^My Work Queue/ })).toHaveTextContent('1');
+  });
+
+  it('NTF-1: a user who cannot approve is never polled for', async () => {
+    workflowBackend({});
+    renderAt('/', { ...CHECKER, permissions: [] });
+    await screen.findByRole('heading', { name: 'Home' });
+    expect(queryClient.getQueryCache().find({ queryKey: WORKFLOW_KEYS.queue })?.observers.some((o) => o.options.enabled !== false && o.options.refetchInterval)).toBeFalsy();
   });
 
   it('lists only what /work-queue returns, in words, with no identifiers', async () => {
