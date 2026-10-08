@@ -36,7 +36,9 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: LayoutDashboard,
     items: [
       { screen: 'dashboard', label: 'Home', path: '/', icon: LayoutDashboard },
-      { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', permission: TASK_VIEW, icon: Inbox, counter: 'pending_tasks' },
+      // WFH-1 R1: for everyone signed in (History: the approvals they asked for); the queue, its count and
+      // reminders stay with workflow.task.view, which the page and the shell check.
+      { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', icon: Inbox, counter: 'pending_tasks' },
     ],
   },
   {

@@ -9,6 +9,9 @@
  * approvals and rejections, with the reason and where each approval stands now) and what they asked
  * to be approved ("Requested by me"), past and pending, filtered by outcome and paged on the server.
  * Only the user's own; a row opens the approval. The tab, view, filter and page live in the URL.
+ * WFH-1 R1: History is for every signed-in user, so a requester without `workflow.task.view` (a
+ * renewal maker) finds what they asked for. Without it the page is History alone, opening on
+ * "Requested by me": no queue, no counts, and `/work-queue` is never read.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -35,6 +38,8 @@ import {
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { changeSummary, formatDateTime, formatMoney, humanize } from '../workflow/format';
 import { HISTORY_PAGE_SIZE, useMyHistory, useWorkQueue } from '../workflow/queries';
+import { hasPermission, useMe } from '../../lib/auth/me';
+import { TASK_VIEW } from '../permissions';
 import type { HistoryRow, WorkQueueItem } from '../workflow/types';
 
 export const EMPTY_QUEUE_TEXT = 'Nothing is waiting for you';
@@ -171,9 +176,12 @@ const HistoryTable: React.FC<{ rows: HistoryRow[]; decided: boolean }> = ({ rows
   );
 };
 
-const HistoryTab: React.FC = () => {
+const HistoryTab: React.FC<{ approver: boolean }> = ({ approver }) => {
   const [params, setParams] = useSearchParams();
-  const role = params.get('view') === 'REQUESTED' ? 'REQUESTED' : 'DECIDED';
+  // An approver opens on what they decided; a requester on what they asked for.
+  const fallback = approver ? 'DECIDED' : 'REQUESTED';
+  const asked = params.get('view');
+  const role = asked === 'REQUESTED' || asked === 'DECIDED' ? asked : fallback;
   const outcome = OUTCOMES.some((item) => item.id && item.id === params.get('outcome')) ? params.get('outcome') : null;
   const page = Math.max(1, Number(params.get('page')) || 1);
   const history = useMyHistory(role, outcome, page);
@@ -192,7 +200,7 @@ const HistoryTab: React.FC = () => {
       title="History"
       toolbar={
         <>
-          <FilterGroup label="View" options={VIEWS} value={role} onChange={(id) => update({ view: id === 'DECIDED' ? null : id, page: null })} />
+          <FilterGroup label="View" options={VIEWS} value={role} onChange={(id) => update({ view: id === fallback ? null : id, page: null })} />
           <FilterGroup label="Outcome" options={OUTCOMES} value={outcome ?? ''} onChange={(id) => update({ outcome: id || null, page: null })} />
         </>
       }
@@ -245,8 +253,9 @@ const PAGE_TABS = [
 
 export const WorkQueuePage: React.FC = () => {
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'history' ? 'history' : 'queue';
-  const queue = useWorkQueue();
+  const approver = hasPermission(useMe().data, TASK_VIEW);
+  const tab = !approver || params.get('tab') === 'history' ? 'history' : 'queue';
+  const queue = useWorkQueue(approver);
   const [search, setSearch] = useState('');
   const items = useMemo(() => queue.data?.results ?? [], [queue.data]);
   const query = search.trim().toLowerCase();
@@ -264,9 +273,9 @@ export const WorkQueuePage: React.FC = () => {
     <HorizonPage id="work-queue">
       <HorizonPageTitle
         title="My Work Queue"
-        subtitle={queue.isSuccess ? `${items.length} ${items.length === 1 ? 'task' : 'tasks'} waiting for you` : 'Approval tasks'}
+        subtitle={!approver ? 'The approvals you asked for' : queue.isSuccess ? `${items.length} ${items.length === 1 ? 'task' : 'tasks'} waiting for you` : 'Approval tasks'}
         actions={
-          <button
+          approver && <button
             type="button"
             className="hz-button hz-button-secondary"
             onClick={() => void queue.refetch()}
@@ -277,11 +286,13 @@ export const WorkQueuePage: React.FC = () => {
           </button>
         }
       />
-      <div className="px-4">
-        <WorkspaceTabs tabs={PAGE_TABS} activeTab={tab} label="Work queue sections" variant="line"
-          onChange={(next) => setParams(next === 'history' ? { tab: 'history' } : {})} />
-      </div>
-      {tab === 'history' && <HistoryTab />}
+      {approver && (
+        <div className="px-4">
+          <WorkspaceTabs tabs={PAGE_TABS} activeTab={tab} label="Work queue sections" variant="line"
+            onChange={(next) => setParams(next === 'history' ? { tab: 'history' } : {})} />
+        </div>
+      )}
+      {tab === 'history' && <HistoryTab approver={approver} />}
 
       {tab === 'queue' && queue.isSuccess && (
         <StatGrid>

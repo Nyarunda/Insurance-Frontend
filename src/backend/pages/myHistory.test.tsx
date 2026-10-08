@@ -12,7 +12,8 @@ import { useSessionStore } from '../../lib/auth/sessionStore';
 import { setAccessToken } from '../../lib/auth/tokens';
 import { queryClient } from '../../lib/query/queryClient';
 import { backendRoutes } from '../BackendApp';
-import type { HistoryRow } from '../workflow/types';
+import { BACKEND_NAV, visibleNav } from '../navigation';
+import type { HistoryRow, InstanceView } from '../workflow/types';
 import { NO_HISTORY_TEXT } from './WorkQueuePage';
 
 const CHECKER: Me = {
@@ -22,6 +23,33 @@ const CHECKER: Me = {
   branches: [{ id: '77777777-7777-4777-8777-777777777777', code: 'NBO', name: 'Nairobi', scope: 'OWN' }],
 };
 const INSTANCE = '33333333-3333-4333-8333-333333333333';
+
+// A pending renewal approval, as the server shows it to the maker who asked for it.
+const INSTANCE_VIEW: InstanceView = {
+  id: INSTANCE,
+  definition_code: 'POLICY_RENEWAL_APPROVAL',
+  version_no: 1,
+  resource: { type: 'POLICY_RENEWAL', id: '99999999-9999-4999-8999-999999999999', reference: 'REN0000002' },
+  status: 'PENDING_APPROVAL',
+  stage: 'RENEWAL_CHECK',
+  stage_label: 'Renewal check',
+  step_id: '44444444-4444-4444-8444-444444444444',
+  cycle_no: 1,
+  quorum: { mode: 'ANY_ONE', required: 1, counted: 0, slots: 1 },
+  amount: '0.00',
+  currency: 'KES',
+  amount_reason: null,
+  approval_facts: null,
+  branch_id: '77777777-7777-4777-8777-777777777777',
+  submitted_at: '2026-10-08T08:00:00Z',
+  completed_at: null,
+  history: [],
+  etag: '"wf-v1"',
+};
+
+// WFH-1 R1: a renewal maker as the RENEWAL_MAKER profile makes one: no workflow.task.view.
+const RENEWAL_MAKER: Me = { ...CHECKER, user: { ...CHECKER.user, email: 'maker@acme.test' },
+  permissions: ['policies.policy.view', 'policies.renewal.create', 'products.product.view'] };
 
 const row = (over: Partial<HistoryRow> = {}): HistoryRow => ({
   workflow_instance_id: INSTANCE, definition_code: 'POLICY_RENEWAL_APPROVAL', definition_name: 'Policy renewal approval',
@@ -35,6 +63,7 @@ function historyBackend(byRole: Record<string, HistoryRow[]>, count?: number) {
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
     if (path === '/work-queue') return json(200, { results: [] });
+    if (path === `/workflows/instances/${INSTANCE}`) return json(200, INSTANCE_VIEW, { ETag: '"wf-v1"' });
     if (path.startsWith('/workflows/my-history?')) {
       const role = new URL(`http://x${path}`).searchParams.get('role') ?? 'DECIDED';
       const results = byRole[role] ?? [];
@@ -103,5 +132,21 @@ describe('My Work Queue history', () => {
     historyBackend({});
     renderAt('/my-work/list?tab=history');
     expect(await screen.findByText(NO_HISTORY_TEXT)).toBeInTheDocument();
+  });
+
+  it('WFH-1 R1: a requester without workflow.task.view finds what they asked for and opens it, with no queue and no decision', async () => {
+    const user = userEvent.setup();
+    const backend = historyBackend({ REQUESTED: [row({ my_action: undefined, acted_at: undefined, submitted_at: '2026-10-08T08:00:00Z', status: 'PENDING_APPROVAL', reason_code: null, reason_label: null, reason_text: null })] });
+    expect(visibleNav(BACKEND_NAV, RENEWAL_MAKER.permissions).flatMap((group) => group.items.map((item) => item.label))).toContain('My Work Queue');
+    const router = renderAt('/my-work/list', RENEWAL_MAKER);
+    const table = await screen.findByRole('table', { name: 'Requested by me' });           // opens on what they asked for
+    expect(screen.queryByRole('tab', { name: 'Waiting for me' })).not.toBeInTheDocument();
+    expect(screen.queryByText('You do not have access to this screen')).not.toBeInTheDocument();
+    await user.click(within(table).getByText('Policy renewal REN0000002'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/my-work/list/${INSTANCE}`));
+    expect(await screen.findByRole('heading', { name: 'Policy renewal REN0000002' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Approve/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Reject/ })).not.toBeInTheDocument();
+    expect(backend.calls.some((call) => call.url.includes('/work-queue'))).toBe(false);   // never read without the permission
   });
 });

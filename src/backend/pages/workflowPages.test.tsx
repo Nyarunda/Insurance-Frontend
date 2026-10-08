@@ -269,11 +269,14 @@ describe('My Work Queue', () => {
     expect(await screen.findByRole('heading', { name: 'Policy endorsement END0000001' })).toBeInTheDocument();
   });
 
-  it('is not available without workflow.task.view: no navigation entry, and the route shows the permission state', async () => {
-    workflowBackend({});
+  it('WFH-1 R1 (replaces the TASK_VIEW-only page): without workflow.task.view the page is History alone, and /work-queue is never read', async () => {
+    const backend = workflowBackend({});
     renderAt('/my-work', { ...CHECKER, permissions: [] });
-    expect(await screen.findByText('You do not have access to this screen')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'My Work Queue' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'My Work Queue' })).toBeInTheDocument();
+    expect(screen.queryByText('You do not have access to this screen')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Waiting for me' })).not.toBeInTheDocument();
+    expect(screen.queryByText('1 task waiting for you')).not.toBeInTheDocument();
+    expect(backend.calls.some((call) => call.url.includes('/work-queue'))).toBe(false);
   });
 });
 
