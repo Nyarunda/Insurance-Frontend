@@ -12,7 +12,7 @@ Policies → **Renewals** (`/renewals/list`), for `policies.policy.view`: view-o
 
 ## Renewals tab
 
-`GET /renewals?status=&page=&page_size=25`: renewals across policies, newest first, with a status filter on the **effective** status (All, Draft, Priced, Offered, Offer expired, Accepted, Declined, Renewed, Withdrawn). A row opens the RS-A record on its policy (`/policies/list/<POL>/renewals/<REN>`); there is no second record screen. The tab is named "Renewals" rather than "In progress" because, unfiltered, it lists every status.
+`GET /renewals?status=&page=&page_size=25`: renewals across policies, newest first, with a status filter on the **effective** status (All, Draft, Priced, Offered, Offer expired, Accepted, Declined, Renewed, Withdrawn). A row opens the RS-A record on its policy (`/policies/list/<POL>/renewals/<REN>`); there is no second record screen. **No premium column** (RS-C review): `GET /renewals` carries no currency, so amounts that may be in different currencies are never listed side by side; the premium is on the record. The tab is named "Renewals" rather than "In progress" because, unfiltered, it lists every status.
 
 ## A renewal by number
 

@@ -135,6 +135,9 @@ describe('Renewals', () => {
     const table = await screen.findByRole('table', { name: 'Renewals' });
     expect(within(table).getByText('Offer expired')).toBeInTheDocument();
     expect(within(table).getByText('POL0000001')).toBeInTheDocument();
+    // RS-C review: the list carries no currency, so it shows no amount (the record does).
+    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Renewal', 'Policy', 'New period', 'Status']);
+    expect(table).not.toHaveTextContent('57,200');
     await user.click(screen.getByRole('button', { name: 'Offer expired' }));
     await waitFor(() => expect(router.state.location.search).toBe('?tab=renewals&status=EXPIRED'));
     await waitFor(() => expect(backend.calls.map((call) => call.url)).toContainEqual(expect.stringContaining('/renewals?page=1&page_size=25&status=EXPIRED')));

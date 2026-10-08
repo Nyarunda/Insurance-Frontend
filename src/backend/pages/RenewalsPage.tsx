@@ -7,7 +7,9 @@
  *   today, soonest expiry first. A renewal maker (`policies.renewal.create`) gets Prepare renewal on
  *   each; anyone else opens the policy.
  * - **Renewals**: `GET /renewals`, every renewal in reach, newest first, filtered by its effective
- *   status (an offer past its validity is "Offer expired", not "Offered").
+ *   status (an offer past its validity is "Offer expired", not "Offered"). No premium column: the
+ *   list carries no currency, and amounts in different currencies are never shown side by side
+ *   (RS-C review); the premium is on the renewal's record.
  *
  * A renewal opens in its RS-A record on its policy. `/renewals/list/<REN>` resolves a number through
  * `GET /renewals?renewal_no=` and opens the same record; a number the user cannot see is not found.
@@ -224,7 +226,6 @@ export const RenewalsPage: React.FC = () => {
                     <th>Renewal</th>
                     <th>Policy</th>
                     <th>New period</th>
-                    <th className="text-right">Renewal premium</th>
                     <th>Status</th>
                     <th aria-hidden="true" />
                   </tr>
@@ -239,7 +240,6 @@ export const RenewalsPage: React.FC = () => {
                       <td className="whitespace-nowrap">
                         {formatDate(item.inception_date)} – {formatDate(item.expiry_date)}
                       </td>
-                      <td className="text-right tabular-nums">{item.renewal_total_premium ? formatMoney(item.renewal_total_premium, null) : '—'}</td>
                       <td>
                         <StatusBadge square label={RENEWAL_STATUS_LABEL[item.effective_status] ?? item.effective_status} tone={RENEWAL_TONE[item.effective_status] ?? 'neutral'} />
                       </td>
