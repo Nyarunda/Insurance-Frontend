@@ -94,3 +94,34 @@ export interface ActionBody {
   reason_code?: string;
   reason_text?: string;
 }
+
+/** WFH-1: one row of the caller's own approval history (`GET /workflows/my-history`). */
+export interface HistoryRow {
+  workflow_instance_id: string;
+  definition_code: string;
+  definition_name: string;
+  resource_type: string;
+  resource_reference: string;
+  /** Where the approval stands now. */
+  status: string;
+  completed_at: string | null;
+  stage: string | null;
+  stage_label: string | null;
+  reason_code: string | null;
+  reason_label: string | null;
+  reason_text: string | null;
+  /** DECIDED rows. */
+  my_action?: 'APPROVE' | 'REJECT';
+  acted_at?: string;
+  on_behalf?: boolean;
+  /** REQUESTED rows. */
+  submitted_at?: string;
+}
+
+export interface HistoryPage {
+  role: 'DECIDED' | 'REQUESTED';
+  results: HistoryRow[];
+  count: number;
+  page: number;
+  page_size: number;
+}
