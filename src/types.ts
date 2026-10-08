@@ -37,6 +37,8 @@ export type ScreenId =
   | 'certificates'
   // Backend mode (CERTIFICATES-SURFACE-1 CS-C): its own id beside Certificates.
   | 'certificate-stock'
+  // Backend mode (SETUP-DRIVEN-1 SD-C): the tenant's vehicle makes and models.
+  | 'vehicle-makes'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'

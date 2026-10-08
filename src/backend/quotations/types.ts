@@ -1,5 +1,7 @@
 /** Quotation and product shapes as the backend returns them (QUOTATIONS-1, INSURANCE-SETUP-1). */
 
+import type { ReferenceField, ReferenceSnapshot } from '../reference/vehicles';
+
 export type QuotationStatus = 'DRAFT' | 'ISSUED' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
 /** The stored status, or EXPIRED for an issued offer past its validity (derived by the server). */
 export type EffectiveStatus = QuotationStatus | 'EXPIRED';
@@ -38,7 +40,8 @@ export interface RiskIdentifier {
 
 export interface Risk {
   factors: Record<string, string | number | boolean>;
-  details: Record<string, string>;
+  /** Free text, or for a version's reference fields (SD-B) the code and name stored at the time. */
+  details: Record<string, string | ReferenceSnapshot>;
   identifiers: RiskIdentifier[];
 }
 
@@ -147,5 +150,6 @@ export interface RatingFactor {
 }
 
 export interface ProductVersionDocument extends ProductVersionSummary {
-  content: { rating_factors: RatingFactor[] };
+  /** `reference_fields` only when the version declares some (SD-B); otherwise details are free text. */
+  content: { rating_factors: RatingFactor[]; reference_fields?: ReferenceField[] };
 }

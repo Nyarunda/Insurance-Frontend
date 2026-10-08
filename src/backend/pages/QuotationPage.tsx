@@ -5,6 +5,11 @@
  *   (`DECIMAL` a number with its bounds and unit, `CHOICE` the server's choices, `BOOLEAN` yes/no);
  *   risk identifiers are the platform's fixed types. `risk.details` is not shown; whatever the
  *   revision already holds is sent back unchanged. Saving the risk clears any pricing (server rule).
+ * - Reference fields (SETUP-DRIVEN-1 SD-C): when the version declares them, the make is chosen from
+ *   the tenant's active makes and the model from the active models of that make; changing the make
+ *   clears a model of another make. Codes are sent; the server checks them and stores the code and
+ *   name at the time, which the record then shows. An entry no longer offered is shown as such and
+ *   must be chosen again. A version without them keeps free-text details, sent back unchanged.
  * - Pricing (NB-D4): the stored snapshot as returned, never calculated here; commission only when
  *   the server includes it (products.commission.view).
  * - Issue (NB-D6): when the risk is on other live quotations, the visible ones and the hidden count
@@ -50,6 +55,7 @@ import { PROPOSAL_CREATE, PROPOSAL_VIEW, QUOTATION_CANCEL, QUOTATION_CHECK, QUOT
 import { formatDate } from '../policies/format';
 import { QUOTATION_STATUS_LABEL, QUOTATION_TONE, RISK_IDENTIFIER_TYPES, riskIdentifierLabel } from '../quotations/format';
 import { useOffer, useProductDetail, useProductVersion, useQuotation, versionInForce } from '../quotations/queries';
+import { isSnapshot, ReferenceField, useVehicleMakes, VehicleMake } from '../reference/vehicles';
 import { parseFactorDecimal } from '../quotations/decimal';
 import { useQuotationId } from '../quotations/refs';
 import type { DuplicateAlerts, Pricing, QuotationDetail, RatingFactor, RiskIdentifier } from '../quotations/types';
@@ -386,6 +392,9 @@ const PricingTable: React.FC<{ pricing: Pricing }> = ({ pricing }) => {
 
 // ---------------------------------------------------------------------------- the risk
 
+/** The name a stored entry was saved with, or its code when only the code is known. */
+const heldName = (value: unknown, code: string) => (isSnapshot(value) && value.code === code ? value.name : code);
+
 type FactorValues = Record<string, string>;
 
 const asText = (value: unknown) => (value === undefined || value === null ? '' : typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value));
@@ -420,26 +429,59 @@ const factorError = (factor: RatingFactor, raw: string): string | undefined => {
   return undefined;
 };
 
+type ReferenceValues = Record<string, string>;
+
+/** A stored detail as the code the form edits: a snapshot's code, or the text as typed. */
+const detailCode = (value: unknown) => (isSnapshot(value) ? value.code : typeof value === 'string' ? value : '');
+
+/**
+ * The details as the server expects them: the reference fields as the chosen codes (left out when
+ * empty), and every other detail as it is held (a snapshot of a field no longer declared as its code).
+ */
+const detailsBody = (held: Record<string, unknown>, fields: ReferenceField[], values: ReferenceValues) => {
+  const declared = new Set(fields.map((item) => item.code));
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(held)) if (!declared.has(key)) out[key] = detailCode(value);
+  for (const item of fields) {
+    const code = (values[item.code] ?? '').trim();
+    if (code) out[item.code] = code;
+  }
+  return out;
+};
+
+/** The choices a reference field offers: active makes, or the active models of the chosen make. */
+const referenceChoices = (item: ReferenceField, makes: VehicleMake[], fields: ReferenceField[], values: ReferenceValues) => {
+  if (item.reference === 'VEHICLE_MAKE') return makes.map((make) => ({ code: make.code, name: make.name }));
+  const makeField = fields.find((other) => other.reference === 'VEHICLE_MAKE');
+  const make = makes.find((candidate) => candidate.code === (makeField ? values[makeField.code] : undefined));
+  return (make?.models ?? []).map((model) => ({ code: model.code, name: model.name }));
+};
+
 const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editable: boolean; onSaved: () => void }> = ({ view, etag, editable, onSaved }) => {
   const revision = view.current_revision;
   const product = useProductDetail(view.product.id, editable);
   const version = useMemo(() => (product.data ? versionInForce(product.data.versions) : null), [product.data]);
   const document = useProductVersion(view.product.id, editable ? version?.id ?? null : null);
   const factors = document.data?.content.rating_factors ?? [];
+  const references = useMemo(() => document.data?.content.reference_fields ?? [], [document.data]);
+  // Only active entries are offered (SD-D3); the list is read only when the version declares fields.
+  const makes = useVehicleMakes(true, editable && references.length > 0);
   const { risk, pending } = useQuotationCommands();
 
   // Keyed on what the server holds, not on the object: a refetch with the same risk (a window focus,
   // say) keeps what is being typed; a new revision or someone else's change starts again from the server.
-  const serverRisk = JSON.stringify([revision.revision_no, revision.risk.factors, revision.risk.identifiers]);
+  const serverRisk = JSON.stringify([revision.revision_no, revision.risk.factors, revision.risk.details, revision.risk.identifiers]);
   const seed = useMemo(
     () => ({
       values: Object.fromEntries(Object.entries(revision.risk.factors).map(([key, value]) => [key, asText(value)])) as FactorValues,
+      references: Object.fromEntries(Object.entries(revision.risk.details).map(([key, value]) => [key, detailCode(value)])) as ReferenceValues,
       identifiers: revision.risk.identifiers.map((item) => ({ ...item })),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [serverRisk],
   );
   const [values, setValues] = useState<FactorValues>(seed.values);
+  const [referenceValues, setReferenceValues] = useState<ReferenceValues>(seed.references);
   const [identifiers, setIdentifiers] = useState<RiskIdentifier[]>(seed.identifiers);
   const [attempted, setAttempted] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
@@ -448,6 +490,7 @@ const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editab
   // A new revision (or a reload after someone else's change) starts the form from the server again.
   useEffect(() => {
     setValues(seed.values);
+    setReferenceValues(seed.references);
     setIdentifiers(seed.identifiers);
   }, [seed]);
 
@@ -457,6 +500,8 @@ const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editab
         <DetailGrid
           items={[
             ...Object.entries(revision.risk.factors).map(([code, value]) => ({ label: humanize(code), value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value) })),
+            // Reference fields as stored: the name at the time, whatever the list says today.
+            ...Object.entries(revision.risk.details).flatMap(([code, value]) => (isSnapshot(value) ? [{ label: humanize(code), value: value.name }] : [])),
             ...revision.risk.identifiers.map((item) => ({ label: riskIdentifierLabel(item.identifier_type), value: <span className="font-mono">{item.value}</span> })),
           ]}
         />
@@ -465,8 +510,9 @@ const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editab
     );
   }
 
-  if (product.isPending || (version && document.isPending)) return <HorizonLoader tip="Loading the product's rating factors..." />;
+  if (product.isPending || (version && document.isPending) || (references.length > 0 && makes.isPending)) return <HorizonLoader tip="Loading the product's rating factors..." />;
   if (product.isError || document.isError) return <ApiErrorAlert error={product.error ?? document.error} title="The product's rating factors could not be loaded" />;
+  if (makes.isError) return <ApiErrorAlert error={makes.error} title="The vehicle makes could not be loaded" />;
   if (!version) {
     return (
       <HorizonAlert tone="warning" title="No product version in force">
@@ -476,19 +522,43 @@ const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editab
   }
 
   const errors = Object.fromEntries(factors.map((factor) => [factor.code, factorError(factor, values[factor.code] ?? '')]));
+  const makeList = makes.data ?? [];
+  const referenceErrors: Record<string, string | undefined> = Object.fromEntries(
+    references.map((item) => {
+      const code = referenceValues[item.code] ?? '';
+      if (!code) return [item.code, item.is_required ? `Choose the ${item.name.toLowerCase()}.` : undefined];
+      const offered = referenceChoices(item, makeList, references, referenceValues).some((choice) => choice.code === code);
+      return [item.code, offered ? undefined : `${heldName(revision.risk.details[item.code], code)} is no longer offered; choose another.`];
+    }),
+  );
   const identifierErrors = identifiers.map((item) => (item.value.trim() ? undefined : 'Give the number, or remove the row.'));
-  const dirty = JSON.stringify(factorBody(factors, values)) !== JSON.stringify(factorBody(factors, seed.values)) || JSON.stringify(identifiers) !== JSON.stringify(seed.identifiers);
+  const details = detailsBody(revision.risk.details, references, referenceValues);
+  const dirty =
+    JSON.stringify(factorBody(factors, values)) !== JSON.stringify(factorBody(factors, seed.values)) ||
+    JSON.stringify(details) !== JSON.stringify(detailsBody(revision.risk.details, references, seed.references)) ||
+    JSON.stringify(identifiers) !== JSON.stringify(seed.identifiers);
+  const chooseReference = (item: ReferenceField, code: string) =>
+    setReferenceValues((current) => {
+      const next = { ...current, [item.code]: code };
+      // A model belongs to one make: a new make clears a model that is not one of its models.
+      if (item.reference === 'VEHICLE_MAKE') {
+        for (const other of references.filter((candidate) => candidate.reference === 'VEHICLE_MODEL')) {
+          if (!referenceChoices(other, makeList, references, next).some((choice) => choice.code === next[other.code])) next[other.code] = '';
+        }
+      }
+      return next;
+    });
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     setAttempted(true);
-    if (Object.values(errors).some(Boolean) || identifierErrors.some(Boolean) || !etag) return;
+    if (Object.values(errors).some(Boolean) || Object.values(referenceErrors).some(Boolean) || identifierErrors.some(Boolean) || !etag) return;
     setFailure(null);
     setStale(false);
     setServerFields({});
     const outcome = await risk(
       view.id,
-      { factors: factorBody(factors, values), details: revision.risk.details, identifiers: identifiers.map((item) => ({ identifier_type: item.identifier_type, value: item.value.trim() })) },
+      { factors: factorBody(factors, values), details, identifiers: identifiers.map((item) => ({ identifier_type: item.identifier_type, value: item.value.trim() })) },
       etag,
     );
     if (outcome.ok === true) {
@@ -547,6 +617,35 @@ const RiskSection: React.FC<{ view: QuotationDetail; etag: string | null; editab
                     {factor.unit ? ` ${factor.unit}` : ''}
                   </p>
                 )}
+                <FieldError message={error} />
+              </div>
+            );
+          })}
+          {references.map((item) => {
+            const id = `reference-${item.code}`;
+            const code = referenceValues[item.code] ?? '';
+            const choices = referenceChoices(item, makeList, references, referenceValues);
+            const held = code && !choices.some((choice) => choice.code === code);
+            const error = (attempted ? referenceErrors[item.code] : undefined) ?? serverFields[`risk.details.${item.code}`];
+            const waiting = item.reference === 'VEHICLE_MODEL' && choices.length === 0;
+            return (
+              <div key={item.code}>
+                <label htmlFor={id} className={label}>
+                  {item.name} {item.is_required && <span className="text-[var(--hz-danger)]">*</span>}
+                </label>
+                <select id={id} value={code} onChange={(event) => chooseReference(item, event.target.value)} aria-invalid={!!error} className={field(!!error)}>
+                  <option value="">{waiting ? 'Choose the make first' : item.is_required ? 'Select…' : 'Not stated'}</option>
+                  {held && (
+                    <option value={code} disabled>
+                      {heldName(revision.risk.details[item.code], code)} (no longer offered)
+                    </option>
+                  )}
+                  {choices.map((choice) => (
+                    <option key={choice.code} value={choice.code}>
+                      {choice.name}
+                    </option>
+                  ))}
+                </select>
                 <FieldError message={error} />
               </div>
             );

@@ -106,6 +106,10 @@ interface Options {
   views?: { view: QuotationDetail; etag: string }[];
   offer?: Record<string, unknown>;
   command?: (call: FakeCall, action: string) => Response | null;
+  /** The version document's content (SD-C: with `reference_fields`); the rating factors alone by default. */
+  content?: Record<string, unknown>;
+  /** The tenant's active makes, as `GET /vehicle-makes?active=true` returns them. */
+  makes?: unknown[];
 }
 
 function quotationBackend(options: Options = {}) {
@@ -123,8 +127,9 @@ function quotationBackend(options: Options = {}) {
       return json(200, { id: PRODUCT_ID, versions: [{ id: VERSION_ID, version_no: 1, status: 'PUBLISHED', effective_from: '2020-01-01', effective_to: null }] });
     }
     if (path === `/products/${PRODUCT_ID}/versions/${VERSION_ID}`) {
-      return json(200, { id: VERSION_ID, version_no: 1, status: 'PUBLISHED', effective_from: '2020-01-01', effective_to: null, content: { rating_factors: FACTORS } });
+      return json(200, { id: VERSION_ID, version_no: 1, status: 'PUBLISHED', effective_from: '2020-01-01', effective_to: null, content: options.content ?? { rating_factors: FACTORS } });
     }
+    if (path === '/vehicle-makes?active=true') return json(200, { results: options.makes ?? [] });
     if (path.startsWith('/clients?')) {
       return json(200, { results: [{ id: CUSTOMER_ID, customer_no: 'CUS0000001', customer_type: 'INDIVIDUAL', display_name: 'Wanjiku Kamau', status: 'ACTIVE', kyc_status: 'VERIFIED', primary_phone: null, primary_email: null, home_branch: BRANCH }], count: 1, page: 1, page_size: 25 });
     }
@@ -257,6 +262,120 @@ describe('The risk, from the product version', () => {
       details: { colour: 'Blue' },
       identifiers: [{ identifier_type: 'VEHICLE_REGISTRATION', value: 'KDA 123A' }],
     });
+  });
+});
+
+describe('SD-C: make and model from the tenant list', () => {
+  const REFERENCE_FIELDS = [
+    { code: 'make', name: 'Make', reference: 'VEHICLE_MAKE', is_required: true },
+    { code: 'model', name: 'Model', reference: 'VEHICLE_MODEL', is_required: false },
+  ];
+  const ACTIVE_MAKES = [
+    { id: 'm1', code: 'TOYOTA', name: 'Toyota', is_active: true, row_version: 1, models: [
+      { id: 'd1', code: 'COROLLA', name: 'Corolla', is_active: true, row_version: 1 },
+      { id: 'd2', code: 'VITZ', name: 'Vitz', is_active: true, row_version: 1 },
+    ] },
+    { id: 'm2', code: 'NISSAN', name: 'Nissan', is_active: true, row_version: 1, models: [
+      { id: 'd3', code: 'NOTE', name: 'Note', is_active: true, row_version: 1 },
+    ] },
+  ];
+  const referenced = (details: Record<string, unknown>, options: Options = {}) =>
+    quotationBackend({
+      content: { rating_factors: FACTORS, reference_fields: REFERENCE_FIELDS },
+      makes: ACTIVE_MAKES,
+      view: detail({}, { risk: { factors: { sum_insured: '1000000', vehicle_use: 'PRIVATE' }, details: details as Record<string, string>, identifiers: [] } }),
+      ...options,
+    });
+
+  it('offers active makes, the models of the chosen make only, and clears a model of another make', async () => {
+    const user = userEvent.setup();
+    const backend = referenced({ colour: 'Blue' });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    const make = within(risk).getByLabelText(/^Make/);
+    const model = within(risk).getByLabelText(/^Model/);
+    expect(within(make).getAllByRole('option').map((option) => option.textContent)).toEqual(['Select…', 'Toyota', 'Nissan']);
+    expect(within(model).getAllByRole('option').map((option) => option.textContent)).toEqual(['Choose the make first']);
+
+    await user.selectOptions(make, 'TOYOTA');
+    expect(within(model).getAllByRole('option').map((option) => option.textContent)).toEqual(['Not stated', 'Corolla', 'Vitz']);
+    await user.selectOptions(model, 'VITZ');
+    await user.selectOptions(make, 'NISSAN');
+    expect(model).toHaveValue('');
+    await user.selectOptions(model, 'NOTE');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(backend.sent('risk')).toHaveLength(1));
+    expect(backend.sent('risk')[0].body).toMatchObject({ details: { colour: 'Blue', make: 'NISSAN', model: 'NOTE' } });
+  });
+
+  it('needs a required make before saving', async () => {
+    const user = userEvent.setup();
+    const backend = referenced({});
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    await user.type(within(risk).getByLabelText(/Sum insured/), '0');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    expect(within(risk).getByText('Choose the make.')).toBeInTheDocument();
+    expect(backend.sent('risk')).toHaveLength(0);
+  });
+
+  it('starts from the stored snapshot, and an entry no longer offered must be chosen again', async () => {
+    const user = userEvent.setup();
+    const backend = referenced({ make: { code: 'TOYOTA', name: 'Toyota' }, model: { code: 'PRADO', name: 'Land Cruiser Prado' } });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    expect(within(risk).getByLabelText(/^Make/)).toHaveValue('TOYOTA');
+    const model = within(risk).getByLabelText(/^Model/);
+    expect(model).toHaveValue('PRADO');
+    expect(within(model).getByRole('option', { name: 'Land Cruiser Prado (no longer offered)' })).toBeDisabled();
+
+    await user.type(within(risk).getByLabelText(/Sum insured/), '0');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    expect(within(risk).getByText('Land Cruiser Prado is no longer offered; choose another.')).toBeInTheDocument();
+    expect(backend.sent('risk')).toHaveLength(0);
+    await user.selectOptions(model, 'COROLLA');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(backend.sent('risk')).toHaveLength(1));
+    expect(backend.sent('risk')[0].body).toMatchObject({ details: { make: 'TOYOTA', model: 'COROLLA' } });
+  });
+
+  it("puts the server's refusal under the named field, in words", async () => {
+    const user = userEvent.setup();
+    referenced({}, {
+      command: (_call, action) =>
+        action === 'risk' ? envelope(422, 'RISK_REFERENCE_INVALID', 'Make: TOYOTA is not an active make in the list', { field: 'risk.details.make' }) : null,
+    });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    await user.selectOptions(within(risk).getByLabelText(/^Make/), 'TOYOTA');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    expect(await within(risk).findByText('Make: TOYOTA is not an active make in the list.')).toBeInTheDocument();
+    expect(within(risk).queryByText(/RISK_REFERENCE_INVALID/)).not.toBeInTheDocument();
+  });
+
+  it('shows the stored names on a quotation that can no longer be edited', async () => {
+    referenced({ make: { code: 'TOYOTA', name: 'Toyota' }, model: { code: 'COROLLA', name: 'Corolla' } }, {
+      view: detail({ status: 'ISSUED', effective_status: 'ISSUED' }, {
+        status: 'ISSUED', pricing: PRICING,
+        risk: { factors: { sum_insured: '1000000' }, details: { make: { code: 'TOYOTA', name: 'Toyota' }, colour: 'Blue' } as unknown as Record<string, string>, identifiers: [] },
+      }),
+    });
+    renderAt(`/quotations/list/${Q_ID}`);
+    expect(await screen.findByText('Toyota')).toBeInTheDocument();
+    expect(mainText()).not.toContain('Blue');
+  });
+
+  it('a version without reference fields reads no list and keeps free-text details as they are', async () => {
+    const user = userEvent.setup();
+    const backend = quotationBackend({ view: detail({}, { risk: { factors: { sum_insured: '1000000', vehicle_use: 'PRIVATE' }, details: { make: 'Toyta' }, identifiers: [] } }) });
+    renderAt(`/quotations/list/${Q_ID}`);
+    const risk = await screen.findByRole('form', { name: 'Risk' });
+    expect(within(risk).queryByLabelText(/^Make/)).not.toBeInTheDocument();
+    await user.selectOptions(within(risk).getByLabelText(/Tracking device/), 'true');
+    await user.click(within(risk).getByRole('button', { name: 'Save risk' }));
+    await waitFor(() => expect(backend.sent('risk')).toHaveLength(1));
+    expect(backend.sent('risk')[0].body).toMatchObject({ details: { make: 'Toyta' } });
+    expect(backend.calls.some((call) => call.url.includes('/vehicle-makes'))).toBe(false);
   });
 });
 

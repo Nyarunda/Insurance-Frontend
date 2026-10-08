@@ -23,6 +23,7 @@ import { PoliciesPage } from './pages/PoliciesPage';
 import { CertificatePage } from './pages/CertificatePage';
 import { CertificatesPage } from './pages/CertificatesPage';
 import { CertificateStockPage } from './pages/CertificateStockPage';
+import { VehicleMakesPage } from './pages/VehicleMakesPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -36,6 +37,7 @@ import {
   QUOTATION_VIEW,
   TASK_VIEW,
   CERT_STOCK,
+  REFERENCE_MANAGE,
   CERT_VIEW,
 } from './permissions';
 import { ProposalRefRoute } from './proposals/refs';
@@ -279,6 +281,15 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={CERT_STOCK}>
             <CertificateStockPage />
+          </RequirePermission>
+        ),
+      },
+      // SD-C: the tenant's vehicle makes and models.
+      {
+        path: 'vehicle-makes/list',
+        element: (
+          <RequirePermission permission={REFERENCE_MANAGE}>
+            <VehicleMakesPage />
           </RequirePermission>
         ),
       },

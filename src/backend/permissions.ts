@@ -36,3 +36,6 @@ export const CERT_ISSUE = 'certificates.cert.issue';
 export const CERT_CANCEL = 'certificates.cert.cancel';
 // CS-C: certificate types, batches, stock and allocation.
 export const CERT_STOCK = 'certificates.stock.manage';
+
+// SETUP-DRIVEN-1 SD-C: the tenant's vehicle makes and models (tenant-wide; the server refuses a branch grant).
+export const REFERENCE_MANAGE = 'products.reference.manage';
