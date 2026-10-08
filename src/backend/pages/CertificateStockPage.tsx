@@ -8,6 +8,8 @@
  *   before sending; the received batches; allocate a range of a batch to a branch, showing the
  *   command's own result.
  * - Types: list and create (R2 CS5: no rename or deactivate).
+ * - Settings (SETUP-DRIVEN-1 SD-D): the tenant's largest batch, under the platform ceiling; changed by a
+ *   tenant-wide stock manager with the server's ETag. The receive form states it and checks against it.
  *
  * Not here (deferred to a certificate-stock API follow-up): allocation to a named user, spoiling a
  * blank serial, movement history. No ID is ever typed or shown: branches are named from /me,
@@ -31,6 +33,7 @@ import {
   WorkspaceTabs,
 } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
+import { STALE_TEXT } from '../../lib/api/commandErrors';
 import { fieldErrorsOf } from '../../lib/api/fieldErrors';
 import { useMe } from '../../lib/auth/me';
 import { ApiErrorAlert, ErrorReference, referenceOf } from '../components/ApiErrorAlert';
@@ -41,7 +44,9 @@ import {
   previewSerial,
   stockRefusal,
   useBatches,
+  useCertificateSettings,
   useInsuranceClasses,
+  useSettingsCommand,
   useInsurers,
   useStock,
   useStockCommands,
@@ -58,11 +63,12 @@ const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 const hint = 'mt-1.5 text-[13px] text-[var(--hz-text-muted)]';
 
-type TabId = 'stock' | 'batches' | 'types';
+type TabId = 'stock' | 'batches' | 'types' | 'settings';
 const TABS: { id: TabId; label: string }[] = [
   { id: 'stock', label: 'Available stock' },
   { id: 'batches', label: 'Batches' },
   { id: 'types', label: 'Types' },
+  { id: 'settings', label: 'Settings' },
 ];
 const isTab = (value: string | null): value is TabId => TABS.some((tab) => tab.id === value);
 
@@ -247,6 +253,8 @@ export const CertificateStockPage: React.FC = () => {
               )}
             </DetailGroup>
           )}
+
+          {tab === 'settings' && <SettingsTab onSaved={(value) => setToast(`Batch maximum set to ${value.toLocaleString()}`)} />}
 
           {tab === 'types' && (
             <DetailGroup title="Certificate types" description="What a certificate certifies, and for which class of insurance. Types are created here; renaming and deactivating are not available yet.">
@@ -457,13 +465,17 @@ const ReceiveDialog: React.FC<{ onClose: () => void; onDone: (batch: Batch) => v
   const from = whole(first);
   const to = whole(last);
   const digits = whole(width);
+  // SD-D: the tenant's batch maximum; the server applies it, the form says so first.
+  const settings = useCertificateSettings();
+  const batchMax = settings.data?.view.batch_max_serials ?? null;
   const local: Record<string, string | undefined> = {
     insurer_id: insurerId ? undefined : 'Choose the insurer.',
     certificate_type_id: typeId ? undefined : 'Choose the certificate type.',
     branch_id: branchId ? undefined : 'Choose the receiving branch.',
     prefix: PREFIX.test(prefix) ? undefined : 'Up to 12 capital letters, digits or hyphens.',
     first_number: from === null ? 'Enter the first number.' : undefined,
-    last_number: to === null ? 'Enter the last number.' : from !== null && to < from ? 'The last number is the same as or after the first.' : undefined,
+    last_number: to === null ? 'Enter the last number.' : from !== null && to < from ? 'The last number is the same as or after the first.'
+      : from !== null && batchMax !== null && to - from + 1 > batchMax ? `A batch is at most ${batchMax.toLocaleString()} certificates.` : undefined,
     number_width: digits === null || digits < 1 || digits > 12 ? 'Between 1 and 12 digits.' : undefined,
   };
   const errorFor = (key: string) => (attempted ? local[key] : undefined) ?? fields[key];
@@ -564,6 +576,7 @@ const ReceiveDialog: React.FC<{ onClose: () => void; onDone: (batch: Batch) => v
               <label htmlFor="stock-last" className={label}>Last number <span className="text-[var(--hz-danger)]">*</span></label>
               <input id="stock-last" inputMode="numeric" value={last} onChange={(event) => setLast(event.target.value)}
                 aria-invalid={!!errorFor('last_number')} className={field(!!errorFor('last_number'))} />
+              {batchMax !== null && !errorFor('last_number') && <p className={hint}>At most {batchMax.toLocaleString()} in one batch.</p>}
               <FieldError message={errorFor('last_number')} />
             </div>
             <div>
@@ -689,5 +702,80 @@ const AllocateDialog: React.FC<{ batch: Batch; onClose: () => void; onDone: (res
         )}
       </form>
     </DialogFrame>
+  );
+};
+
+// ---------------------------------------------------------------------------- settings (SD-D)
+
+const SettingsTab: React.FC<{ onSaved: (value: number) => void }> = ({ onSaved }) => {
+  const settings = useCertificateSettings();
+  const command = useSettingsCommand();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState('');
+  const [failure, setFailure] = useState<unknown>(null);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [stale, setStale] = useState(false);
+  if (settings.isPending) return <HorizonLoader tip="Loading the settings..." />;
+  if (settings.isError) return <ApiErrorAlert error={settings.error} title="The settings could not be loaded" />;
+  const { view, etag } = settings.data;
+  const typed = Number(value.replace(/,/g, ''));
+  const local = !value.trim() || !Number.isInteger(typed) || typed < 1 || typed > view.platform_max_serials
+    ? `A whole number from 1 to ${view.platform_max_serials.toLocaleString()}.` : null;
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (local || !etag) return;
+    setFailure(null);
+    setFieldError(null);
+    setStale(false);
+    const outcome = await command.change(typed, etag);
+    if (outcome.ok === true) {
+      setEditing(false);
+      onSaved(outcome.data.batch_max_serials);
+      return;
+    }
+    if (outcome.kind === 'stale') {
+      setStale(true);
+      await settings.refetch();
+      return;
+    }
+    const fields = outcome.kind === 'invalid' ? fieldErrorsOf(outcome.error) : {};
+    if (fields.batch_max_serials) setFieldError(fields.batch_max_serials);
+    else setFailure(outcome.error);
+  };
+  return (
+    <DetailGroup title="Settings" description="The tenant's certificate setup. Batches already received are never changed by a new setting.">
+      {stale && (
+        <div role="status">
+          <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
+        </div>
+      )}
+      {failure !== null && <Refusal error={failure} title="The setting was not changed" />}
+      <DetailGrid
+        items={[
+          { label: 'Largest batch', value: `${view.batch_max_serials.toLocaleString()} certificates` },
+          { label: 'Platform ceiling', value: `${view.platform_max_serials.toLocaleString()} certificates` },
+        ]}
+      />
+      {!editing ? (
+        <div className="mt-3">
+          <button type="button" className="hz-button hz-button-secondary" onClick={() => { setValue(String(view.batch_max_serials)); setEditing(true); }}>
+            Change
+          </button>
+        </div>
+      ) : (
+        <form noValidate onSubmit={(event) => void save(event)} className="mt-3 flex flex-wrap items-start gap-2" aria-label="Change the largest batch">
+          <div>
+            <label htmlFor="settings-batch-max" className={label}>Largest batch</label>
+            <input id="settings-batch-max" inputMode="numeric" value={value} onChange={(event) => setValue(event.target.value)}
+              aria-invalid={!!(local ?? fieldError)} className={field(!!(local ?? fieldError))} />
+            <FieldError message={local ?? fieldError ?? undefined} />
+          </div>
+          <div className="flex gap-2 pt-6">
+            <button type="button" className="hz-button hz-button-secondary" onClick={() => setEditing(false)} disabled={command.pending}>Back</button>
+            <button type="submit" className="hz-button hz-button-primary" disabled={command.pending || !!local}>{command.pending ? 'Saving…' : 'Save'}</button>
+          </div>
+        </form>
+      )}
+    </DetailGroup>
   );
 };

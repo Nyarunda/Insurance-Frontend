@@ -203,3 +203,53 @@ export const STOCK_REFUSALS: Record<string, (error: ApiError) => string> = {
 
 export const stockRefusal = (error: unknown): string | null =>
   error instanceof ApiError && STOCK_REFUSALS[error.code] ? STOCK_REFUSALS[error.code](error) : null;
+
+// ---------------------------------------------------------------------------- settings (SETUP-DRIVEN-1 SD-D)
+
+/** The tenant's certificate settings: the largest batch, under the platform ceiling. */
+export interface CertificateSettings {
+  batch_max_serials: number;
+  platform_max_serials: number;
+  updated_at: string | null;
+  row_version: number;
+}
+
+export const SETTINGS_KEY = ['certificates', 'settings'] as const;
+
+export function useCertificateSettings(enabled = true) {
+  return useQuery({
+    queryKey: SETTINGS_KEY,
+    queryFn: async () => {
+      const result = await api.request<CertificateSettings>('/certificate-settings');
+      return { view: result.data, etag: result.etag };
+    },
+    enabled,
+    staleTime: 0,
+  });
+}
+
+/** Changes the batch maximum with the ETag the server returned; one idempotency lifecycle per body. */
+export function useSettingsCommand() {
+  const queryClient = useQueryClient();
+  const keys = useRef(new CommandKeyLifecycle());
+  const [pending, setPending] = useState(false);
+  const change = useCallback(
+    async (batchMax: number, etag: string): Promise<StockOutcome<CertificateSettings>> => {
+      setPending(true);
+      try {
+        const result = await sendCommand<CertificateSettings>(api, keys.current,
+          { type: 'CERTIFICATE_SETTINGS_UPDATE', resource: 'certificate-settings', body: { batch_max_serials: batchMax } },
+          { path: '/certificate-settings', method: 'PATCH', ifMatch: etag });
+        keys.current.reset();
+        await queryClient.invalidateQueries({ queryKey: SETTINGS_KEY });
+        return { ok: true, data: result.data, replayed: result.replayed };
+      } catch (error) {
+        return { ok: false, kind: classifyCommandError(error), error };
+      } finally {
+        setPending(false);
+      }
+    },
+    [queryClient],
+  );
+  return { pending, change };
+}
