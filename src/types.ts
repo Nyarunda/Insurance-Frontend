@@ -39,6 +39,8 @@ export type ScreenId =
   | 'certificate-stock'
   // Backend mode (SETUP-DRIVEN-1 SD-C): the tenant's vehicle makes and models.
   | 'vehicle-makes'
+  // Backend mode (WRC-1): the tenant's approval reasons.
+  | 'approval-reasons'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'

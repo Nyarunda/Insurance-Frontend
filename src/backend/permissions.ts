@@ -43,3 +43,6 @@ export const REFERENCE_MANAGE = 'products.reference.manage';
 // RENEWALS-SURFACE-1 RS-A: renewals, judged on the renewal's policy.
 export const RENEWAL_CREATE = 'policies.renewal.create';
 export const RENEWAL_APPROVE = 'policies.renewal.approve';
+
+// WRC-1: the tenant's approval reasons (tenant-wide; the server refuses a branch grant).
+export const WORKFLOW_MANAGE = 'admin.workflow.manage';

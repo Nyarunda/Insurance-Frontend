@@ -61,11 +61,12 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/vehicle-makes/list')).toBe('vehicle-makes');
     expect(screenForPath('/renewals/list')).toBe('renewals');
     expect(screenForPath('/renewals/list/REN0000001')).toBe('renewals');
+    expect(screenForPath('/approval-reasons/list')).toBe('approval-reasons');
     expect(screenForPath('/new-policy')).toBe('new-policy');
     expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
   });
 
-  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C) and Vehicle makes (products.reference.manage, SD-C)', () => {
+  it('integrates Home, My Work Queue (workflow.task.view), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C) and Approval reasons (admin.workflow.manage, WRC-1)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', 'workflow.task.view'],
@@ -78,6 +79,7 @@ describe('permission-driven navigation', () => {
       ['certificates', 'certificates.cert.view'],
       ['certificate-stock', 'certificates.stock.manage'],
       ['vehicle-makes', 'products.reference.manage'],
+      ['approval-reasons', 'admin.workflow.manage'],
     ]);
   });
 });
