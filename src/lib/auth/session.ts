@@ -33,7 +33,7 @@ export function receiveAuthMessage(message: AuthMessage): void {
 authChannel.listen(receiveAuthMessage);
 
 async function loadIdentity(): Promise<Me> {
-  const me = await queryClient.fetchQuery({ queryKey: ME_QUERY_KEY, queryFn: fetchMe, staleTime: 0 });
+  const me = await queryClient.query({ queryKey: ME_QUERY_KEY, queryFn: fetchMe, staleTime: 0 });
   useBranchStore.getState().hydrate(me.user.id, me.branches);
   return me;
 }
