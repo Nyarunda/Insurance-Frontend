@@ -6,8 +6,8 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { Boxes, CalendarClock, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
-import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE } from './permissions';
+import { BellRing, Boxes, CalendarClock, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
+import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -87,6 +87,8 @@ export const BACKEND_NAV: BackendNavGroup[] = [
         screen: 'renewal-settings', label: 'Renewal settings', path: '/renewal-settings/list', icon: CalendarClock,
         permission: [RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH, RENEWAL_CREATE, RENEWAL_APPROVE],
       },
+      // NTF-2: which approval outcomes requesters are told about, for workflow administrators.
+      { screen: 'approval-notifications', label: 'Approval notifications', path: '/approval-notifications', permission: WORKFLOW_VIEW, icon: BellRing },
     ],
   },
 ];

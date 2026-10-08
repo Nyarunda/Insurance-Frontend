@@ -17,6 +17,7 @@ import { hasPermission, ME_QUERY_KEY, useMe } from '../../lib/auth/me';
 import { TASK_VIEW } from '../permissions';
 import { useWorkQueue } from '../workflow/queries';
 import { ApprovalReminder } from './ApprovalReminder';
+import { OutcomeNotifier } from './OutcomeNotifier';
 import { signOut } from '../../lib/auth/session';
 import { queryClient } from '../../lib/query/queryClient';
 import { BACKEND_NAV, pathForScreen, screenForPath, visibleNav } from '../navigation';
@@ -105,6 +106,8 @@ export const BackendShell: React.FC = () => {
         counters={canDecide && queue.data ? { pending_tasks: queue.data.results.length } : undefined}
       />
       {canDecide && <ApprovalReminder tasks={queue.data?.results} />}
+      {/* NTF-2: everyone is told how the approvals they asked for ended. */}
+      <OutcomeNotifier canOpen={canDecide} />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <GlobalTopBar

@@ -43,6 +43,8 @@ export type ScreenId =
   | 'approval-reasons'
   // Backend mode (SETUP-DRIVEN-1 SD-E): the tenant's renewal settings.
   | 'renewal-settings'
+  // Backend mode (NTF-2): which approval outcomes requesters are told about.
+  | 'approval-notifications'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'

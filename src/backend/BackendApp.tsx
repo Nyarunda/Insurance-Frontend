@@ -29,6 +29,7 @@ import { CertificateStockPage } from './pages/CertificateStockPage';
 import { VehicleMakesPage } from './pages/VehicleMakesPage';
 import { ApprovalReasonsPage } from './pages/ApprovalReasonsPage';
 import { RenewalSettingsPage } from './pages/RenewalSettingsPage';
+import { ApprovalNotificationsPage } from './pages/ApprovalNotificationsPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -45,6 +46,7 @@ import {
   REFERENCE_MANAGE,
   WORKFLOW_MANAGE,
   RENEWAL_APPROVE,
+  WORKFLOW_VIEW,
   RENEWAL_CREATE,
   RENEWAL_SETTINGS_MANAGE,
   CONFIG_PUBLISH,
@@ -359,6 +361,15 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={[RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH, RENEWAL_CREATE, RENEWAL_APPROVE]}>
             <RenewalSettingsPage />
+          </RequirePermission>
+        ),
+      },
+      // NTF-2: the tenant's approval notification settings.
+      {
+        path: 'approval-notifications',
+        element: (
+          <RequirePermission permission={WORKFLOW_VIEW}>
+            <ApprovalNotificationsPage />
           </RequirePermission>
         ),
       },

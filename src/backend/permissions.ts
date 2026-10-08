@@ -54,3 +54,6 @@ export const POLICY_CANCEL = 'policies.policy.cancel';
 // published by a tenant-wide configuration publisher who did not draft it.
 export const RENEWAL_SETTINGS_MANAGE = 'policies.renewal_settings.manage';
 export const CONFIG_PUBLISH = 'products.config.publish';
+
+// NTF-2: the tenant's approval notification settings (read with view; WORKFLOW_MANAGE above changes them).
+export const WORKFLOW_VIEW = 'admin.workflow.view';
