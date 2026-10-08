@@ -68,3 +68,15 @@ export interface DatesBody {
   inception_date: string;
   expiry_date: string;
 }
+
+/** A renewal in the cross-policy list (RS-C, `GET /renewals`): its summary and its policy. */
+export interface RenewalListItem extends RenewalSummary {
+  policy: { id: string; policy_no: string };
+}
+
+export interface RenewalPage {
+  results: RenewalListItem[];
+  count: number;
+  page: number;
+  page_size: number;
+}

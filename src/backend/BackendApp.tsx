@@ -20,6 +20,7 @@ import { PolicyRefRoute } from './policies/refs';
 import { EndorsementPage } from './pages/EndorsementPage';
 import { RenewalPage } from './pages/RenewalPage';
 import { RenewalPreparePage } from './pages/RenewalPreparePage';
+import { RenewalByNumberRoute, RenewalsPage } from './pages/RenewalsPage';
 import { InstancePage } from './pages/InstancePage';
 import { PoliciesPage } from './pages/PoliciesPage';
 import { CertificatePage } from './pages/CertificatePage';
@@ -272,6 +273,23 @@ export const backendRoutes: RouteObject[] = [
               </div>
               <EndorsementPage />
             </PolicyRefRoute>
+          </RequirePermission>
+        ),
+      },
+      // RS-C: the renewal worklists, and a renewal by its number alone (opens its RS-A record).
+      {
+        path: 'renewals/list',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <RenewalsPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'renewals/list/:renewalNo',
+        element: (
+          <RequirePermission permission={POLICY_VIEW}>
+            <RenewalByNumberRoute />
           </RequirePermission>
         ),
       },

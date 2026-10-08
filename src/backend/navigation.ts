@@ -6,7 +6,7 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { Boxes, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
+import { Boxes, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
 import { CERT_STOCK, CERT_VIEW, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, TASK_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
@@ -62,6 +62,8 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: FileCheck2,
     items: [
       { screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 },
+      // RS-C: policies due for renewal, and renewals across policies.
+      { screen: 'renewals', label: 'Renewals', path: '/renewals/list', permission: POLICY_VIEW, icon: RefreshCcw },
       // CS-B: find an issued certificate by vehicle or serial.
       { screen: 'certificates', label: 'Certificates', path: '/certificates/list', permission: CERT_VIEW, icon: FileBadge },
       // CS-C: types, batches, stock and allocation, for stock managers.
