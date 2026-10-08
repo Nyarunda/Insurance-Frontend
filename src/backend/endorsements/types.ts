@@ -89,16 +89,28 @@ export interface EndorsementDetail extends EndorsementSummary {
 }
 
 /** A draft's edit (`PATCH /endorsements/{id}`): its date, reason and change, computed again by the server. */
+/** The endorsement types the screens prepare. Adding or removing a risk item is refused by the server
+ * (items cannot be priced yet), so it is never offered. */
+export type EndorsementKind =
+  | 'CHANGE_LIMIT'
+  | 'CHANGE_SUM_INSURED'
+  | 'CHANGE_COVER'
+  | 'CHANGE_GEOGRAPHICAL_LIMIT'
+  | 'CHANGE_POLICY_PERIOD'
+  | 'CANCELLATION';
+
 export interface EndorsementPatchBody {
   effective_date: string;
   reason: string;
-  changes: { benefit: string; limit_amount: string };
+  changes: Record<string, unknown>;
 }
 
-/** FI1-D creates the change-limit type only; other types come later. */
-export interface ChangeLimitBody {
-  endorsement_type: 'CHANGE_LIMIT';
+export interface EndorsementBody {
+  endorsement_type: EndorsementKind;
   effective_date: string;
   reason: string;
-  changes: { benefit: string; limit_amount: string };
+  changes: Record<string, unknown>;
 }
+
+/** FI1-D's original body, kept as a name for the change-limit case. */
+export type ChangeLimitBody = EndorsementBody;

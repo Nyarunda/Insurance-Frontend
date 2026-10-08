@@ -19,7 +19,7 @@ import { api } from '../../lib/api/instance';
 import { POLICY_KEYS } from '../policies/queries';
 import { WORKFLOW_KEYS } from '../workflow/queries';
 import { ENDORSEMENT_KEYS, LoadedEndorsement } from './queries';
-import type { ChangeLimitBody, EndorsementDetail, EndorsementPatchBody } from './types';
+import type { EndorsementBody, EndorsementDetail, EndorsementPatchBody } from './types';
 
 export type CommandOutcome =
   | { ok: true; view: EndorsementDetail; replayed: boolean }
@@ -78,7 +78,7 @@ export function useEndorsementCommands() {
   const reloadEndorsement = (endorsementId: string) => () =>
     queryClient.refetchQueries({ queryKey: ENDORSEMENT_KEYS.detail(endorsementId) });
 
-  const create = (policyId: string, body: ChangeLimitBody, policyEtag: string) =>
+  const create = (policyId: string, body: EndorsementBody, policyEtag: string) =>
     run(
       createKeys.current,
       { type: 'ENDORSEMENT_CREATE', resource: `policy:${policyId}`, body },

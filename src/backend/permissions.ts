@@ -43,3 +43,6 @@ export const REFERENCE_MANAGE = 'products.reference.manage';
 // RENEWALS-SURFACE-1 RS-A: renewals, judged on the renewal's policy.
 export const RENEWAL_CREATE = 'policies.renewal.create';
 export const RENEWAL_APPROVE = 'policies.renewal.approve';
+
+// Endorsements of every type (after FI1-D's change-limit): cancelling a policy needs its own permission.
+export const POLICY_CANCEL = 'policies.policy.cancel';

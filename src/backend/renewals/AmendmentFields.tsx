@@ -27,6 +27,9 @@ const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 const SUM_INSURED = 'sum_insured';
 
+export type Section = 'sum_insured' | 'factors' | 'optional' | 'limits' | 'geo';
+const ALL_SECTIONS: Section[] = ['sum_insured', 'factors', 'optional', 'limits', 'geo'];
+
 export interface AmendmentState {
   sumInsured: string;
   factors: Record<string, string>;
@@ -127,7 +130,11 @@ export const AmendmentFields: React.FC<{
   attempted: boolean;
   /** Field errors from the server (RENEWAL_CHANGE_INVALID), by the server's field name. */
   serverFields: Record<string, string>;
-}> = ({ policy, day, state, onChange, attempted, serverFields }) => {
+  /** Which parts to show (an endorsement that changes the cover uses factors and optional cover only). */
+  sections?: Section[];
+  /** The opening sentence; the renewal's by default. */
+  intro?: (versionNo: number) => string;
+}> = ({ policy, day, state, onChange, attempted, serverFields, sections = ALL_SECTIONS, intro }) => {
   const { product, version, document } = useRenewalTariff(policy.product.id, day);
   if (product.isPending || (version && document.isPending)) return <HorizonLoader tip="Loading the renewal tariff..." />;
   if (product.isError || document.isError) return <ApiErrorAlert error={product.error ?? document.error} title="The product could not be loaded" />;
@@ -144,11 +151,12 @@ export const AmendmentFields: React.FC<{
   return (
     <div className="flex flex-col gap-5">
       <p className="text-[13px] text-[var(--hz-text-muted)]">
-        Against product version {version.version_no}, the tariff in force on that start date. Only what differs from the policy's terms is sent. The premium
-        comes from the tariff; an increase in cover or value needs a checker.
+        {intro
+          ? intro(version.version_no)
+          : `Against product version ${version.version_no}, the tariff in force on that start date. Only what differs from the policy's terms is sent. The premium comes from the tariff; an increase in cover or value needs a checker.`}
       </p>
 
-      {ratesSumInsured && (
+      {sections.includes('sum_insured') && ratesSumInsured && (
         <div>
           <label htmlFor="amend-sum-insured" className={label}>Sum insured</label>
           <input id="amend-sum-insured" inputMode="decimal" value={state.sumInsured} onChange={(event) => set({ sumInsured: event.target.value })}
@@ -157,7 +165,7 @@ export const AmendmentFields: React.FC<{
         </div>
       )}
 
-      {declared.some((factor) => factor.code !== SUM_INSURED) && (
+      {sections.includes('factors') && declared.some((factor) => factor.code !== SUM_INSURED) && (
         <fieldset className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
           <legend className={label}>Rating details</legend>
           {declared.filter((factor) => factor.code !== SUM_INSURED).map((factor) => {
@@ -190,7 +198,7 @@ export const AmendmentFields: React.FC<{
         </fieldset>
       )}
 
-      {optionalBenefits.length > 0 && (
+      {sections.includes('optional') && optionalBenefits.length > 0 && (
         <fieldset>
           <legend className={label}>Optional cover</legend>
           <div className="flex flex-col gap-2 text-sm">
@@ -206,7 +214,7 @@ export const AmendmentFields: React.FC<{
         </fieldset>
       )}
 
-      {keptBenefits.some((benefit) => benefit.limit_amount !== null) && (
+      {sections.includes('limits') && keptBenefits.some((benefit) => benefit.limit_amount !== null) && (
         <fieldset className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
           <legend className={label}>Limits</legend>
           {keptBenefits.filter((benefit) => benefit.limit_amount !== null).map((benefit) => {
@@ -225,12 +233,14 @@ export const AmendmentFields: React.FC<{
         </fieldset>
       )}
 
+      {sections.includes('geo') && (
       <div>
         <label htmlFor="amend-geo" className={label}>Geographical limit</label>
         <input id="amend-geo" value={state.geo} maxLength={255} onChange={(event) => set({ geo: event.target.value })}
           aria-invalid={!!serverFields.geographical_limit} className={field(!!serverFields.geographical_limit)} />
         <FieldError message={serverFields.geographical_limit} />
       </div>
+      )}
     </div>
   );
 };
