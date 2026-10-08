@@ -113,10 +113,12 @@ export const PermissionState: React.FC<{ permission: string }> = ({ permission }
 };
 
 /** Shows the screen only when `/me.permissions` holds the permission. */
-export const RequirePermission: React.FC<{ permission: string; children: React.ReactNode }> = ({ permission, children }) => {
+/** Shows the screen when the user holds the permission, or any one of a list of them. */
+export const RequirePermission: React.FC<{ permission: string | readonly string[]; children: React.ReactNode }> = ({ permission, children }) => {
   const me = useMe();
   if (me.isPending) return <HorizonLoader tip="Loading..." />;
   if (me.isError) return <ApiErrorAlert error={me.error} title="Your access could not be loaded" />;
-  if (!hasPermission(me.data, permission)) return <PermissionState permission={permission} />;
+  const codes = typeof permission === 'string' ? [permission] : permission;
+  if (!codes.some((code) => hasPermission(me.data, code))) return <PermissionState permission={codes.join(' or ')} />;
   return <>{children}</>;
 };

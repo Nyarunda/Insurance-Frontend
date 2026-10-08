@@ -41,6 +41,8 @@ export type ScreenId =
   | 'vehicle-makes'
   // Backend mode (WRC-1): the tenant's approval reasons.
   | 'approval-reasons'
+  // Backend mode (SETUP-DRIVEN-1 SD-E): the tenant's renewal settings.
+  | 'renewal-settings'
   | 'policy-workspace'
   // CLAIMS
   | 'claims-landing'

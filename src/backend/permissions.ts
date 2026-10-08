@@ -49,3 +49,8 @@ export const WORKFLOW_MANAGE = 'admin.workflow.manage';
 
 // Endorsements of every type (after FI1-D's change-limit): cancelling a policy needs its own permission.
 export const POLICY_CANCEL = 'policies.policy.cancel';
+
+// SETUP-DRIVEN-1 SD-E: the renewal window and offer validity; drafted by a tenant-wide manager,
+// published by a tenant-wide configuration publisher who did not draft it.
+export const RENEWAL_SETTINGS_MANAGE = 'policies.renewal_settings.manage';
+export const CONFIG_PUBLISH = 'products.config.publish';

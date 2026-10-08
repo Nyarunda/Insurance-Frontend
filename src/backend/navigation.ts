@@ -6,8 +6,8 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { Boxes, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
-import { CERT_STOCK, CERT_VIEW, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, TASK_VIEW, WORKFLOW_MANAGE } from './permissions';
+import { Boxes, CalendarClock, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
+import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -15,8 +15,8 @@ export interface BackendNavItem {
   screen: ScreenId;
   label: string;
   path: string;
-  /** The permission code the screen needs; none for screens every signed-in user has. */
-  permission?: string;
+  /** The permission code the screen needs (any one of a list); none for screens every signed-in user has. */
+  permission?: string | readonly string[];
   icon?: LucideIcon;
   /** The counter shown beside the item (the shell supplies the number). */
   counter?: keyof NavigationCountersResponse;
@@ -81,9 +81,15 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'vehicle-makes', label: 'Vehicle makes', path: '/vehicle-makes/list', permission: REFERENCE_MANAGE, icon: Car },
       // WRC-1: the reasons checkers choose from in My Work Queue, for tenant-wide workflow administrators.
       { screen: 'approval-reasons', label: 'Approval reasons', path: '/approval-reasons/list', permission: WORKFLOW_MANAGE, icon: ListChecks },
+      // SD-E: the renewal window and offer validity, for those who draft and those who publish them.
+      { screen: 'renewal-settings', label: 'Renewal settings', path: '/renewal-settings/list', permission: [RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH], icon: CalendarClock },
     ],
   },
 ];
+
+/** A screen's permission as a list: holding any one of them is enough. */
+export const anyOf = (permission: string | readonly string[]): readonly string[] =>
+  typeof permission === 'string' ? [permission] : permission;
 
 /** The groups and items this user may see; groups left empty are dropped. */
 export function visibleNav(registry: BackendNavGroup[], permissions: readonly string[]): NavGroup[] {
@@ -93,7 +99,7 @@ export function visibleNav(registry: BackendNavGroup[], permissions: readonly st
       title: group.title,
       icon: group.icon,
       items: group.items
-        .filter((item) => !item.permission || permissions.includes(item.permission))
+        .filter((item) => !item.permission || anyOf(item.permission).some((code) => permissions.includes(code)))
         .map((item) => ({ id: item.screen, label: item.label, icon: item.icon, counter: item.counter })),
     }))
     .filter((group) => group.items.length > 0);
