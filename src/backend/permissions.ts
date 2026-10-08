@@ -43,3 +43,8 @@ export const REFERENCE_MANAGE = 'products.reference.manage';
 // RENEWALS-SURFACE-1 RS-A: renewals, judged on the renewal's policy.
 export const RENEWAL_CREATE = 'policies.renewal.create';
 export const RENEWAL_APPROVE = 'policies.renewal.approve';
+
+// SETUP-DRIVEN-1 SD-E: the renewal window and offer validity; drafted by a tenant-wide manager,
+// published by a tenant-wide configuration publisher who did not draft it.
+export const RENEWAL_SETTINGS_MANAGE = 'policies.renewal_settings.manage';
+export const CONFIG_PUBLISH = 'products.config.publish';

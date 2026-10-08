@@ -27,6 +27,7 @@ import { CertificatePage } from './pages/CertificatePage';
 import { CertificatesPage } from './pages/CertificatesPage';
 import { CertificateStockPage } from './pages/CertificateStockPage';
 import { VehicleMakesPage } from './pages/VehicleMakesPage';
+import { RenewalSettingsPage } from './pages/RenewalSettingsPage';
 import { PolicyWorkspacePage } from './pages/PolicyWorkspacePage';
 import { WorkQueuePage } from './pages/WorkQueuePage';
 import {
@@ -41,7 +42,10 @@ import {
   TASK_VIEW,
   CERT_STOCK,
   REFERENCE_MANAGE,
+  RENEWAL_APPROVE,
   RENEWAL_CREATE,
+  RENEWAL_SETTINGS_MANAGE,
+  CONFIG_PUBLISH,
   CERT_VIEW,
 } from './permissions';
 import { ProposalRefRoute } from './proposals/refs';
@@ -340,6 +344,15 @@ export const backendRoutes: RouteObject[] = [
         element: (
           <RequirePermission permission={REFERENCE_MANAGE}>
             <VehicleMakesPage />
+          </RequirePermission>
+        ),
+      },
+      // SD-E: the renewal settings; readable by those who prepare or approve renewals too (as the backend).
+      {
+        path: 'renewal-settings/list',
+        element: (
+          <RequirePermission permission={[RENEWAL_SETTINGS_MANAGE, CONFIG_PUBLISH, RENEWAL_CREATE, RENEWAL_APPROVE]}>
+            <RenewalSettingsPage />
           </RequirePermission>
         ),
       },
