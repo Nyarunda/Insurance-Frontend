@@ -10,7 +10,7 @@ SD-F is test/gate work only. No new domain behaviour, migrations, permissions, A
 
 | # | Journey | Tests |
 |---|---------|-------|
-| 1 | Vehicle reference setup: ALL-scope creates, branch refused, make/model pairing, stable codes, no delete, deactivate/reactivate, model/make ownership | 1a–1e |
+| 1 | Vehicle reference setup: ALL-scope creates, branch-scope refused by setup command, make/model pairing, stable codes, no delete, deactivate/reactivate, model/make ownership | 1a–1e |
 | 2 | Quotation reference fields: valid accepted, unknown/inactive/wrong-make refused (RISK_REFERENCE_INVALID) | 2a–2b |
 | 3 | Full quotation→policy→certificate flow with snapshot proof: rename/deactivate does not rewrite existing snapshots; certificate stays valid | 3a–3c |
 | 4 | Legacy product versions (no reference_fields): free-text make/model stored and readable without snapshot | 4 |
@@ -27,10 +27,11 @@ The SD-F gate needs a disposable environment with:
 - A motor product with a published version that declares reference fields (make, model)
 - Accounts per profile:
   - `ref-manager@sdf.test`: REFERENCE_DATA_MANAGER (ALL)
-  - `branch-ref@sdf.test`: REFERENCE_DATA_MANAGER (BRANCH) — proves branch scope is refused for reference setup
   - `quoter@sdf.test`: NEW_BUSINESS_MAKER (BRANCH)
   - `checker@sdf.test`: NEW_BUSINESS_CHECKER (BRANCH) + clients.kyc.verify — KYC verification in journey 3
+  - `cert-issuer@sdf.test`: CERTIFICATE_ISSUER (BRANCH) — issues certificates in journey 3
   - `stock-manager@sdf.test`: CERTIFICATE_STOCK_MANAGER (BRANCH)
+  - `renewal-maker@sdf.test`: RENEWAL_MAKER (BRANCH) — prepares and offers renewals in journey 8
   - `settings-maker@sdf.test`: policies.renewal_settings.manage (ALL)
   - `settings-publisher@sdf.test`: products.config.publish (ALL) + policies.renewal_settings.manage (ALL)
   - `outsider@sdf.test`: policies.policy.view only (no reference/stock/settings management)
@@ -45,7 +46,7 @@ The SD-F gate needs a disposable environment with:
 |----------|---------|
 | `FI1_FRONTEND_PORT` | The dev server port (default 3000) |
 | `SDF_ACCOUNTS` | JSON: `{ email: { host, temporary_password } }` |
-| `SDF_FACTS` | JSON: `{ alpha: { domain, new_business, legacy_product, certificates, renewable, renewable2 }, beta: { domain } }` |
+| `SDF_FACTS` | JSON: `{ alpha: { domain, branch_id, new_business, legacy_product, certificates, renewable, renewable2 }, beta: { domain } }` |
 | `SDF_ENV_DIR` | Directory with `manage.py` for the import command |
 
 ## Gate matrix

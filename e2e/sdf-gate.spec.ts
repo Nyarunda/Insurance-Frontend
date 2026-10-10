@@ -41,6 +41,7 @@ type Accounts = Record<string, { host: string; temporary_password: string }>;
 interface Facts {
   alpha: {
     domain: string;
+    branch_id: string;
     new_business: { product: string; insurer: string; agreement: string };
     legacy_product: { product: string; insurer: string };
     certificates: { class: { name: string; code: string }; insurer: string };
@@ -62,10 +63,11 @@ const direct = (url: string) => {
 
 // Accounts: the setup creates these in the disposable environment.
 const REF_MANAGER = 'ref-manager@sdf.test';
-const BRANCH_REF = 'branch-ref@sdf.test';
 const QUOTER = 'quoter@sdf.test';
 const CHECKER = 'checker@sdf.test';
+const CERT_ISSUER = 'cert-issuer@sdf.test';
 const STOCK_MANAGER = 'stock-manager@sdf.test';
+const RENEWAL_MAKER = 'renewal-maker@sdf.test';
 const SETTINGS_MAKER = 'settings-maker@sdf.test';
 const SETTINGS_PUBLISHER = 'settings-publisher@sdf.test';
 const OUTSIDER = 'outsider@sdf.test';
@@ -202,14 +204,16 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
   let manager: Person;
   let quoter: Person;
   let checker: Person;
+  let certIssuer: Person;
   let stockMgr: Person;
+  let renewalMaker: Person;
   let settingsMaker: Person;
   let settingsPublisher: Person;
   const tag = randomInt(100_000, 999_999);
   const record: Record<string, unknown> = {};
 
   test.afterAll(async () => {
-    for (const someone of [manager, quoter, checker, stockMgr, settingsMaker, settingsPublisher]) await someone?.context.close();
+    for (const someone of [manager, quoter, checker, certIssuer, stockMgr, renewalMaker, settingsMaker, settingsPublisher]) await someone?.context.close();
   });
 
   // ---------------------------------------------------------------------------- journey 1: vehicle reference setup
@@ -286,11 +290,22 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     await dupDialog.getByRole('button', { name: 'Back' }).click();
   });
 
-  test('1e. branch-scoped reference manager refused; no hard delete; model/make ownership proven', async ({ browser }) => {
-    // A branch-scoped REFERENCE_DATA_MANAGER cannot create makes (requires tenant-wide scope)
-    const branchRef = await person(browser, BRANCH_REF);
-    expectRefused(await api(branchRef, 'POST', '/vehicle-makes', { code: `HACK-${tag}`, name: 'Hacked' }), 'branch-scoped ref manager creates a make');
-    await branchRef.context.close();
+  test('1e. branch-scoped reference grant refused by setup; no hard delete; model/make ownership proven', async () => {
+    // REFERENCE_DATA_MANAGER is tenant-wide only: the setup command itself refuses --scope BRANCH.
+    const schema = tenantSchema();
+    let branchRefused = false;
+    try {
+      execFileSync('python', [
+        'manage.py', 'setup_tenant_access', '--schema', schema,
+        '--user', '00000000-0000-0000-0000-000000000000',
+        '--access-profile', 'REFERENCE_DATA_MANAGER',
+        '--scope', 'BRANCH', '--branch', 'd03c4808-e471-448e-a35d-59f9f1bd7194',
+        '--reason', 'SD-F branch-scope test', '--dry-run',
+      ], { cwd: ENV_DIR!, env: process.env, encoding: 'utf8', timeout: 15_000 });
+    } catch {
+      branchRefused = true;
+    }
+    expect(branchRefused, 'REFERENCE_DATA_MANAGER at BRANCH scope is refused by setup').toBe(true);
 
     // No DELETE endpoint: the HTTP method is not allowed
     const makesResult = await api(manager, 'GET', '/vehicle-makes');
@@ -507,10 +522,10 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     const submitResult = await api(quoter, 'POST', `/underwriting/proposals/${proposalId}/submit`, {}, p.etag!);
     expect(submitResult.status, 'proposal submitted').toBe(200);
 
-    // If the proposal has exceptions or requirements, handle them (the setup product should not require these)
+    // The setup product has no referral rules: the proposal must go straight to READY_TO_BIND.
     p = await api(quoter, 'GET', `/underwriting/proposals/${proposalId}`);
     const status = (p.json as { status: string }).status;
-    expect(status, 'proposal is ready to bind or needs approval').toMatch(/READY_TO_BIND|UNDER_REVIEW/);
+    expect(status, 'proposal is READY_TO_BIND (no referral)').toBe('READY_TO_BIND');
 
     // Bind into a policy
     p = await api(quoter, 'GET', `/underwriting/proposals/${proposalId}`);
@@ -520,31 +535,30 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     record.policyNo = (bindResult.json as { policy_no: string }).policy_no;
   });
 
-  test('3b. a certificate is issued against the policy', async () => {
-    const pol = await api(quoter, 'GET', `/policies/${record.policyId}`);
-    const certTypeId = (pol.json as { product: { insurance_class_id: string } }).product?.insurance_class_id;
-    // Find a certificate type matching the insurance class
-    const certSettings = await api(stockMgr, 'GET', '/certificate-settings');
-    // Issue a certificate: the stock manager needs to have allocated stock from a received batch
-    // Use the quoter (who can issue on the policy) with whatever stock is available
-    const policyEtag = pol.etag!;
-    // Get available certificate types for this insurance class
-    const types = await api(stockMgr, 'GET', '/certificate-types?active=true');
-    const certTypes = (types.json.results as { id: string; code: string; insurance_class_id: string }[]) ?? [];
-    const matchingType = certTypes.find((t) => t.insurance_class_id === certTypeId) ?? certTypes[0];
+  test('3b. a certificate is issued against the policy', async ({ browser }) => {
+    certIssuer = await person(browser, CERT_ISSUER);
 
-    if (matchingType) {
-      const issueResult = await api(quoter, 'POST', `/policies/${record.policyId}/certificates`, {
-        certificate_type_id: matchingType.id,
-      }, policyEtag);
-      if (issueResult.status === 201) {
-        record.certificateId = (issueResult.json as { id: string }).id;
-        record.certificateSerial = (issueResult.json as { serial_no: string }).serial_no;
-      }
-    }
+    // The setup pre-provisions a certificate type and stock via the facts.
+    // The certificate issuer issues against the bound policy.
+    const certClass = facts().alpha.certificates;
+
+    // Get certificate types and find the one matching the insurance class
+    const types = await api(certIssuer, 'GET', '/certificate-types?active=true');
+    const certTypes = (types.json.results as { id: string; code: string; insurance_class: { code: string } }[]) ?? [];
+    const matchingType = certTypes.find((t) => t.insurance_class.code === certClass.class.code);
+    expect(matchingType, `certificate type for class ${certClass.class.code} exists`).toBeTruthy();
+
+    // Issue the certificate
+    const pol = await api(certIssuer, 'GET', `/policies/${record.policyId}`);
+    const issueResult = await api(certIssuer, 'POST', `/policies/${record.policyId}/certificates`, {
+      certificate_type_id: matchingType!.id,
+    }, pol.etag!);
+    expect(issueResult.status, 'certificate issued').toBe(201);
+    record.certificateId = (issueResult.json as { id: string }).id;
+    record.certificateSerial = (issueResult.json as { serial_no: string }).serial_no;
   });
 
-  test('3c. after renaming and deactivating the make, quotation and policy snapshots remain unchanged', async () => {
+  test('3c. after renaming and deactivating Toyota, quotation, policy and certificate snapshots remain unchanged', async () => {
     // Rename Toyota to Toyota Motor Corporation
     const { page } = manager;
     await page.goto(`${alpha()}/vehicle-makes/list`);
@@ -555,9 +569,10 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     await renameDialog.getByRole('button', { name: 'Rename' }).click();
     await expect(renameDialog).toHaveCount(0);
 
-    // Deactivate Nissan
-    const nissanRegion = page.getByRole('region', { name: `Make NISSAN-${tag}` });
-    await nissanRegion.getByRole('button', { name: `Deactivate make NISSAN-${tag}` }).click();
+    // Deactivate Toyota — the make whose snapshot is on the quotation/policy/certificate
+    await page.goto(`${alpha()}/vehicle-makes/list`);
+    const renamedToyota = page.getByRole('region', { name: `Make TOYOTA-${tag}` });
+    await renamedToyota.getByRole('button', { name: `Deactivate make TOYOTA-${tag}` }).click();
     const deactivateDialog = page.getByRole('dialog', { name: /^Deactivate/ });
     await deactivateDialog.getByRole('button', { name: 'Deactivate' }).click();
     await expect(deactivateDialog).toHaveCount(0);
@@ -582,17 +597,15 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     expect(policyModel.code, 'policy model code unchanged').toBe(`COROLLA-${tag}`);
     expect(policyModel.name, 'policy model name unchanged').toBe('Corolla');
 
-    // Certificate: if issued, it references the policy version with the original snapshot
-    if (record.certificateId) {
-      const cert = await api(quoter, 'GET', `/certificates/${record.certificateId}`);
-      expect(cert.status, 'certificate still readable').toBe(200);
-      expect((cert.json as { status: string }).status, 'certificate still ISSUED').toBe('ISSUED');
-    }
+    // Certificate: still ISSUED, still readable — the deactivation does not affect historical records
+    const cert = await api(certIssuer, 'GET', `/certificates/${record.certificateId}`);
+    expect(cert.status, 'certificate still readable').toBe(200);
+    expect((cert.json as { status: string }).status, 'certificate still ISSUED').toBe('ISSUED');
 
-    // Reactivate Nissan for later tests
+    // Reactivate Toyota for later tests
     await page.goto(`${alpha()}/vehicle-makes/list`);
-    const inactiveNissan = page.getByRole('region', { name: `Make NISSAN-${tag}` });
-    await inactiveNissan.getByRole('button', { name: `Reactivate make NISSAN-${tag}` }).click();
+    const inactiveToyota = page.getByRole('region', { name: `Make TOYOTA-${tag}` });
+    await inactiveToyota.getByRole('button', { name: `Reactivate make TOYOTA-${tag}` }).click();
     const reactivateDialog = page.getByRole('dialog', { name: /^Reactivate/ });
     await reactivateDialog.getByRole('button', { name: 'Reactivate' }).click();
     await expect(reactivateDialog).toHaveCount(0);
@@ -609,7 +622,7 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     const legacyQuote = await api(quoter, 'POST', '/quotations', {
       customer_id: record.customerId,
       product_id: legacyProduct.product,
-      branch_id: null,
+      branch_id: facts().alpha.branch_id,
     });
     expect(legacyQuote.status, 'legacy quotation created').toBe(201);
     const legacyQuoteId = (legacyQuote.json as { id: string }).id;
@@ -829,12 +842,14 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     await expect(nav(settingsPublisher.page).getByRole('button', { name: 'Renewal settings' })).toBeVisible();
   });
 
-  test('8b. a renewal is prepared under current settings; a second is offered and its expiry captured', async () => {
+  test('8b. a renewal is prepared under current settings; a second is offered and its expiry captured', async ({ browser }) => {
+    renewalMaker = await person(browser, RENEWAL_MAKER);
+
     // The setup pre-creates two renewable policies (within the current window).
     // Policy 1: prepare a renewal, leave it in DRAFT status
     const pol1 = facts().alpha.renewable;
-    const p1 = await api(quoter, 'GET', `/policies/${pol1.policy_id}`);
-    const prepareResult = await api(quoter, 'POST', `/policies/${pol1.policy_id}/renewals`, {
+    const p1 = await api(renewalMaker, 'GET', `/policies/${pol1.policy_id}`);
+    const prepareResult = await api(renewalMaker, 'POST', `/policies/${pol1.policy_id}/renewals`, {
       renewal_type: 'AS_IS',
     }, p1.etag!);
     expect(prepareResult.status, 'renewal 1 prepared').toBe(201);
@@ -843,8 +858,8 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
 
     // Policy 2: prepare, price, and offer a renewal — capture offer_valid_until
     const pol2 = facts().alpha.renewable2;
-    const p2 = await api(quoter, 'GET', `/policies/${pol2.policy_id}`);
-    const prepare2 = await api(quoter, 'POST', `/policies/${pol2.policy_id}/renewals`, {
+    const p2 = await api(renewalMaker, 'GET', `/policies/${pol2.policy_id}`);
+    const prepare2 = await api(renewalMaker, 'POST', `/policies/${pol2.policy_id}/renewals`, {
       renewal_type: 'AS_IS',
     }, p2.etag!);
     expect(prepare2.status, 'renewal 2 prepared').toBe(201);
@@ -852,21 +867,21 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     record.renewal2Id = renewal2Id;
 
     // Price the renewal
-    let r2 = await api(quoter, 'GET', `/renewals/${renewal2Id}`);
-    const priceResult = await api(quoter, 'POST', `/renewals/${renewal2Id}/price`, {}, r2.etag!);
+    let r2 = await api(renewalMaker, 'GET', `/renewals/${renewal2Id}`);
+    const priceResult = await api(renewalMaker, 'POST', `/renewals/${renewal2Id}/price`, {}, r2.etag!);
     expect(priceResult.status, 'renewal 2 priced').toBe(200);
 
     // If check is required, the checker approves
-    r2 = await api(quoter, 'GET', `/renewals/${renewal2Id}`);
+    r2 = await api(renewalMaker, 'GET', `/renewals/${renewal2Id}`);
     const r2Data = r2.json as { requires_check: boolean; status: string };
     if (r2Data.requires_check) {
       const approveResult = await api(checker, 'POST', `/renewals/${renewal2Id}/approve`, {}, r2.etag!);
       expect(approveResult.status, 'renewal 2 approved').toBe(200);
-      r2 = await api(quoter, 'GET', `/renewals/${renewal2Id}`);
+      r2 = await api(renewalMaker, 'GET', `/renewals/${renewal2Id}`);
     }
 
     // Offer the renewal
-    const offerResult = await api(quoter, 'POST', `/renewals/${renewal2Id}/offer`, {}, r2.etag!);
+    const offerResult = await api(renewalMaker, 'POST', `/renewals/${renewal2Id}/offer`, {}, r2.etag!);
     expect(offerResult.status, 'renewal 2 offered').toBe(200);
     record.originalOfferValidUntil = (offerResult.json as { offer_valid_until: string }).offer_valid_until;
     expect(record.originalOfferValidUntil, 'offer_valid_until is set').toBeTruthy();
@@ -951,13 +966,13 @@ test.describe('SD-F: setup-driven features against the real backend', () => {
     }
 
     // The previously prepared renewal (policy 1) remains open/usable — not closed by the change
-    const r1 = await api(quoter, 'GET', `/renewals/${record.renewal1Id}`);
+    const r1 = await api(renewalMaker, 'GET', `/renewals/${record.renewal1Id}`);
     expect(r1.status, 'renewal 1 still readable').toBe(200);
     const r1Status = (r1.json as { status: string }).status;
     expect(r1Status, 'prepared renewal still in its original status').toBe(record.renewal1Status);
 
     // The offered renewal (policy 2) retains its original offer_valid_until
-    const r2 = await api(quoter, 'GET', `/renewals/${record.renewal2Id}`);
+    const r2 = await api(renewalMaker, 'GET', `/renewals/${record.renewal2Id}`);
     expect(r2.status, 'renewal 2 still readable').toBe(200);
     const r2Data = r2.json as { offer_valid_until: string; status: string };
     expect(r2Data.status, 'offered renewal still OFFERED').toBe('OFFERED');
