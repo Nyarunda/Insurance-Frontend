@@ -228,12 +228,10 @@ def tenant_today() -> str:
 
 
 def build_policy(s: Session, checker: Session, branch: str, insurer_id: str, product_id: str,
-                 agreement_id: str, *, inception_offset_days: int = 0) -> dict:
-    """Build a quotation → proposal → policy chain. inception_offset_days shifts inception into the
-    past so the policy expires sooner (for renewable policies within the renewal window)."""
+                 agreement_id: str) -> dict:
+    """Build a quotation → proposal → policy chain (inception = today)."""
     tag = lambda: uuid.uuid4().hex[:8].upper()  # noqa: E731
     today = tenant_today()
-    inception = (datetime.fromisoformat(today) - timedelta(days=inception_offset_days)).date().isoformat()
 
     customer = s.post("clients", {
         "customer_type": "INDIVIDUAL", "home_branch_id": branch,
@@ -259,7 +257,7 @@ def build_policy(s: Session, checker: Session, branch: str, insurer_id: str, pro
         s.post(f"{qpath}/{action}", {}, if_match=s.etag(qpath))
 
     p = s.post("underwriting/proposals", {"quotation_id": q["id"], "agreement_id": agreement_id,
-                                          "proposed_inception_date": inception})
+                                          "proposed_inception_date": today})
     ppath = f"underwriting/proposals/{p['id']}"
     s.post(f"{ppath}/submit", {}, if_match=s.etag(ppath))
     ready = s.post(f"{ppath}/requirements/LOGBOOK/satisfy", {"evidence_reference": "LOGBOOK-COPY-1"},
@@ -268,6 +266,44 @@ def build_policy(s: Session, checker: Session, branch: str, insurer_id: str, pro
     policy = s.post("policies", {"proposal_id": p["id"]}, if_match=s.etag(ppath))
     result = s.get(f"policies/{policy['id']}")
     return {**result, "_customer_id": customer["id"]}
+
+
+def backdate_policy(policy_id: str, offset_days: int, schema: str):
+    """Shift a bound policy's dates back by offset_days via direct SQL so its expiry falls
+    within the renewal window. Temporarily disables guard triggers."""
+    conn = psycopg2.connect(host="127.0.0.1", port=PG_PORT, user="insurance_owner", dbname=DB_NAME)
+    conn.autocommit = False
+    interval = f"{offset_days} days"
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"SET search_path TO {schema}")
+            cur.execute("ALTER TABLE policies DISABLE TRIGGER trg_policies_guard")
+            cur.execute("ALTER TABLE policy_versions DISABLE TRIGGER trg_policy_versions_guard")
+            cur.execute("ALTER TABLE underwriting_proposals DISABLE TRIGGER trg_underwriting_proposals_guard")
+            cur.execute("UPDATE policies SET inception_date = inception_date - %s::interval, "
+                        "expiry_date = expiry_date - %s::interval WHERE id = %s",
+                        [interval, interval, policy_id])
+            assert cur.rowcount == 1
+            cur.execute("UPDATE policy_versions SET inception_date = inception_date - %s::interval, "
+                        "expiry_date = expiry_date - %s::interval, effective_from = effective_from - %s::interval "
+                        "WHERE policy_id = %s",
+                        [interval, interval, interval, policy_id])
+            assert cur.rowcount >= 1
+            cur.execute("SELECT proposal_id FROM policies WHERE id = %s", [policy_id])
+            proposal_id = cur.fetchone()[0]
+            if proposal_id:
+                cur.execute("UPDATE underwriting_proposals SET proposed_inception_date = proposed_inception_date - %s::interval, "
+                            "proposed_expiry_date = proposed_expiry_date - %s::interval WHERE id = %s",
+                            [interval, interval, str(proposal_id)])
+            cur.execute("ALTER TABLE underwriting_proposals ENABLE TRIGGER trg_underwriting_proposals_guard")
+            cur.execute("ALTER TABLE policies ENABLE TRIGGER trg_policies_guard")
+            cur.execute("ALTER TABLE policy_versions ENABLE TRIGGER trg_policy_versions_guard")
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 # --------------------------------------------------------------------------- main
@@ -415,10 +451,8 @@ def main():
                                            "rate_percent": "12.5", "effective_from": today})
         f.post(f"commission-rates/{rate['id']}/publish")
 
-        # Agreement (started well in the past so inception_offset_days policies are valid)
-        start = (datetime.fromisoformat(today) - timedelta(days=730)).date().isoformat()
         agreement = e.post(f"insurers/{insurer['id']}/agreements", {
-            "agreement_type": "AGENCY", "reference_no": f"AG-{uuid.uuid4().hex[:8]}", "effective_from": start})
+            "agreement_type": "AGENCY", "reference_no": f"AG-{uuid.uuid4().hex[:8]}", "effective_from": today})
 
         # Product 2: legacy motor without reference_fields
         legacy_product = e.post("products", {"code": f"LGC-{tag()}", "name": "Motor Legacy",
@@ -450,38 +484,44 @@ def main():
                                    {"code": "SETUP-MODEL", "name": "Setup Model"})
         print(f"setup reference data: {setup_make['code']}/{setup_model['code']}")
 
-        # inception 300 days ago → expire in ~65 days (within the default 90-day renewal window)
+        # Create two policies at today's inception (API enforces MAX_BACKDATE_DAYS=30),
+        # then backdate via SQL so their expiry falls within the 90-day renewal window.
         print("building renewable policy 1...")
-        pol1 = build_policy(e, f, nbo, insurer["id"], product["id"], agreement["id"],
-                            inception_offset_days=300)
-        expiry1 = pol1.get("current_version", {}).get("cover", {}).get("expiry_date") or \
-                  (datetime.fromisoformat(today) - timedelta(days=300) + timedelta(days=365)).date().isoformat()
-        print(f"renewable policy 1: {pol1['policy_no']} (expires {expiry1})")
+        pol1 = build_policy(e, f, nbo, insurer["id"], product["id"], agreement["id"])
+        print(f"renewable policy 1 bound: {pol1['policy_no']} [{pol1['id']}]")
 
         print("building renewable policy 2...")
-        pol2 = build_policy(e, f, nbo, insurer["id"], product["id"], agreement["id"],
-                            inception_offset_days=310)
-        expiry2 = pol2.get("current_version", {}).get("cover", {}).get("expiry_date") or \
-                  (datetime.fromisoformat(today) - timedelta(days=310) + timedelta(days=365)).date().isoformat()
-        print(f"renewable policy 2: {pol2['policy_no']} (expires {expiry2})")
+        pol2 = build_policy(e, f, nbo, insurer["id"], product["id"], agreement["id"])
+        print(f"renewable policy 2 bound: {pol2['policy_no']} [{pol2['id']}]")
 
-        # Build the facts JSON (non-secret fixture IDs)
+        # Build the facts JSON (non-secret fixture IDs) — before server shutdown
         alpha["branch_id"] = nbo
         alpha["new_business"] = {"product": product["name"], "insurer": insurer["name"],
                                  "agreement": agreement["reference_no"]}
         alpha["legacy_product"] = {"product": legacy_product["id"], "insurer": insurer["name"]}
         alpha["certificates"] = {"class": {"name": klass["name"], "code": klass["code"]},
                                  "insurer": insurer["name"]}
-        alpha["renewable"] = {"policy_no": pol1["policy_no"], "policy_id": pol1["id"],
-                              "customer_id": pol1["_customer_id"], "expiry": expiry1}
-        alpha["renewable2"] = {"policy_no": pol2["policy_no"], "policy_id": pol2["id"],
-                               "customer_id": pol2["_customer_id"], "expiry": expiry2}
     finally:
         server.terminate()
         subprocess.run(["taskkill", "/F", "/T", "/PID", str(server.pid)], capture_output=True)
         for line in subprocess.run(["netstat", "-ano"], capture_output=True, text=True).stdout.splitlines():
             if "127.0.0.1:8000" in line and "LISTENING" in line:
                 subprocess.run(["taskkill", "/F", "/PID", line.split()[-1]], capture_output=True)
+
+    # Backdate policies via SQL (after server shutdown — only needs the database).
+    # 300 days back → expiry ~65 days from now; 310 days back → expiry ~55 days from now.
+    backdate_policy(pol1["id"], 300, ALPHA["schema"])
+    backdate_policy(pol2["id"], 310, ALPHA["schema"])
+    today_date = datetime.fromisoformat(tenant_today())
+    expiry1 = (today_date - timedelta(days=300) + timedelta(days=365)).date().isoformat()
+    expiry2 = (today_date - timedelta(days=310) + timedelta(days=365)).date().isoformat()
+    print(f"renewable policy 1: {pol1['policy_no']} backdated (expires {expiry1})")
+    print(f"renewable policy 2: {pol2['policy_no']} backdated (expires {expiry2})")
+
+    alpha["renewable"] = {"policy_no": pol1["policy_no"], "policy_id": pol1["id"],
+                          "customer_id": pol1["_customer_id"], "expiry": expiry1}
+    alpha["renewable2"] = {"policy_no": pol2["policy_no"], "policy_id": pol2["id"],
+                           "customer_id": pol2["_customer_id"], "expiry": expiry2}
 
     # Remove internal keys from facts before writing
     for key in list(facts.get("alpha", {}).keys()):
