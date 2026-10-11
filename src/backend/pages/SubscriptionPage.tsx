@@ -51,7 +51,7 @@ export function SubscriptionPage() {
       {tab === 'overview' && <>
         <dl className="ops-summary" data-testid="subscription-summary">
           <div><dt>Plan</dt><dd>{plan.name} <span className="ops-muted">({plan.code})</span></dd></div>
-          <div><dt>Status</dt><dd><StatusBadge tone={statusTone(sub.status)}>{sub.status}</StatusBadge></dd></div>
+          <div><dt>Status</dt><dd><StatusBadge tone={statusTone(sub.status)} label={sub.status} /></dd></div>
           <div><dt>Start date</dt><dd>{sub.start_date}</dd></div>
           <div><dt>End date</dt><dd>{sub.end_date ?? 'No end date'}</dd></div>
           <div><dt>Active members</dt><dd>{usage.active_members}{plan.max_users != null && ` of ${plan.max_users}`}</dd></div>
