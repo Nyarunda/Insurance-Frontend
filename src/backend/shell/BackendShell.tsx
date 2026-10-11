@@ -22,6 +22,7 @@ import { signOut } from '../../lib/auth/session';
 import { queryClient } from '../../lib/query/queryClient';
 import { BACKEND_NAV, pathForScreen, screenForPath, visibleNav } from '../navigation';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
+import { SystemNotificationBanner } from './SystemNotifications';
 
 const MOBILE_QUERY = '(max-width: 767px)';
 
@@ -151,6 +152,7 @@ export const BackendShell: React.FC = () => {
                 </HorizonAlert>
               </div>
             )}
+            <SystemNotificationBanner />
             <Suspense fallback={<HorizonLoader tip="Loading screen..." />}>
               <Outlet />
             </Suspense>

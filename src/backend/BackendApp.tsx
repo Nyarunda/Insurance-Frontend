@@ -79,6 +79,8 @@ const BillingAccountsPage = React.lazy(() => import('./pages/BillingPages').then
 const CollectionsReportPage = React.lazy(() => import('./pages/CollectionsReportPage').then(m => ({ default: m.CollectionsReportPage })));
 const ProductionReportPage = React.lazy(() => import('./pages/ProductionReportPage').then(m => ({ default: m.ProductionReportPage })));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
+const SubscriptionPage = React.lazy(() => import('./pages/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })));
+const PlatformTenantsPage = React.lazy(() => import('./pages/PlatformTenantsPage').then(m => ({ default: m.PlatformTenantsPage })));
 const BillingAgreementsPage = React.lazy(() => import('./pages/BillingAgreementsPage').then(m => ({ default: m.BillingAgreementsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
@@ -108,6 +110,7 @@ export const backendRoutes: RouteObject[] = [
       { path: 'admin/users/list/:userId', element: operation('admin.users.view', <UserWorkspace />) },
       { path: 'admin/roles/list', element: operation('admin.roles.manage', <RolesPage />) },
       { path: 'admin/integrations/list', element: operation('admin.integrations.manage', <IntegrationsPage />) },
+      { path: 'admin/subscription', element: operation('admin.users.view', <SubscriptionPage />) },
       { path: 'admin/roles/list/:roleId', element: operation('admin.roles.manage', <RolesPage />) },
       { path: 'billing/receipts/list', element: operation('billing.document.view', <ReceiptsPage />) },
       { path: 'billing/reports/collections', element: operation('billing.document.view', <CollectionsReportPage />) },
@@ -420,6 +423,9 @@ export const backendRoutes: RouteObject[] = [
           </RequirePermission>
         ),
       },
+      // TENANT-ONBOARDING-1 Slice D: platform administration (superadmin only, enforced server-side).
+      { path: 'platform/tenants/list', element: operation('admin.users.view', <PlatformTenantsPage />) },
+      { path: 'platform/tenants/list/:tenantId', element: operation('admin.users.view', <PlatformTenantsPage />) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

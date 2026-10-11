@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { Plus } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import { useMe } from '../../lib/auth/me';
 import { ActionDialog, ActionSpec, Grid, QueryState, reason, Refresh, SearchBox, Surface, Tabs } from '../operations/ui';
 import { Permission, Proposal, Role, useOperationsQuery } from '../operations/data';
@@ -40,6 +40,12 @@ export function RolesPage() {
           { name: 'description', label: 'Description' },
         ],
       })}><Plus size={15} />New role</button>}
+      {roleId && role.data?.editable && <button className="hz-button hz-button-secondary" data-testid="edit-role" onClick={() => setAction({
+        title: 'Edit role', path: `/admin/roles/${roleId}`, fields: [
+          { name: 'name', label: 'Name', required: true, maxLength: 64, value: role.data!.name },
+          { name: 'description', label: 'Description', value: role.data!.description ?? '' },
+        ],
+      })}><Pencil size={15} />Edit role</button>}
     </>}
   >
     {notice && <div role="status" className="ops-notice">{notice}</div>}

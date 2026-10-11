@@ -6,7 +6,7 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { BellRing, Boxes, CalendarClock, Car, ClipboardList, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
+import { BellRing, Boxes, Building2, CalendarClock, Car, ClipboardList, CreditCard, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
 import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
@@ -107,6 +107,13 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'admin-users-roles', label: 'Users', path: '/admin/users/list', permission: 'admin.users.view', icon: UsersRound },
       { screen: 'admin-doa', label: 'Roles & permissions', path: '/admin/roles/list', permission: 'admin.roles.manage', icon: ListChecks },
       { screen: 'admin-integrations', label: 'Integrations', path: '/admin/integrations/list', permission: 'admin.integrations.manage', icon: Settings2 },
+      { screen: 'admin-subscription', label: 'Subscription', path: '/admin/subscription', permission: 'admin.users.view', icon: CreditCard },
+    ],
+  },
+  {
+    id: 'platform', title: 'Platform', icon: Building2,
+    items: [
+      { screen: 'platform-tenants', label: 'Tenants', path: '/platform/tenants/list', permission: 'admin.users.view', icon: Building2 },
     ],
   },
 ];

@@ -107,6 +107,7 @@ export type ScreenId =
   | 'admin-integrations'
   | 'admin-audit'
   | 'admin-subscription'
+  | 'platform-tenants'
   // Backward compatibility anchors
   | 'underwriter-dashboard'
   | 'product-factory-designer'

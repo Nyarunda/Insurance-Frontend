@@ -4,7 +4,7 @@ import { Pencil, Plus, Printer, Save, Trash2, Undo2 } from 'lucide-react';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
-import { ActionDialog, ActionSpec, Grid, Pager, pretty, QueryState, reason, Refresh, SearchBox, Status, Surface } from '../operations/ui';
+import { ActionDialog, ActionSpec, Grid, Pager, pretty, QueryState, reason, Refresh, SearchBox, Status, Surface, Tabs } from '../operations/ui';
 import { BillingAccount, PageResult, Receipt, ReceiptPolicy, useOperationsCommand, useOperationsQuery } from '../operations/data';
 import { amountOf, cents } from '../operations/money';
 import { PrintDocument } from '../operations/PrintDocument';
@@ -80,12 +80,27 @@ export function ReceiptWorkspace() {
   const navigate = useNavigate();
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [print, setPrint] = useState<Receipt | null>(null);
+  const [tab, setTab] = useState('details');
   const r = query.data;
   return <Surface title={r?.receipt_no ?? 'Receipt'} subtitle={r && <Status value={r.status} />} back={() => navigate('/billing/receipts/list')} actions={<><Refresh query={query} />
     <button className="hz-icon-button" title="Print receipt" data-testid="receipt-print" disabled={!r || query.isFetching} onClick={async () => { const fresh = await query.refetch(); if (fresh.isSuccess && fresh.data) setPrint(fresh.data); }}><Printer size={16} /></button>
     {r && reverse && r.status === 'ACTIVE' && !r.reversal_of_receipt_id && r.created_by !== actor && <button className="hz-button hz-button-secondary" onClick={() => setAction({ title: `Reverse ${r.receipt_no}`, path: `/billing/receipts/${r.id}/reverse`, fields: [reason], confirm: 'Reverse receipt', message: `The full ${r.currency} ${r.amount} will be reversed. The original receipt and allocations remain in the audit history.` })}><Undo2 size={15} />Reverse receipt</button>}</>}>
-    <QueryState query={query} />{r && <><dl className="ops-summary"><div><dt>Customer</dt><dd>{r.customer_name}</dd></div><div><dt>Amount</dt><dd className="tabular-nums">{r.currency} {r.amount}</dd></div><div><dt>Payment date</dt><dd>{r.payment_date}</dd></div><div><dt>Method</dt><dd>{pretty(r.payment_method)}</dd></div><div><dt>Reference</dt><dd>{r.payment_reference || '-'}</dd></div>{r.reversal_reason && <div><dt>Reversal reason</dt><dd>{r.reversal_reason}</dd></div>}</dl><h2 className="ops-section-title">Policy allocations</h2><Grid headers={['Policy', 'Amount']} empty={!r.allocations.length}>{r.allocations.map(a => <tr key={a.id}><td>{a.policy_no}</td><td className="tabular-nums">{r.currency} {a.amount}</td></tr>)}</Grid></>}
-    {r && <ReceiptJournal receiptId={receiptId} />}
+    <QueryState query={query} />
+    {r && <>
+      <dl className="ops-summary">
+        <div><dt>Customer</dt><dd>{r.customer_name}</dd></div>
+        <div><dt>Amount</dt><dd className="tabular-nums">{r.currency} {r.amount}</dd></div>
+        <div><dt>Payment date</dt><dd>{r.payment_date}</dd></div>
+        <div><dt>Method</dt><dd>{pretty(r.payment_method)}</dd></div>
+        <div><dt>Reference</dt><dd>{r.payment_reference || '-'}</dd></div>
+        {r.reversal_reason && <div><dt>Reversal reason</dt><dd>{r.reversal_reason}</dd></div>}
+      </dl>
+      <Tabs value={tab} options={[{ value: 'details', label: 'Allocations' }, { value: 'journal', label: 'Journal entries' }]} change={setTab} />
+      {tab === 'details' && <Grid headers={['Policy', 'Amount']} empty={!r.allocations.length}>
+        {r.allocations.map(a => <tr key={a.id}><td>{a.policy_no}</td><td className="tabular-nums">{r.currency} {a.amount}</td></tr>)}
+      </Grid>}
+      {tab === 'journal' && <ReceiptJournal receiptId={receiptId} />}
+    </>}
     {print && <PrintDocument title={print.reversal_of_receipt_id ? 'Receipt reversal' : 'Premium receipt'} close={() => setPrint(null)}>
       <h1>{me?.tenant.name}</h1>
       <h2 className="ops-section-title">{print.reversal_of_receipt_id ? 'Receipt reversal' : 'Premium receipt'}: {print.receipt_no}</h2>
@@ -117,10 +132,15 @@ export function ReceiptJournal({ receiptId }: { receiptId: string }) {
   const query = useOperationsQuery<Journal>(`/billing/receipts/${encodeURIComponent(receiptId)}/journal`);
   const journal = query.data;
   return <section data-testid="receipt-journal">
-    <h2 className="ops-section-title">Journal entries</h2>
     <QueryState query={query} />
     {journal && <>
-      <div className="ops-toolbar"><span>{journal.posting_date}</span><span>{pretty(journal.action)}</span><span>{journal.description}</span></div>
+      <div className="ops-journal-header">
+        <span>{journal.posting_date}</span>
+        <span className="ops-journal-sep" />
+        <span>{pretty(journal.action)}</span>
+        <span className="ops-journal-sep" />
+        <span>{journal.description}</span>
+      </div>
       <Grid headers={['Account', 'Name', 'Debit', 'Credit', 'Memo']} empty={!journal.lines.length}>
         {journal.lines.map(line => <tr key={line.line_no}>
           <td>{line.account_code}</td><td>{line.account_name}</td>

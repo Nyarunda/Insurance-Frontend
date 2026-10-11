@@ -4,6 +4,7 @@ import { ApiError } from '../../lib/api/errors';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { PageResult, useOperationsCommand, useOperationsQuery } from '../operations/data';
+import { StatusBadge } from '../../components/horizon';
 import { Pager, pretty, QueryState, Refresh, SearchBox, Surface } from '../operations/ui';
 
 interface ProviderField { name: string; label: string; type?: string; options?: string[]; optional?: boolean }
@@ -14,10 +15,12 @@ export interface IntegrationConnection {
   has_secret: boolean; is_active: boolean; connectivity: string; etag: string; updated_at: string;
 }
 
-const healthDot = (connectivity: string) =>
+const healthColor = (connectivity: string) =>
   connectivity === 'CONNECTED' ? 'var(--hz-success, #15803d)'
   : connectivity === 'ERROR' ? 'var(--hz-danger, #dc2626)'
   : 'var(--hz-warning, #ca8a04)';
+
+const statusTone = (active: boolean) => active ? 'success' as const : 'neutral' as const;
 
 export function IntegrationsPage() {
   const [q, setQ] = useState('');
@@ -41,30 +44,32 @@ export function IntegrationsPage() {
     <QueryState query={catalogue} /><QueryState query={connections} />
     {connections.data && <>
       {!connections.data.results.length && <p className="ops-muted" style={{ padding: '24px 0' }}>No integrations configured. Add an integration to connect to external services.</p>}
-      <div className="ops-integration-grid">{connections.data.results.map(connection => {
-        const provider = catalogue.data?.providers.find(p => p.code === connection.provider);
-        const needsSecret = connection.provider !== 'HTTP_API' || connection.configuration.authentication !== 'NONE';
-        const endpoint = connection.configuration.base_url ?? connection.configuration.host ?? '';
-        return <article key={connection.id} className={`ops-integration-card${connection.is_active ? '' : ' ops-integration-disabled'}`} data-testid="integration-card">
-          <header>
-            <Circle size={10} fill={healthDot(connection.connectivity)} color={healthDot(connection.connectivity)} style={{ flexShrink: 0 }} />
-            <h2>{connection.name}</h2>
-            <span className="ops-integration-badge">{connection.is_active ? 'Enabled' : 'Disabled'}</span>
-            <button className="hz-icon-button" title={`Edit ${connection.name}`} disabled={!provider} onClick={() => setEditing(connection)}><Pencil size={15} /></button>
-          </header>
-          <div className="ops-integration-meta">
-            <span>{provider?.name ?? pretty(connection.provider)}</span>
-            <span className="ops-integration-dot" />
-            <span>{pretty(connection.category)}</span>
-          </div>
-          {endpoint && <div className="ops-integration-endpoint" title={String(endpoint)}>{String(endpoint)}</div>}
-          <dl>
-            <div><dt>Health</dt><dd>{pretty(connection.connectivity)}</dd></div>
-            <div><dt>Credentials</dt><dd>{connection.has_secret ? 'Stored securely' : needsSecret ? 'Required' : 'Not required'}</dd></div>
-            {connection.updated_at && <div><dt>Updated</dt><dd>{new Date(connection.updated_at).toLocaleDateString()}</dd></div>}
-          </dl>
-        </article>;
-      })}</div>
+      <div className="ops-table" data-testid="operations-table"><table className="hz-grid"><thead><tr>
+        <th scope="col">Name</th><th scope="col">Provider</th><th scope="col">Service</th>
+        <th scope="col">Health</th><th scope="col">Status</th><th scope="col">Endpoint</th>
+        <th scope="col">Credentials</th><th scope="col">Updated</th><th scope="col"></th>
+      </tr></thead><tbody>
+        {!connections.data.results.length && <tr><td colSpan={9}>No records found.</td></tr>}
+        {connections.data.results.map(connection => {
+          const provider = catalogue.data?.providers.find(p => p.code === connection.provider);
+          const needsSecret = connection.provider !== 'HTTP_API' || connection.configuration.authentication !== 'NONE';
+          const endpoint = connection.configuration.base_url ?? connection.configuration.host ?? '';
+          return <tr key={connection.id} data-testid="integration-row">
+            <td><button className="ops-link" onClick={() => { if (provider) setEditing(connection); }}>{connection.name}</button></td>
+            <td>{provider?.name ?? pretty(connection.provider)}</td>
+            <td>{pretty(connection.category)}</td>
+            <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Circle size={8} fill={healthColor(connection.connectivity)} color={healthColor(connection.connectivity)} />
+              {pretty(connection.connectivity)}
+            </span></td>
+            <td><StatusBadge square label={connection.is_active ? 'Enabled' : 'Disabled'} tone={statusTone(connection.is_active)} /></td>
+            <td>{endpoint ? <code style={{ fontSize: 12 }}>{String(endpoint)}</code> : <span className="ops-muted">—</span>}</td>
+            <td>{connection.has_secret ? 'Stored' : needsSecret ? <span style={{ color: 'var(--hz-warning, #ca8a04)' }}>Required</span> : '—'}</td>
+            <td>{connection.updated_at ? new Date(connection.updated_at).toLocaleDateString() : '—'}</td>
+            <td><button className="hz-icon-button" title={`Edit ${connection.name}`} disabled={!provider} onClick={() => setEditing(connection)}><Pencil size={15} /></button></td>
+          </tr>;
+        })}
+      </tbody></table></div>
       <Pager page={page} count={connections.data.count} size={25} change={setPage} />
     </>}
     {editing && catalogue.data && <IntegrationForm key={editing === 'new' ? 'new' : editing.etag}

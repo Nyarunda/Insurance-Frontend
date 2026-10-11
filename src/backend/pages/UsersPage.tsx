@@ -4,7 +4,7 @@ import { Check, Copy, Plus, Shield, UserPlus, X } from 'lucide-react';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ActionDialog, ActionSpec, Grid, Pager, pretty, QueryState, reason, Refresh, SearchBox, Status, Surface, Tabs } from '../operations/ui';
-import { Assignment, Invitation, Member, PageResult, Proposal, UserAccess, UserOptions, useOperationsQuery } from '../operations/data';
+import { Assignment, Invitation, Member, PageResult, Proposal, SubscriptionInfo, UserAccess, UserOptions, useOperationsQuery } from '../operations/data';
 import { moduleLabel, permissionLabel } from '../operations/accessLabels';
 
 const VIEW = 'admin.users.view';
@@ -22,11 +22,15 @@ export function UsersPage() {
   const users = useOperationsQuery<PageResult<Member>>(`/admin/users?${new URLSearchParams({ q, status, page: String(page), page_size: '25' })}`, tab === 'users');
   const invitations = useOperationsQuery<{ results: Invitation[] }>('/admin/user-invitations', tab === 'invitations');
   const options = useOperationsQuery<UserOptions>('/admin/user-options', canManage);
+  const subscription = useOperationsQuery<SubscriptionInfo>('/admin/subscription');
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [issued, setIssued] = useState<Invitation | null>(null);
   const [notice, setNotice] = useState('');
+  const seatLabel = subscription.data?.plan?.max_users != null && subscription.data.usage
+    ? `${subscription.data.usage.active_members} of ${subscription.data.plan.max_users} seats used`
+    : users.data ? `${users.data.count} tenant members` : undefined;
   const update = (values: Record<string, string>) => setParams(p => { const n = new URLSearchParams(p); Object.entries(values).forEach(([k, v]) => v ? n.set(k, v) : n.delete(k)); return n; });
-  return <Surface title="Users" subtitle={users.data ? `${users.data.count} tenant members` : undefined} actions={<><Refresh query={tab === 'users' ? users : invitations} />{canManage && <button className="hz-button hz-button-primary" disabled={!options.data} onClick={() => setAction({ title: 'Invite user', path: '/admin/user-invitations', confirm: 'Create invitation', fields: [{ name: 'email', label: 'Email', type: 'email', required: true }, { name: 'default_branch_id', label: 'Default branch', required: true, options: options.data!.branches.map(b => option(b.id, `${b.code} - ${b.name}`)) }] })}><UserPlus size={15} />Invite user</button>}</>}>
+  return <Surface title="Users" subtitle={seatLabel} actions={<><Refresh query={tab === 'users' ? users : invitations} />{canManage && <button className="hz-button hz-button-primary" disabled={!options.data} onClick={() => setAction({ title: 'Invite user', path: '/admin/user-invitations', confirm: 'Create invitation', fields: [{ name: 'email', label: 'Email', type: 'email', required: true }, { name: 'default_branch_id', label: 'Default branch', required: true, options: options.data!.branches.map(b => option(b.id, `${b.code} - ${b.name}`)) }] })}><UserPlus size={15} />Invite user</button>}</>}>
     {notice && <div role="status" className="ops-notice">{notice}</div>}
     {options.isError && <QueryState query={options} />}
     <Tabs value={tab} options={[option('users', 'Members'), option('invitations', 'Invitations')]} change={v => update({ tab: v, page: '' })} />
@@ -83,7 +87,7 @@ export function UserWorkspace() {
       <div><dt>Identity</dt><dd>{user.data.identity_active ? 'Active' : 'Inactive'}</dd></div>
       <div><dt>Profile</dt><dd>{pretty(user.data.profile_status ?? 'Unavailable')}</dd></div>
       <div><dt>Member until</dt><dd>{user.data.member_to ?? 'No end date'}</dd></div>
-    </dl><h2 className="ops-section-title">Current roles</h2><Grid headers={['Role', 'Scope', 'Branch']} empty={!user.data.roles.length}>{user.data.roles.map((r, i) => <tr key={i}><td>{r.name}</td><td>{pretty(r.scope)}</td><td>{r.branch_code ?? 'All branches'}</td></tr>)}</Grid></>}
+    </dl><h3 className="ops-subsection-title">Current roles</h3><Grid headers={['Role', 'Scope', 'Branch']} empty={!user.data.roles.length}>{user.data.roles.map((r, i) => <tr key={i}><td>{r.name}</td><td>{pretty(r.scope)}</td><td>{r.branch_code ?? 'All branches'}</td></tr>)}</Grid></>}
     {tab === 'roles' && <>
       <QueryState query={access} /><QueryState query={options} />
       <div className="ops-toolbar">{active && options.data && <button className="hz-button hz-button-primary" onClick={newRole}><Shield size={15} />Assign role</button>}<Refresh query={access} /></div>

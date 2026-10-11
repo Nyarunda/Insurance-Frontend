@@ -218,9 +218,12 @@ describe('Tenant operations', () => {
     }));
     vi.stubGlobal('fetch', network.fn);
     at('/billing/reports/collections?date_from=2026-10-01&date_to=2026-10-31');
+    await screen.findByRole('tab', { name: 'Period totals' });
+    await user.click(screen.getByRole('tab', { name: 'Period totals' }));
     const totals = await screen.findByTestId('collections-totals');
     expect(within(totals).getByRole('row', { name: 'KES 2 1 12.30 0.30 12.00' })).toBeVisible();
     expect(within(totals).getByRole('row', { name: 'USD 2 1 10.00 0.00 10.00' })).toBeVisible();
+    await user.click(screen.getByRole('tab', { name: /Posting date/i }));
     await user.click(screen.getByTitle('Next page'));
     await waitFor(() => expect(network.calls.some(c => c.url.includes('page=2') && c.url.includes('date_from=2026-10-01'))).toBe(true));
     await user.selectOptions(screen.getByLabelText('Group collections by'), 'branch');

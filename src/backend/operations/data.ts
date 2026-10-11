@@ -76,6 +76,11 @@ export interface UserAccess {
   proposals: Proposal[];
 }
 export interface Invitation { id: string; email: string; default_branch: Branch; status: string; expires_at: string; secret?: string }
+export interface SubscriptionInfo {
+  plan: { code: string; name: string; modules: string[]; max_users: number | null } | null;
+  subscription: { status: string; start_date: string; end_date: string | null } | null;
+  usage: { active_members: number } | null;
+}
 export interface BillingAccount { id: string; code: string; name: string; kind: string; currency: string; external_mapping: string; is_active: boolean; row_version: number; etag: string }
 export interface Receipt {
   id: string; receipt_no: string; customer_id: string; customer_name: string; amount: string; currency: string;

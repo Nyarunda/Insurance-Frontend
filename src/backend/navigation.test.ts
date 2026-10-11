@@ -66,7 +66,7 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
   });
 
-  it('integrates Home, My Work Queue (everyone signed in; its queue needs workflow.task.view, WFH-1 R1), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C), Approval reasons (admin.workflow.manage, WRC-1) Renewal settings (any of its four readers, SD-E R1) and Approval notifications (admin.workflow.view, NTF-2)', () => {
+  it('integrates Home, My Work Queue (everyone signed in; its queue needs workflow.task.view, WFH-1 R1), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C), Approval reasons (admin.workflow.manage, WRC-1) Renewal settings (any of its four readers, SD-E R1), Approval notifications (admin.workflow.view, NTF-2), Subscription (admin.users.view) and Platform tenants (admin.users.view)', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', null],
@@ -90,6 +90,8 @@ describe('permission-driven navigation', () => {
       ['admin-users-roles', 'admin.users.view'],
       ['admin-doa', 'admin.roles.manage'],
       ['admin-integrations', 'admin.integrations.manage'],
+      ['admin-subscription', 'admin.users.view'],
+      ['platform-tenants', 'admin.users.view'],
     ]);
   });
 });

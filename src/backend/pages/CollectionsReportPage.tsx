@@ -5,7 +5,7 @@ import { useMe } from '../../lib/auth/me';
 import { useOperationsQuery } from '../operations/data';
 import { downloadCsv } from '../operations/export';
 import { PrintDocument } from '../operations/PrintDocument';
-import { Grid, Pager, pretty, QueryState, Refresh, Surface } from '../operations/ui';
+import { Grid, Pager, pretty, QueryState, Refresh, Surface, Tabs } from '../operations/ui';
 
 interface CollectionTotal { currency: string; receipt_count: number; reversal_count: number; gross: string; reversed: string; net: string }
 interface CollectionRow extends CollectionTotal { bucket: string; label: string }
@@ -31,6 +31,7 @@ export function CollectionsReportPage() {
   useEffect(() => { setDraft(initial); }, [params]);
   const [validation, setValidation] = useState('');
   const [print, setPrint] = useState(false);
+  const [colTab, setColTab] = useState('breakdown');
   const me = useMe().data;
   const scopeLabel = initial.branch_id ? me?.branches.find(b => b.id === initial.branch_id)?.name ?? 'Selected branch' : 'All permitted branches';
   const page = Math.max(1, Number(params.get('page')) || 1);
@@ -76,10 +77,12 @@ export function CollectionsReportPage() {
     {validation && <p role="alert">{validation}</p>}
     <QueryState query={query} />
     {report && <>
-      <CollectionTotals report={report} />
-      <h2 className="ops-section-title">{groups[report.group_by]}</h2>
-      <CollectionRows report={report} />
-      <Pager page={page} count={report.count} size={25} change={p => setParams(previous => { const next = new URLSearchParams(previous); next.set('page', String(p)); return next; })} />
+      <Tabs value={colTab} options={[{ value: 'breakdown', label: groups[report.group_by] }, { value: 'totals', label: 'Period totals' }]} change={setColTab} />
+      {colTab === 'totals' && <CollectionTotals report={report} />}
+      {colTab === 'breakdown' && <>
+        <CollectionRows report={report} />
+        <Pager page={page} count={report.count} size={25} change={p => setParams(previous => { const next = new URLSearchParams(previous); next.set('page', String(p)); return next; })} />
+      </>}
     </>}
     {print && report && <PrintDocument title="Premium collections" close={() => setPrint(false)}>
       <h1>{me?.tenant.name}</h1><h2 className="ops-section-title">Premium collections</h2>
@@ -91,7 +94,7 @@ export function CollectionsReportPage() {
 }
 
 function CollectionTotals({ report }: { report: CollectionsReport }) {
-  return <section data-testid="collections-totals"><h2 className="ops-section-title">Period totals</h2>
+  return <section data-testid="collections-totals">
     <Grid headers={columns} empty={!report.totals.length}>{report.totals.map(row => <tr key={row.currency}>
       {values(row).map((value, i) => <td key={i} className="tabular-nums">{value}</td>)}
     </tr>)}</Grid></section>;

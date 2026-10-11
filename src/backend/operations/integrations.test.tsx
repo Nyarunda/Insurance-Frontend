@@ -34,7 +34,7 @@ function setup(override?: FakeHandler) {
 describe('Integration setup', () => {
   it('filters service and enabled status on the server and resets pagination', async () => {
     const { user, network } = setup();
-    expect(await screen.findByTestId('integration-card')).toHaveTextContent('Not tested');
+    expect(await screen.findByTestId('integration-row')).toHaveTextContent('Not tested');
     await user.click(screen.getByTitle('Next page'));
     await waitFor(() => expect(network.calls.at(-1)?.url).toContain('page=2'));
     await user.selectOptions(screen.getByLabelText('Service'), 'SMS');
@@ -44,7 +44,7 @@ describe('Integration setup', () => {
 
   it('creates a provider-specific setup with an idempotency key and no credential echo', async () => {
     const { user, network } = setup();
-    await screen.findByTestId('integration-card');
+    await screen.findByTestId('integration-row');
     await user.click(screen.getByRole('button', { name: 'Add integration' }));
     const form = within(screen.getByRole('dialog'));
     await user.type(form.getByLabelText('Name *'), 'Email service');

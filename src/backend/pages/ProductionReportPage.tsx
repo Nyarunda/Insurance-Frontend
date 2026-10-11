@@ -87,9 +87,8 @@ export function ProductionReportPage() {
     <Tabs value={view} options={[{ value: 'summary', label: 'Summary' }, { value: 'policies', label: 'Policies' }]} change={value =>
       setParams(new URLSearchParams({ ...applied, view: value }))} />
     {report && <>
-      <div className="ops-muted">Binding dates: {report.date_from} to {report.date_to} ({report.timezone})</div>
+      <div className="ops-muted" style={{ padding: '8px 0' }}>Binding dates: {report.date_from} to {report.date_to} ({report.timezone})</div>
       <ProductionTotals report={report} />
-      <h2 className="ops-section-title">{report.view === 'summary' ? groupLabels[report.group_by] : 'Policies'}</h2>
       <ProductionRows report={report} />
       <Pager page={report.page} count={report.count} size={report.page_size} change={value => setParams(previous => {
         const next = new URLSearchParams(previous); next.set('page', String(value)); return next;
@@ -106,7 +105,7 @@ export function ProductionReportPage() {
 }
 
 function ProductionTotals({ report }: { report: ProductionReport }) {
-  return <section data-testid="production-totals"><h2 className="ops-section-title">Period totals</h2>
+  return <section data-testid="production-totals"><h3 className="ops-subsection-title">Period totals</h3>
     <Grid headers={totalColumns} empty={!report.totals.length}>{report.totals.map(row => <tr key={row.currency}>
       {totalValues(row).map((value, i) => <td key={i} className="tabular-nums">{value}</td>)}
     </tr>)}</Grid></section>;
