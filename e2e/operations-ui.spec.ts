@@ -1,11 +1,12 @@
 /** Browser layout checks with explicit API fixtures, separate from the live database gate. */
 import { expect, test } from '@playwright/test';
+import { integrationCatalog, integrationConnection } from '../src/test/integrationFixtures';
 
 const base = process.env.OPERATIONS_UI_URL;
 test.skip(!base, 'Set OPERATIONS_UI_URL to the backend-mode Vite server.');
 const branch = { id: 'branch', code: 'NBO', name: 'Nairobi', scope: 'ALL' };
 const member = { user_id: 'member', email: 'jane.kamau@example.test', status: 'ACTIVE', default_branch: branch, member_from: '2026-01-01', profile_status: 'ACTIVE', identity_active: true, roles: [{ name: 'Finance officer', scope: 'BRANCH', branch_code: 'NBO' }], branch_access: [] };
-const me = { user: { id: 'actor', email: 'admin@example.test' }, tenant: { id: 'tenant', name: 'Horizon Assurance' }, branches: [branch], permissions: ['admin.users.view', 'admin.users.manage', 'admin.roles.manage', 'billing.document.view', 'billing.receipt.create', 'billing.setup.manage'] };
+const me = { user: { id: 'actor', email: 'admin@example.test' }, tenant: { id: 'tenant', name: 'Horizon Assurance' }, branches: [branch], permissions: ['admin.users.view', 'admin.users.manage', 'admin.roles.manage', 'admin.integrations.manage', 'billing.document.view', 'billing.receipt.create', 'billing.setup.manage'] };
 const role = { id: 'collections', name: 'Collections Officer', description: 'Record premium receipts and view customer statements.', origin: 'TENANT', editable: true, permissions: [] };
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
   test(`operations layout ${viewport.width}`, async ({ page }, info) => {
@@ -18,6 +19,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       let body: unknown = {};
       if (path.endsWith('/auth/refresh')) body = { status: 'SIGNED_IN', access_token: 'layout-fixture-token', expires_in: 600 };
       else if (path.endsWith('/auth/me')) body = me;
+      else if (path.endsWith('/admin/integrations/catalog')) body = integrationCatalog;
+      else if (path.endsWith('/admin/integrations')) body = { results: [integrationConnection], count: 1, page: 1, page_size: 25 };
       else if (path.endsWith('/admin/users')) body = { results: [member], count: 1, page: 1, page_size: 25 };
       else if (path.endsWith('/admin/users/member')) body = member;
       else if (path.endsWith('/admin/users/member/access')) body = { roles: [{ id: 'assignment', name: 'Finance officer', scope: 'BRANCH', branch_name: 'Nairobi', effective_from: '2026-01-01', effective_to: null }], branches: [], overrides: [], proposals: [] };
@@ -98,6 +101,19 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.screenshot({ path: info.outputPath('account-edit.png'), fullPage: true });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     expect(overflow).toBe(false);
+    await page.goto(`${base}/admin/integrations/list`);
+    await expect(page.getByTestId('integration-card')).toContainText('Not tested');
+    await page.screenshot({ path: info.outputPath('integrations.png'), fullPage: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
+    await page.getByTitle('Edit Core banking sandbox').click();
+    await expect(page.getByLabel('Client secret (replace)')).toHaveValue('');
+    await page.screenshot({ path: info.outputPath('integration-edit.png'), fullPage: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)).toBe(false);
+    await page.getByLabel('Provider *').selectOption('HTTP_API');
+    await page.getByLabel('Authentication *').selectOption('API_KEY');
+    await expect(page.getByLabel('API key header')).toBeEnabled();
+    await page.getByLabel('Authentication *').selectOption('NONE');
+    await expect(page.getByLabel('API credential')).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 }

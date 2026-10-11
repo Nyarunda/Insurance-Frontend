@@ -77,6 +77,7 @@ const ReceiptsPage = React.lazy(() => import('./pages/BillingPages').then(m => (
 const ReceiptWorkspace = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptWorkspace })));
 const BillingAccountsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.BillingAccountsPage })));
 const CollectionsReportPage = React.lazy(() => import('./pages/CollectionsReportPage').then(m => ({ default: m.CollectionsReportPage })));
+const ProductionReportPage = React.lazy(() => import('./pages/ProductionReportPage').then(m => ({ default: m.ProductionReportPage })));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
 const BillingAgreementsPage = React.lazy(() => import('./pages/BillingAgreementsPage').then(m => ({ default: m.BillingAgreementsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
@@ -110,6 +111,7 @@ export const backendRoutes: RouteObject[] = [
       { path: 'admin/roles/list/:roleId', element: operation('admin.roles.manage', <RolesPage />) },
       { path: 'billing/receipts/list', element: operation('billing.document.view', <ReceiptsPage />) },
       { path: 'billing/reports/collections', element: operation('billing.document.view', <CollectionsReportPage />) },
+      { path: 'reports/production', element: operation('policies.policy.view', <ProductionReportPage />) },
       { path: 'billing/receipts/list/:receiptId', element: operation('billing.document.view', <ReceiptWorkspace />) },
       { path: 'billing/accounts/list', element: operation('billing.setup.manage', <BillingAccountsPage />) },
       { path: 'billing/agreements/list', element: operation('billing.setup.manage', <BillingAgreementsPage />) },

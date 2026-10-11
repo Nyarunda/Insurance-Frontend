@@ -1,4 +1,4 @@
-# Connected Users and Billing
+# Connected Users, Billing and Integrations
 
 Implemented 11 October 2026 in backend mode (`VITE_DATA_SOURCE=backend`). These
 screens use the Django APIs, not `recordsStore` or demo permissions.
@@ -27,9 +27,14 @@ screens use the Django APIs, not `recordsStore` or demo permissions.
   explicitly marked as a page, with full filtered totals. No cross-currency addition.
 - Receipt printing: refreshed receipt/reversal details and policy allocations in a
   print layout, without internal journal accounts or application navigation.
+- Tenant integration setup: provider-specific add/edit cards for Business Central,
+  SMTP email and HTTP APIs (core banking, SMS or payments). Search, service/status
+  filters, pagination, enable/disable, credential replacement/clearing and explicit
+  stale-edit reload are connected to the backend. No simulated connectivity result.
 
 Routes start at `/admin/users/list`, `/admin/roles/list`, `/billing/receipts/list`,
-`/billing/accounts/list`, `/billing/agreements/list`, and `/billing/reports/collections`.
+`/billing/accounts/list`, `/billing/agreements/list`, `/billing/reports/collections`,
+and `/admin/integrations/list`.
 
 ## Concurrency and Isolation
 
@@ -63,6 +68,10 @@ python scripts/run_operations_demo.py
 ```
 
 Use `--reuse` to resume the last helper-created database after restarting the server.
+Use `--upgrade` to apply current migrations to that saved disposable database and
+give only its two demo administrators the Integration Administrator fixture role.
+Restart the demo backend with `--reuse` after upgrading. This is not a production
+permission provisioning command; tenant access in production follows approved roles.
 Use `--refresh-labels` to repair only generated role names in that saved disposable
 database without starting a second server. Customer-authored role names are preserved.
 The database uses tmpfs and is lost if its container is stopped. After that, run without
@@ -98,6 +107,8 @@ node node_modules/@playwright/test/cli.js test e2e/operations-live.spec.ts
 
 The UI layout test uses explicit HTTP fixtures at desktop/mobile sizes. The live
 journey uses real sign-in/OTP, permission proposal/approval, receipt posting and reversal.
+It also tests integration creation, blank-secret preservation, two-administrator edit
+conflicts, explicit reload and credential clearing against the real tenant API.
 Backend tests include tenant/branch isolation, pagination bounds and a simultaneous
 two-editor race. These are correctness checks, **not a high-concurrency load benchmark**.
 
@@ -127,3 +138,28 @@ This delivers the recorded-premium-collection part of Reports R15 and part of G7
 It does not validate bank/M-Pesa settlement, produce debtor ageing, account balances,
 insurer statements, a trial balance, or the full financial reporting catalogue.
 Browser Save as PDF is not a server-generated, signed or insurer-approved document.
+
+## Integration Setup Boundaries
+
+Requires tenant-wide `admin.integrations.manage`. Each tenant owns separate connection
+records; guessed IDs from another tenant return 404. Credentials are authenticated-
+encrypted with tenant-and-record-bound associated data and are never returned by the
+API or copied into the audit log. Production keys must be provisioned and rotated
+securely; the disposable demo uses public test keys and must never hold real secrets.
+
+`POST /api/v1/admin/integrations` creates setup. `GET /api/v1/admin/integrations`
+accepts `q`, `category`, `status` (ENABLED/DISABLED) and `page`. Catalog and record
+reads use `/catalog` and `/{id}`. `PUT /{id}` requires the last `etag` in `If-Match`
+and an idempotency key. Missing versions return 428, stale versions 412. Reload
+is explicit and discards the local draft; there is no silent last-writer-wins save.
+Blank secrets preserve the current credential; clearing, switching providers, or
+selecting HTTP authentication NONE removes it. Credential replacement is write-only.
+
+Setup enabled is an administrative preference, not proof of a working connection.
+All connections remain NOT_TESTED. This supplies configuration foundations for the
+integration requirements, not completed Integration S1-S4. Business Central OAuth,
+entity/field mappings, scheduled sync, SMTP/OTP delivery, SMS/payment adapters,
+callbacks, retries and reconciliation remain unimplemented. Nothing here contacts
+providers. Before adding outbound HTTP, implement tenant-aware egress controls,
+DNS/address checks (including redirects/rebinding), timeouts and background work;
+the current URL syntax checks alone are not a complete SSRF boundary.

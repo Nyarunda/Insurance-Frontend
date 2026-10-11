@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { test, expect, Page } from '@playwright/test';
+import { integrationConnection } from '../src/test/integrationFixtures';
 
 const source = process.env.OPERATIONS_ACCOUNTS;
 test.skip(!source, 'Requires run_operations_demo.py and OPERATIONS_ACCOUNTS');
@@ -96,5 +97,55 @@ test('real tenant API: user workspace, permission approval, receipt and second-u
   } finally {
     await makerContext.close().catch(() => {});
     await checkerContext.close().catch(() => {});
+  }
+});
+
+test('real tenant API: integration setup, secret preservation and concurrent-edit recovery', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const accounts: Account[] = JSON.parse(readFileSync(source!, 'utf8')).accounts;
+  const makerContext = await browser.newContext();
+  const checkerContext = await browser.newContext();
+  try {
+    const maker = await makerContext.newPage();
+    const checker = await checkerContext.newPage();
+    maker.setDefaultTimeout(15_000); checker.setDefaultTimeout(15_000);
+    await signIn(maker, accounts[0]); await signIn(checker, accounts[1]);
+    await maker.goto(`${accounts[0].url}/admin/integrations/list`);
+    await maker.getByRole('button', { name: 'Add integration' }).click();
+    const name = `Browser check - ${crypto.randomUUID().slice(0, 8)}`;
+    await maker.getByLabel('Name *', { exact: true }).fill(name);
+    for (const [label, value] of Object.entries({
+      'Microsoft Entra tenant ID *': integrationConnection.configuration.directory_tenant_id,
+      'Application (client) ID *': integrationConnection.configuration.client_id,
+      'Company ID *': integrationConnection.configuration.company_id,
+      'Business Central environment *': 'Sandbox',
+    })) await maker.getByLabel(label, { exact: true }).fill(value);
+    await maker.getByLabel('Client secret', { exact: true }).fill('local-test-only-not-a-provider-secret');
+    await maker.getByLabel('Setup enabled').uncheck();
+    await maker.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(maker.getByRole('dialog')).toHaveCount(0);
+    const makerCard = maker.getByTestId('integration-card').filter({ has: maker.getByRole('heading', { name, exact: true }) });
+    await expect(makerCard).toContainText('Stored securely');
+    await expect(makerCard).toContainText('Not tested');
+    await maker.getByTitle(`Edit ${name}`, { exact: true }).click();
+    await checker.goto(`${accounts[1].url}/admin/integrations/list`);
+    await checker.getByTitle(`Edit ${name}`, { exact: true }).click();
+    await maker.getByLabel('Business Central environment *').fill('UpdatedSandbox');
+    await maker.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(maker.getByRole('dialog')).toHaveCount(0);
+    await checker.getByLabel('Business Central environment *').fill('StaleSandbox');
+    await checker.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(checker.getByRole('alert')).toBeVisible();
+    await expect(checker.getByLabel('Business Central environment *')).toHaveValue('StaleSandbox');
+    await checker.getByRole('button', { name: 'Discard edits and reload' }).click();
+    await expect(checker.getByLabel('Business Central environment *')).toHaveValue('UpdatedSandbox');
+    await checker.getByLabel('Clear stored credential').check();
+    await checker.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(checker.getByRole('dialog')).toHaveCount(0);
+    const checkerCard = checker.getByTestId('integration-card').filter({ has: checker.getByRole('heading', { name, exact: true }) });
+    await expect(checkerCard).toContainText('Required');
+    await expect(checkerCard).toContainText('Disabled');
+  } finally {
+    await makerContext.close().catch(() => {}); await checkerContext.close().catch(() => {});
   }
 });

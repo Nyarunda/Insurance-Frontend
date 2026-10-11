@@ -64,6 +64,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: FileCheck2,
     items: [
       { screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 },
+      { screen: 'reporting-operational', label: 'Production', path: '/reports/production', permission: POLICY_VIEW, icon: FileText },
       // RS-C: policies due for renewal, and renewals across policies.
       { screen: 'renewals', label: 'Renewals', path: '/renewals/list', permission: POLICY_VIEW, icon: RefreshCcw },
       // CS-B: find an issued certificate by vehicle or serial.

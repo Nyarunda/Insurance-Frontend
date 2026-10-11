@@ -75,6 +75,7 @@ describe('permission-driven navigation', () => {
       ['quotations', 'quotations.quotation.view'],
       ['proposals', 'underwriting.proposal.view'],
       ['policies', 'policies.policy.view'],
+      ['reporting-operational', 'policies.policy.view'],
       ['renewals', 'policies.policy.view'],
       ['certificates', 'certificates.cert.view'],
       ['certificate-stock', 'certificates.stock.manage'],
