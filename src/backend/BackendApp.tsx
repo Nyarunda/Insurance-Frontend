@@ -67,8 +67,26 @@ import { CustomerPage } from './pages/CustomerPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { RequirePermission, RequireSession, SignedOutOnly } from './routing';
 import { BackendShell } from './shell/BackendShell';
+import { HorizonLoader } from '../components/horizon';
+import { OperationsBoundary } from './operations/ui';
+
+const UsersPage = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
+const UserWorkspace = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UserWorkspace })));
+const RolesPage = React.lazy(() => import('./pages/RolesPage').then(m => ({ default: m.RolesPage })));
+const ReceiptsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptsPage })));
+const ReceiptWorkspace = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptWorkspace })));
+const BillingAccountsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.BillingAccountsPage })));
+const CollectionsReportPage = React.lazy(() => import('./pages/CollectionsReportPage').then(m => ({ default: m.CollectionsReportPage })));
+const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
+const BillingAgreementsPage = React.lazy(() => import('./pages/BillingAgreementsPage').then(m => ({ default: m.BillingAgreementsPage })));
+const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
+
+const operation = (permission: string, page: React.ReactNode) => (
+  <RequirePermission permission={permission}><OperationsBoundary><React.Suspense fallback={<HorizonLoader tip="Loading..." />}>{page}</React.Suspense></OperationsBoundary></RequirePermission>
+);
 
 export const backendRoutes: RouteObject[] = [
+  { path: '/accept-invitation', element: <React.Suspense fallback={<HorizonLoader tip="Loading..." />}><InvitationAcceptPage /></React.Suspense> },
   {
     path: '/sign-in',
     element: (
@@ -85,6 +103,17 @@ export const backendRoutes: RouteObject[] = [
       </RequireSession>
     ),
     children: [
+      { path: 'admin/users/list', element: operation('admin.users.view', <UsersPage />) },
+      { path: 'admin/users/list/:userId', element: operation('admin.users.view', <UserWorkspace />) },
+      { path: 'admin/roles/list', element: operation('admin.roles.manage', <RolesPage />) },
+      { path: 'admin/integrations/list', element: operation('admin.integrations.manage', <IntegrationsPage />) },
+      { path: 'admin/roles/list/:roleId', element: operation('admin.roles.manage', <RolesPage />) },
+      { path: 'billing/receipts/list', element: operation('billing.document.view', <ReceiptsPage />) },
+      { path: 'billing/reports/collections', element: operation('billing.document.view', <CollectionsReportPage />) },
+      { path: 'billing/receipts/list/:receiptId', element: operation('billing.document.view', <ReceiptWorkspace />) },
+      { path: 'billing/accounts/list', element: operation('billing.setup.manage', <BillingAccountsPage />) },
+      { path: 'billing/agreements/list', element: operation('billing.setup.manage', <BillingAgreementsPage />) },
+      { path: 'billing/agreements/list/:agreementId', element: operation('billing.setup.manage', <BillingAgreementsPage />) },
       { index: true, element: <HomePage /> },
       // Lists live at `/<module>/list`; the module's own address and the old ones lead there.
       { path: 'my-work', element: <ToList to="/my-work/list" /> },

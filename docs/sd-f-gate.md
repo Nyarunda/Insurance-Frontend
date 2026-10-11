@@ -49,6 +49,17 @@ The SD-F gate needs a disposable environment with:
 | `SDF_FACTS` | JSON: `{ alpha: { domain, branch_id, new_business, legacy_product, certificates, renewable, renewable2 }, beta: { domain } }` |
 | `SDF_ENV_DIR` | Directory with `manage.py` for the import command |
 
+`temporary_password` is the fixture file's legacy key: it holds the current password. Setup logs
+in as the reference and stock managers to create fixtures, completing their forced password change.
+Those sessions must export the changed passwords. The other browser accounts still start with their
+temporary passwords. An accounts file generated before this correction cannot recover the discarded
+random passwords; repair only the disposable accounts or provision a fresh isolated environment.
+
+Run `python -m unittest test_sdf_setup -v` from the frontend directory to verify this credential
+handoff without starting or resetting the database. Keep `secrets/` outside version control and leave
+Playwright tracing disabled for credential journeys. Each gate run needs fresh fixture state; the
+browser also changes first-use passwords and keeps those changes only in its current test process.
+
 ## Gate matrix
 
 | Check | Requirement |

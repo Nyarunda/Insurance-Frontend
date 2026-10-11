@@ -950,7 +950,14 @@ describe('the lightweight approval path (endorsements never; one sanctioned unde
     // tenant does not govern is approved on its proposal (NEW-BUSINESS-1 NB-D5). Every other source
     // keeps the original scan; the sanctioned file holds exactly that one literal and nothing else.
     const sanctioned = join(root, 'backend', 'proposals', 'useProposalCommands.ts');
-    const offenders = files.filter((file) => file !== sanctioned && literals(code(file)).length > 0);
+    // Billing authority has its own server-enforced maker/checker approval, not an
+    // endorsement approval shortcut. Allow exactly that endpoint, not the file.
+    const billing = join(root, 'backend', 'pages', 'BillingAgreementsPage.tsx');
+    const guardedCode = (file: string) => file === billing
+      ? code(file).replace('`${path}/collection-authority/approve`', '')
+      : code(file);
+    expect(code(billing).split('`${path}/collection-authority/approve`')).toHaveLength(2);
+    const offenders = files.filter((file) => file !== sanctioned && literals(guardedCode(file)).length > 0);
     expect(offenders).toEqual([]);
     const proposals = code(sanctioned);
     expect(literals(proposals)).toEqual(['/approve']);

@@ -19,6 +19,8 @@ const IMPORT_RE =
 function resolveModule(from: string, specifier: string): string | null {
   if (!specifier.startsWith('.')) return null; // packages are not application code
   const base = resolve(dirname(from), specifier);
+  // Stylesheets have no JavaScript authorization/data dependencies.
+  if (specifier.endsWith('.css') && existsSync(base)) return null;
   for (const candidate of [base, `${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')]) {
     if (existsSync(candidate) && /\.(ts|tsx)$/.test(candidate)) return candidate;
   }

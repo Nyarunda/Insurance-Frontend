@@ -83,7 +83,19 @@ async function signIn(page: Page, host: string, email: string) {
   await page.goto(`${origin(host)}/sign-in`);
   await page.getByPlaceholder('name@company.co.ke').fill(email);
   await page.getByPlaceholder('Enter password', { exact: true }).fill(passwordOf(email));
-  await page.getByRole('button', { name: 'Sign In' }).click();
+  const [loginResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === 'POST'
+      && new URL(response.url()).pathname === '/api/v1/auth/login', { timeout: 35_000 }),
+    page.getByRole('button', { name: 'Sign In' }).click(),
+  ]);
+  if (loginResponse.status() !== 200) {
+    // Do not attach a response body or leave the credential in the failure snapshot.
+    await page.getByPlaceholder('Enter password', { exact: true }).fill('');
+    const body = await loginResponse.json().catch(() => null);
+    const code = typeof body?.error?.code === 'string' && /^[A-Z_]+$/.test(body.error.code)
+      ? body.error.code : 'UNKNOWN_ERROR';
+    throw new Error(`SD-F sign-in failed: HTTP ${loginResponse.status()} (${code}). Check the current fixture credentials.`);
+  }
   await expect(page.getByRole('heading', { name: 'Verify your identity' })).toBeVisible();
   const code = ((await page.getByTestId('sandbox-code').textContent()) ?? '').match(/\d{6}/)?.[0];
   expect(code, 'the sandbox sender returned a code').toBeTruthy();

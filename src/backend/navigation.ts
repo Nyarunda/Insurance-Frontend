@@ -91,6 +91,23 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'approval-notifications', label: 'Approval notifications', path: '/approval-notifications', permission: WORKFLOW_VIEW, icon: BellRing },
     ],
   },
+  {
+    id: 'billing', title: 'Billing', icon: FileText,
+    items: [
+      { screen: 'billing', label: 'Receipts', path: '/billing/receipts/list', permission: 'billing.document.view', icon: FileText },
+      { screen: 'reporting-financial', label: 'Premium collections', path: '/billing/reports/collections', permission: 'billing.document.view', icon: FileText },
+      { screen: 'accounting', label: 'Billing accounts', path: '/billing/accounts/list', permission: 'billing.setup.manage', icon: Settings2 },
+      { screen: 'receivables', label: 'Collection agreements', path: '/billing/agreements/list', permission: 'billing.setup.manage', icon: FileCheck2 },
+    ],
+  },
+  {
+    id: 'administration', title: 'Administration', icon: UsersRound,
+    items: [
+      { screen: 'admin-users-roles', label: 'Users', path: '/admin/users/list', permission: 'admin.users.view', icon: UsersRound },
+      { screen: 'admin-doa', label: 'Roles & permissions', path: '/admin/roles/list', permission: 'admin.roles.manage', icon: ListChecks },
+      { screen: 'admin-integrations', label: 'Integrations', path: '/admin/integrations/list', permission: 'admin.integrations.manage', icon: Settings2 },
+    ],
+  },
 ];
 
 /** A screen's permission as a list: holding any one of them is enough. */

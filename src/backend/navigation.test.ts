@@ -82,6 +82,13 @@ describe('permission-driven navigation', () => {
       ['approval-reasons', 'admin.workflow.manage'],
       ['renewal-settings', ['policies.renewal_settings.manage', 'products.config.publish', 'policies.renewal.create', 'policies.renewal.approve']],
       ['approval-notifications', 'admin.workflow.view'],
+      ['billing', 'billing.document.view'],
+      ['reporting-financial', 'billing.document.view'],
+      ['accounting', 'billing.setup.manage'],
+      ['receivables', 'billing.setup.manage'],
+      ['admin-users-roles', 'admin.users.view'],
+      ['admin-doa', 'admin.roles.manage'],
+      ['admin-integrations', 'admin.integrations.manage'],
     ]);
   });
 });

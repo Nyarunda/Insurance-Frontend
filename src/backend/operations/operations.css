@@ -1,0 +1,49 @@
+.ops { min-width: 0; font-size: 13px; letter-spacing: 0; }
+.ops-currency { width: 72px; }
+.ops-integration-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.ops-integration-card { border: 1px solid var(--hz-border); border-radius: 6px; padding: 16px; min-width: 0; }
+.ops-integration-card header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ops-integration-card h2 { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.ops-integration-card p { color: var(--hz-text-muted); }
+.ops-integration-card dl { margin-top: 16px; }
+.ops-integration-card dl > div { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 8px; padding: 6px 0; }
+.ops-integration-card dt { color: var(--hz-text-muted); }
+.ops-integration-card dd { overflow-wrap: anywhere; }
+.ops-print-document { color: #171717; background: #fff; }
+@media print {
+  body:has(> .ops-print-host) > *:not(.ops-print-host) { display: none !important; }
+  .ops-print-host > div, .ops-print-host [role=dialog] { position: static !important; display: block !important; max-height: none !important; max-width: none !important; overflow: visible !important; border: 0 !important; padding: 0 !important; box-shadow: none !important; }
+  .ops-print-host [role=dialog] > :first-child, .ops-print-host [role=dialog] > :last-child { display: none !important; }
+  .ops-print-host [role=dialog] > div { overflow: visible !important; padding: 0 !important; }
+  .ops-print-document .ops-table { overflow: visible; }
+  .ops-print-document td, .ops-print-document th { white-space: normal; padding: 6px; }
+  .ops-print-document tr { break-inside: avoid; }
+  .ops-print-document thead { display: table-header-group; }
+}
+.ops h1 { font-size: 20px; letter-spacing: 0; overflow-wrap: anywhere; white-space: normal; }
+.ops-content { margin-top: 16px; }
+.ops-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 0; }
+.ops-search { display: flex; gap: 4px; width: 300px; max-width: 100%; }
+.ops-search input { min-width: 0; flex: 1; padding: 7px 10px; }
+.ops-table { overflow-x: auto; width: 100%; border-top: 1px solid var(--hz-border); }
+.ops-table table { width: 100%; text-align: left; }
+.ops-table th { white-space: nowrap; }
+.ops-table td { vertical-align: middle; overflow-wrap: anywhere; max-width: 380px; }
+.ops-table td, .ops-table th { padding: 10px 12px; }
+.ops-link { color: var(--hz-primary, #153980); text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.ops-muted { color: var(--hz-text-muted); font-size: 13px; margin-top: 3px; }
+.ops-pager { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 12px 0; }
+.ops-pager > span:first-child { margin-right: auto; }
+.ops-tabs { display: flex; gap: 20px; overflow-x: auto; border-bottom: 1px solid var(--hz-border); margin: 12px 0; }
+.ops-tabs button { padding: 10px 2px; white-space: nowrap; border-bottom: 2px solid transparent; }
+.ops-tabs button[aria-selected=true] { border-color: var(--hz-primary, #153980); font-weight: 600; }
+.ops-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; min-width: 0; }
+.ops-form fieldset { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 12px 0; }
+.ops-form .hz-field { padding: 8px 10px; width: 100%; min-width: 0; }
+.ops-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hz-border); }
+.ops-summary dt { color: var(--hz-text-muted); font-size: 13px; margin-bottom: 5px; }
+.ops-summary dd { overflow-wrap: anywhere; }
+.ops-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ops-section-title { font-weight: 600; font-size: 14px; padding: 18px 0 10px; }
+.ops-notice { padding: 10px 12px; background: var(--hz-bg-muted, #eff6f3); color: var(--hz-text-primary); margin: 8px 0; border-left: 3px solid #15803d; }
+@media (max-width: 640px) { .ops-form fieldset, .ops-summary { grid-template-columns: minmax(0, 1fr); } .ops-pager { gap: 6px; } }

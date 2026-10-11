@@ -16,7 +16,7 @@ Fixture list (approved by reviewer):
   Two bound renewable policies (within the default 90-day window),
   No underwriting referral on the journey-3 product.
 
-Outputs: secrets/accounts.json (temporary passwords), facts.json (non-secret fixture IDs).
+Outputs: secrets/accounts.json (current browser credentials), facts.json (non-secret fixture IDs).
 """
 
 import base64
@@ -180,15 +180,21 @@ def result_json(text: str) -> dict:
 # --------------------------------------------------------------------------- the API
 
 class Session:
-    def __init__(self, host: str, email: str, temporary_password: str):
+    def __init__(self, host: str, email: str, temporary_password: str, *, browser_accounts: dict | None = None):
         self.host, self.http, self.token = host, requests.Session(), None
+        self.current_password = temporary_password
         challenge = self._auth("login", {"email": email, "password": temporary_password})
         result = self._auth("otp/verify", {"challenge_id": challenge["challenge_id"], "code": challenge["sandbox_code"]})
         if result["status"] == "PASSWORD_CHANGE_REQUIRED":
+            new_password = f"Sdf-{secrets.token_urlsafe(12)}-Aa1!"
             result = self._auth("password/forced-change", {"challenge_id": result["challenge_id"],
-                                                          "new_password": f"Sdf-{secrets.token_urlsafe(12)}-Aa1!"})
+                                                          "new_password": new_password})
+            self.current_password = new_password
         assert result["status"] == "SIGNED_IN", result["status"]
         self.token = result["access_token"]
+        if browser_accounts is not None:
+            # Keep the existing fixture key, but export the credential that now works.
+            browser_accounts[email] = {"host": host, "temporary_password": self.current_password}
 
     def _auth(self, path, body):
         response = self.http.post(f"{SERVER}/api/v1/auth/{path}", json=body, headers={"Host": self.host})
@@ -464,7 +470,8 @@ def main():
         print(f"legacy product (no reference_fields): {legacy_product['name']} [{legacy_product['id']}]")
 
         # Certificate type (stock-manager has CERTIFICATE_STOCK_MANAGER with products.product.view)
-        stock_mgr = Session(ALPHA["domain"], "stock-manager@sdf.test", temporary["stock-manager@sdf.test"])
+        stock_mgr = Session(ALPHA["domain"], "stock-manager@sdf.test", temporary["stock-manager@sdf.test"],
+                            browser_accounts=browser_accounts)
         cert_type = stock_mgr.post("certificate-types", {"code": f"CT-{tag()}", "name": "Motor certificate",
                                                          "category": "MOTOR", "insurance_class_id": klass["id"]})
         print(f"certificate type: {cert_type['code']} [{cert_type['id']}]")
@@ -478,7 +485,8 @@ def main():
 
         # Two bound renewable policies using the main product.
         # The product has reference_fields, so pre-create a make/model for the setup risk.
-        ref_mgr = Session(ALPHA["domain"], "ref-manager@sdf.test", temporary["ref-manager@sdf.test"])
+        ref_mgr = Session(ALPHA["domain"], "ref-manager@sdf.test", temporary["ref-manager@sdf.test"],
+                          browser_accounts=browser_accounts)
         setup_make = ref_mgr.post("vehicle-makes", {"code": "SETUP-MAKE", "name": "Setup Make"})
         setup_model = ref_mgr.post(f"vehicle-makes/{setup_make['id']}/models",
                                    {"code": "SETUP-MODEL", "name": "Setup Model"})
@@ -544,7 +552,7 @@ def main():
     (SECRETS / "accounts.json").write_text(json.dumps(browser_accounts, indent=2), encoding="utf-8")
     (HERE / "facts.json").write_text(json.dumps(clean_facts, indent=2, default=str), encoding="utf-8")
     print(json.dumps(clean_facts, indent=2, default=str))
-    print(f"temporary passwords captured for {len(browser_accounts)} browser accounts (not shown)")
+    print(f"current credentials captured for {len(browser_accounts)} browser accounts (not shown)")
 
 
 if __name__ == "__main__":
