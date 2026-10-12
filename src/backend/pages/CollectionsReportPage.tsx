@@ -31,7 +31,7 @@ export function CollectionsReportPage() {
   useEffect(() => { setDraft(initial); }, [params]);
   const [validation, setValidation] = useState('');
   const [print, setPrint] = useState(false);
-  const [colTab, setColTab] = useState('breakdown');
+  const colTab = params.get('view') || 'breakdown';
   const me = useMe().data;
   const scopeLabel = initial.branch_id ? me?.branches.find(b => b.id === initial.branch_id)?.name ?? 'Selected branch' : 'All permitted branches';
   const page = Math.max(1, Number(params.get('page')) || 1);
@@ -77,7 +77,7 @@ export function CollectionsReportPage() {
     {validation && <p role="alert">{validation}</p>}
     <QueryState query={query} />
     {report && <>
-      <Tabs value={colTab} options={[{ value: 'breakdown', label: groups[report.group_by] }, { value: 'totals', label: 'Period totals' }]} change={setColTab} />
+      <Tabs value={colTab} options={[{ value: 'breakdown', label: groups[report.group_by] }, { value: 'totals', label: 'Period totals' }]} change={v => setParams(p => { const n = new URLSearchParams(p); n.set('view', v); return n; })} />
       {colTab === 'totals' && <CollectionTotals report={report} />}
       {colTab === 'breakdown' && <>
         <CollectionRows report={report} />

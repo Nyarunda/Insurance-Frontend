@@ -20,6 +20,7 @@ export function SubscriptionPage() {
   const canManage = usePermission('admin.users.manage');
   const query = useOperationsQuery<SubscriptionInfo>('/admin/subscription');
   const [action, setAction] = useState<ActionSpec | null>(null);
+  const [notice, setNotice] = useState('');
   const info = query.data;
   const plan = info?.plan;
   const sub = info?.subscription;
@@ -43,6 +44,7 @@ export function SubscriptionPage() {
   });
 
   return <Surface title="Subscription" subtitle={plan?.name} actions={<Refresh query={query} />}>
+    {notice && <div role="status" className="ops-notice">{notice}</div>}
     <QueryState query={query} />
     {info && !plan && <p className="ops-muted" style={{ padding: '16px 0' }}>No active subscription found.</p>}
     {plan && sub && usage && <>
@@ -85,6 +87,6 @@ export function SubscriptionPage() {
         </div>}
       </>}
     </>}
-    {action && <ActionDialog spec={action} close={() => setAction(null)} done={() => setAction(null)} />}
+    {action && <ActionDialog spec={action} close={() => setAction(null)} done={() => { setAction(null); setNotice('Subscription updated.'); }} />}
   </Surface>;
 }

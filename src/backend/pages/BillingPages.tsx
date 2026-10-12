@@ -78,9 +78,10 @@ export function ReceiptWorkspace() {
   const me = useMe().data;
   const actor = me?.user.id;
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') || 'details';
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [print, setPrint] = useState<Receipt | null>(null);
-  const [tab, setTab] = useState('details');
   const r = query.data;
   return <Surface title={r?.receipt_no ?? 'Receipt'} subtitle={r && <Status value={r.status} />} back={() => navigate('/billing/receipts/list')} actions={<><Refresh query={query} />
     <button className="hz-icon-button" title="Print receipt" data-testid="receipt-print" disabled={!r || query.isFetching} onClick={async () => { const fresh = await query.refetch(); if (fresh.isSuccess && fresh.data) setPrint(fresh.data); }}><Printer size={16} /></button>
@@ -95,7 +96,7 @@ export function ReceiptWorkspace() {
         <div><dt>Reference</dt><dd>{r.payment_reference || '-'}</dd></div>
         {r.reversal_reason && <div><dt>Reversal reason</dt><dd>{r.reversal_reason}</dd></div>}
       </dl>
-      <Tabs value={tab} options={[{ value: 'details', label: 'Allocations' }, { value: 'journal', label: 'Journal entries' }]} change={setTab} />
+      <Tabs value={tab} options={[{ value: 'details', label: 'Allocations' }, { value: 'journal', label: 'Journal entries' }]} change={v => setParams({ tab: v })} />
       {tab === 'details' && <Grid headers={['Policy', 'Amount']} empty={!r.allocations.length}>
         {r.allocations.map(a => <tr key={a.id}><td>{a.policy_no}</td><td className="tabular-nums">{r.currency} {a.amount}</td></tr>)}
       </Grid>}

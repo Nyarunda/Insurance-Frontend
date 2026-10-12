@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Plus } from 'lucide-react';
 import { useOperationsQuery } from '../operations/data';
 import { ActionDialog, ActionSpec, Grid, QueryState, Refresh, Surface, Tabs } from '../operations/ui';
@@ -49,7 +49,7 @@ function TenantList() {
       {query.data.map(t => <tr key={t.id}>
         <td><Link className="ops-link" to={`/platform/tenants/list/${t.id}`}>{t.name}</Link></td>
         <td>{t.slug}</td>
-        <td><StatusBadge tone={statusTone(t.status)}>{t.status}</StatusBadge></td>
+        <td><StatusBadge tone={statusTone(t.status)} label={t.status} /></td>
         <td>{t.active_members}</td>
         <td>{t.subscription?.plan_name ?? 'None'}</td>
         <td>{t.subscription?.end_date ?? 'No end date'}</td>
@@ -63,11 +63,12 @@ function TenantWorkspace({ tenantId }: { tenantId: string }) {
   const navigate = useNavigate();
   const query = useOperationsQuery<TenantDetail>(`/platform/tenants/${tenantId}`);
   const t = query.data;
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') || 'overview';
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [notice, setNotice] = useState('');
-  const [tab, setTab] = useState('overview');
   return <Surface title={t?.name ?? 'Tenant'} back={() => navigate('/platform/tenants/list')}
-    subtitle={t && <StatusBadge tone={statusTone(t.status)}>{t.status}</StatusBadge>}
+    subtitle={t && <StatusBadge tone={statusTone(t.status)} label={t.status} />}
     actions={<>
       <Refresh query={query} />
       {t && t.status === 'ACTIVE' && <button className="hz-button hz-button-secondary"
@@ -80,13 +81,13 @@ function TenantWorkspace({ tenantId }: { tenantId: string }) {
     {notice && <div role="status" className="ops-notice">{notice}</div>}
     <QueryState query={query} />
     {t && <>
-      <Tabs value={tab} options={[{ value: 'overview', label: 'Overview' }, { value: 'subscriptions', label: 'Subscriptions' }]} change={setTab} />
+      <Tabs value={tab} options={[{ value: 'overview', label: 'Overview' }, { value: 'subscriptions', label: 'Subscriptions' }]} change={v => setParams({ tab: v })} />
       {tab === 'overview' && <>
         <dl className="ops-summary" data-testid="tenant-summary">
           <div><dt>Name</dt><dd>{t.name}</dd></div>
           <div><dt>Slug</dt><dd>{t.slug}</dd></div>
           <div><dt>Schema</dt><dd><code>{t.schema_name}</code></dd></div>
-          <div><dt>Status</dt><dd><StatusBadge tone={statusTone(t.status)}>{t.status}</StatusBadge></dd></div>
+          <div><dt>Status</dt><dd><StatusBadge tone={statusTone(t.status)} label={t.status} /></dd></div>
           <div><dt>Active members</dt><dd>{t.active_members}</dd></div>
           <div><dt>Created</dt><dd>{t.created_at}</dd></div>
         </dl>
@@ -102,7 +103,7 @@ function TenantWorkspace({ tenantId }: { tenantId: string }) {
       {tab === 'subscriptions' && <Grid headers={['Plan', 'Status', 'Start', 'End', 'Max users', 'Modules']} empty={!t.subscriptions.length}>
         {t.subscriptions.map(s => <tr key={s.id}>
           <td>{s.plan_name} <span className="ops-muted">({s.plan_code})</span></td>
-          <td><StatusBadge tone={statusTone(s.status)}>{s.status}</StatusBadge></td>
+          <td><StatusBadge tone={statusTone(s.status)} label={s.status} /></td>
           <td>{s.start_date}</td>
           <td>{s.end_date ?? 'No end date'}</td>
           <td>{s.max_users ?? 'Unlimited'}</td>
