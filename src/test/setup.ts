@@ -1,6 +1,17 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { randomUUID } from 'node:crypto';
+
+// Node channels cross Vitest worker boundaries; separate test files are not tabs
+// of one origin. Keep real delivery within each file without signing out other suites.
+const NativeBroadcastChannel = globalThis.BroadcastChannel;
+if (NativeBroadcastChannel) {
+  const channelScope = randomUUID();
+  globalThis.BroadcastChannel = class extends NativeBroadcastChannel {
+    constructor(name: string) { super(`${channelScope}:${name}`); }
+  };
+}
 
 if (typeof window !== 'undefined' && !window.matchMedia) {
   // jsdom has no layout: behave as a desktop-width screen.

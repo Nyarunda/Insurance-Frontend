@@ -62,11 +62,12 @@ import type { DuplicateAlerts, Pricing, QuotationDetail, RatingFactor, RiskIdent
 import { QuotationOutcome, useQuotationCommands } from '../quotations/useQuotationCommands';
 import { formatDateTime, formatMoney, humanize } from '../workflow/format';
 import { quotationsFrom } from './QuotationsPage';
+import { AgentPicker, AgentReference } from '../agents/AgentPicker';
 
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 
-type Dialog = 'issue' | 'decline' | 'cancel' | 'validity' | { offer: number } | null;
+type Dialog = 'issue' | 'decline' | 'cancel' | 'validity' | 'agents' | { offer: number } | null;
 
 export const QuotationPage: React.FC = () => {
   const quotationId = useQuotationId();
@@ -308,6 +309,13 @@ export const QuotationPage: React.FC = () => {
                   ))}
                 </ul>
               </SideSection>
+              <SideSection title="Agent attribution">
+                <SummaryList items={[
+                  { label: 'Agent', value: view.agent?.name ?? (view.agent_ref ? `${view.agent_ref} (unverified legacy reference)` : 'Not assigned') },
+                  { label: 'Sub-agent', value: view.sub_agent?.name ?? (view.sub_agent_ref ? `${view.sub_agent_ref} (unverified legacy reference)` : 'Not assigned') },
+                ]} />
+                {draft && !awaitingWorkflow && canEdit && <button type="button" className="mt-2 text-sm text-[var(--hz-primary)] hover:underline" onClick={() => setDialog('agents')}>Change agents</button>}
+              </SideSection>
             </>
           }
         />
@@ -323,10 +331,23 @@ export const QuotationPage: React.FC = () => {
       {dialog === 'validity' && etag && (
         <ValidityDialog view={view} etag={etag} onClose={() => setDialog(null)} onDone={() => { setDialog(null); setToast(`Validity changed: ${view.quotation_no}`); }} />
       )}
+      {dialog === 'agents' && etag && <AgentAttributionDialog key={view.id} view={view} etag={etag} close={() => setDialog(null)} done={() => { setDialog(null); setToast('Agent attribution updated.'); }} />}
       {dialog && typeof dialog === 'object' && <OfferDialog quotationId={view.id} revisionNo={dialog.offer} onClose={() => setDialog(null)} />}
     </HorizonPage>
   );
 };
+
+function AgentAttributionDialog({ view, etag, close, done }: { view: QuotationDetail; etag: string; close: () => void; done: () => void }) {
+  const [expected] = useState(etag);
+  const [agent, setAgent] = useState<AgentReference | null>(view.agent ?? null);
+  const [sub, setSub] = useState<AgentReference | null>(view.sub_agent ?? null);
+  const [error, setError] = useState<unknown>(null);
+  const commands = useQuotationCommands();
+  return <DialogFrame titleId="quote-agent-title" title="Agent attribution" onClose={() => { if (!commands.pending) close(); }} dismissOnBackdrop={false} size="lg" footer={<><button className="hz-button hz-button-secondary" disabled={commands.pending} onClick={close}>Cancel</button><button className="hz-button hz-button-primary" form="quote-agents" type="submit" disabled={commands.pending}>{commands.pending ? 'Saving...' : 'Save agents'}</button></>}>
+    {error != null && <ApiErrorAlert error={error} />}
+    <form id="quote-agents" onSubmit={async e => { e.preventDefault(); setError(null); const result = await commands.update(view.id, { agent_id: agent?.id ?? null, sub_agent_id: sub?.id ?? null }, expected); if (result.ok === true) done(); else setError(result.error); }}><fieldset disabled={commands.pending} className="space-y-3"><AgentPicker label="Agent" value={agent} onChange={value => { setAgent(value); setSub(null); }} />{agent?.kind === 'AGENT' && <AgentPicker key={agent.id} label="Sub-agent" parentId={agent.id} value={sub} onChange={setSub} />}</fieldset></form>
+  </DialogFrame>;
+}
 
 /** Where the quotation stands, in one line, when something waits on someone. */
 const StateNotice: React.FC<{ view: QuotationDetail }> = ({ view }) => {

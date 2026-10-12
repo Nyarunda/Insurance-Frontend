@@ -97,6 +97,8 @@ export interface RevisionView {
 export interface QuotationDetail extends QuotationSummary {
   marketer_ref: string;
   agent_ref: string;
+  agent?: { id: string; code: string; name: string; kind: string } | null;
+  sub_agent?: { id: string; code: string; name: string; kind: string } | null;
   sub_agent_ref: string;
   decision_reason: string;
   decided_at: string | null;

@@ -73,6 +73,7 @@ describe('permission-driven navigation', () => {
       ['customers', 'clients.customer.view'],
       ['new-policy', 'quotations.quotation.create'],
       ['quotations', 'quotations.quotation.view'],
+      ['intermediaries', 'intermediaries.agent.view'],
       ['proposals', 'underwriting.proposal.view'],
       ['policies', 'policies.policy.view'],
       ['reporting-operational', 'policies.policy.view'],

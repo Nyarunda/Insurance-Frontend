@@ -113,6 +113,8 @@ describe('Renewals', () => {
     listBackend();
     const router = renderAt('/renewals/list', VIEWER);
     const table = await screen.findByRole('table', { name: 'Due for renewal' });
+    expect(table.querySelector('td td')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Renewal diary' })).toBeVisible();
     await user.click(within(table).getByText('POL0000001'));
     await waitFor(() => expect(router.state.location.pathname).toBe('/policies/list/POL0000001'));
     expect(router.state.location.search).toBe('?tab=renewals');

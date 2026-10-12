@@ -100,6 +100,7 @@ const FACTORS = [
 ];
 
 interface Options {
+  agents?: NonNullable<QuotationDetail['agent']>[];
   list?: QuotationSummary[];
   view?: QuotationDetail;
   /** The detail (and its ETag) served on each GET, in order; the last repeats. */
@@ -116,6 +117,7 @@ function quotationBackend(options: Options = {}) {
   let gets = 0;
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
+    if (path.startsWith('/agents/options?')) return json(200, { results: options.agents ?? [], count: options.agents?.length ?? 0, page: 1, page_size: 10 });
     if (path.startsWith('/quotations?')) {
       const results = options.list ?? [summary()];
       return json(200, { results, count: results.length, page: 1, page_size: 25 });
@@ -203,6 +205,35 @@ describe('Quotations list', () => {
 });
 
 describe('New quotation', () => {
+  it('saves verified agent identity instead of a typed reference', async () => {
+    const user = userEvent.setup();
+    const agent = { id: 'agent-id', code: 'AG-12', name: 'Karibu Agency', kind: 'AGENT' };
+    const backend = quotationBackend({ agents: [agent] });
+    renderAt('/quotations/list/new', MAKER, { customer: { id: CUSTOMER_ID, customer_no: 'CUS0000001', display_name: 'Wanjiku Kamau' } });
+    const dialog = within(await screen.findByRole('dialog', { name: 'New quotation' }));
+    await user.selectOptions(await dialog.findByLabelText(/Product/), PRODUCT_ID);
+    await user.click(dialog.getByRole('button', { name: 'Choose agent' }));
+    await user.click(await dialog.findByRole('button', { name: /Karibu Agency/ }));
+    expect(backend.calls.filter(c => c.method === 'POST')).toHaveLength(0);
+    await user.click(dialog.getByRole('button', { name: 'Create quotation' }));
+    await waitFor(() => expect(backend.calls.find(c => c.method === 'POST')?.body).toMatchObject({ agent_id: agent.id, sub_agent_id: null }));
+  });
+
+  it('clears both linked identities when removing a draft quotation agent', async () => {
+    const user = userEvent.setup();
+    const agent = { id: 'agent-id', code: 'AG-12', name: 'Karibu Agency', kind: 'AGENT' };
+    const sub = { id: 'sub-id', code: 'SUB-12', name: 'Karibu Sub-agent', kind: 'SUB_AGENT' };
+    const backend = quotationBackend({ view: detail({ agent, sub_agent: sub }) });
+    renderAt(`/quotations/list/${Q_ID}`);
+    await user.click(await screen.findByRole('button', { name: 'Change agents' }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Agent attribution' }));
+    await user.click(dialog.getByRole('button', { name: 'Clear agent' }));
+    expect(dialog.queryByRole('button', { name: 'Clear sub-agent' })).not.toBeInTheDocument();
+    await user.click(dialog.getByRole('button', { name: 'Save agents' }));
+    await waitFor(() => expect(backend.calls.find(c => c.method === 'PATCH')?.body).toEqual({ agent_id: null, sub_agent_id: null }));
+    expect(backend.calls.find(c => c.method === 'PATCH')?.headers['if-match']).toBe(ETAG);
+  });
+
   it('takes a customer handed over from the record, a product and the branch, and opens the draft by number', async () => {
     const user = userEvent.setup();
     const backend = quotationBackend();

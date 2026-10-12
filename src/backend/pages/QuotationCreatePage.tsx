@@ -21,6 +21,7 @@ import { useActiveProducts } from '../quotations/queries';
 import { quotationHref } from '../quotations/refs';
 import { useQuotationCommands } from '../quotations/useQuotationCommands';
 import { quotationsFrom } from './QuotationsPage';
+import { AgentPicker, AgentReference } from '../agents/AgentPicker';
 
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
@@ -51,6 +52,8 @@ export const QuotationCreatePage: React.FC = () => {
   const [product, setProduct] = useState('');
   const [branch, setBranch] = useState(activeBranchId ?? (branches.length === 1 ? branches[0].id : ''));
   const [validUntil, setValidUntil] = useState('');
+  const [agent, setAgent] = useState<AgentReference | null>(null);
+  const [subAgent, setSubAgent] = useState<AgentReference | null>(null);
   const [attempted, setAttempted] = useState(false);
   const [serverFields, setServerFields] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<unknown>(null);
@@ -74,6 +77,7 @@ export const QuotationCreatePage: React.FC = () => {
       product_id: product,
       branch_id: branch,
       ...(validUntil ? { valid_until: validUntil } : {}),
+      ...(agent ? { agent_id: agent.id, sub_agent_id: subAgent?.id ?? null } : {}),
     });
     if (outcome.ok === true) {
       navigate(quotationHref(outcome.view.quotation_no), { replace: true, state: { quotations: quotationsFrom(location.state) } });
@@ -228,6 +232,13 @@ export const QuotationCreatePage: React.FC = () => {
             <FieldError message={errorFor('valid_until')} />
           </div>
         </div>
+        <fieldset disabled={pending} className="space-y-3 border-t border-[var(--hz-border)] pt-4 mt-4">
+          <legend className={label}>Agent attribution</legend>
+          <AgentPicker label="Agent" value={agent} onChange={value => { setAgent(value); setSubAgent(null); }} />
+          <FieldError message={errorFor('agent_id')} />
+          {agent?.kind === 'AGENT' && <AgentPicker key={agent.id} label="Sub-agent" parentId={agent.id} value={subAgent} onChange={setSubAgent} />}
+          <FieldError message={errorFor('sub_agent_id')} />
+        </fieldset>
       </form>
     </DialogFrame>
   );

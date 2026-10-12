@@ -119,10 +119,13 @@ export const RenewalsPage: React.FC = () => {
         title="Renewals"
         subtitle="Policies nearing expiry, and the renewals prepared for them"
         actions={
-          <button type="button" className="hz-button hz-button-secondary" onClick={() => void active.refetch()} disabled={active.isFetching}>
-            <RefreshCw className={`h-3.5 w-3.5 ${active.isFetching ? 'animate-spin' : ''}`} />
-            {active.isFetching ? 'Refreshing…' : 'Refresh'}
-          </button>
+          <>
+            <button type="button" className="hz-button hz-button-secondary" onClick={() => navigate('/renewals/diary')}><CalendarClock size={15} />Renewal diary</button>
+            <button type="button" className="hz-button hz-button-secondary" onClick={() => void active.refetch()} disabled={active.isFetching}>
+              <RefreshCw className={`h-3.5 w-3.5 ${active.isFetching ? 'animate-spin' : ''}`} />
+              {active.isFetching ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </>
         }
       />
       <div className="px-4">
@@ -175,8 +178,8 @@ export const RenewalsPage: React.FC = () => {
                       </td>
                       <td className="whitespace-nowrap">{formatDate(policy.expiry_date)}</td>
                       <td className="text-right tabular-nums">{formatMoney(policy.total_premium, policy.currency)}</td>
-                      <td className="text-right">
-                        {canPrepare ? (
+                      {canPrepare ? (
+                        <td className="text-right">
                           <button type="button" className="hz-button hz-button-secondary" aria-label={`Prepare a renewal of ${policy.policy_no}`}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -185,10 +188,8 @@ export const RenewalsPage: React.FC = () => {
                             <Plus className="h-3.5 w-3.5" />
                             Prepare renewal
                           </button>
-                        ) : (
-                          <RowChevron />
-                        )}
-                      </td>
+                        </td>
+                      ) : <RowChevron />}
                     </tr>
                   ))}
                 </tbody>

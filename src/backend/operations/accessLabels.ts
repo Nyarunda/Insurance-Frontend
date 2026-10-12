@@ -1,11 +1,13 @@
 /** Presentation only: permission codes remain the authorization and API identifiers. */
 const modules: Record<string, string> = {
+  intermediaries: 'Agents & partners',
   admin: 'Administration', billing: 'Billing & collections', certificates: 'Certificates',
   claims: 'Claims', clients: 'Customers', finance: 'Finance', insurers: 'Insurers',
   policies: 'Policies', products: 'Products & pricing', quotations: 'Quotations',
   underwriting: 'Underwriting', workflow: 'Approvals & work queues',
 };
 const resources: Record<string, string> = {
+  'intermediaries.agent': 'agents and sub-agents',
   'admin.authority': 'approval limits', 'admin.delegation': 'delegations',
   'admin.roles': 'roles and permissions', 'admin.users': 'users', 'admin.workflow': 'approval workflows',
   'admin.integrations': 'integrations and provider credentials',

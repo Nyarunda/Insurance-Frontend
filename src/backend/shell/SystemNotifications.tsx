@@ -35,7 +35,7 @@ export function SystemNotificationBanner() {
 
   const dismiss = async (id: string) => {
     try {
-      await api.request(`/notifications/system/${id}/dismiss`, { method: 'POST', data: {} });
+      await api.request(`/notifications/system/${id}/dismiss`, { method: 'POST', body: {} });
       void cache.invalidateQueries({ queryKey: ['system-notifications'] });
     } catch { /* silent */ }
   };

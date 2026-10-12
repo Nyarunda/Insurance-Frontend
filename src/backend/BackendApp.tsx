@@ -71,6 +71,8 @@ import { HorizonLoader } from '../components/horizon';
 import { OperationsBoundary } from './operations/ui';
 
 const UsersPage = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
+const AgentsPage = React.lazy(() => import('./pages/AgentsPage').then(m => ({ default: m.AgentsPage })));
+const AgentWorkspace = React.lazy(() => import('./pages/AgentsPage').then(m => ({ default: m.AgentWorkspace })));
 const UserWorkspace = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UserWorkspace })));
 const RolesPage = React.lazy(() => import('./pages/RolesPage').then(m => ({ default: m.RolesPage })));
 const ReceiptsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptsPage })));
@@ -78,6 +80,7 @@ const ReceiptWorkspace = React.lazy(() => import('./pages/BillingPages').then(m 
 const BillingAccountsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.BillingAccountsPage })));
 const CollectionsReportPage = React.lazy(() => import('./pages/CollectionsReportPage').then(m => ({ default: m.CollectionsReportPage })));
 const ProductionReportPage = React.lazy(() => import('./pages/ProductionReportPage').then(m => ({ default: m.ProductionReportPage })));
+const RenewalDiaryPage = React.lazy(() => import('./pages/RenewalDiaryPage').then(m => ({ default: m.RenewalDiaryPage })));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
 const SubscriptionPage = React.lazy(() => import('./pages/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })));
 const PlatformTenantsPage = React.lazy(() => import('./pages/PlatformTenantsPage').then(m => ({ default: m.PlatformTenantsPage })));
@@ -106,6 +109,8 @@ export const backendRoutes: RouteObject[] = [
       </RequireSession>
     ),
     children: [
+      { path: 'agents/list', element: operation('intermediaries.agent.view', <AgentsPage />) },
+      { path: 'agents/list/:agentId', element: operation('intermediaries.agent.view', <AgentWorkspace />) },
       { path: 'admin/users/list', element: operation('admin.users.view', <UsersPage />) },
       { path: 'admin/users/list/:userId', element: operation('admin.users.view', <UserWorkspace />) },
       { path: 'admin/roles/list', element: operation('admin.roles.manage', <RolesPage />) },
@@ -115,6 +120,7 @@ export const backendRoutes: RouteObject[] = [
       { path: 'billing/receipts/list', element: operation('billing.document.view', <ReceiptsPage />) },
       { path: 'billing/reports/collections', element: operation('billing.document.view', <CollectionsReportPage />) },
       { path: 'reports/production', element: operation('policies.policy.view', <ProductionReportPage />) },
+      { path: 'renewals/diary', element: operation('policies.policy.view', <RenewalDiaryPage />) },
       { path: 'billing/receipts/list/:receiptId', element: operation('billing.document.view', <ReceiptWorkspace />) },
       { path: 'billing/accounts/list', element: operation('billing.setup.manage', <BillingAccountsPage />) },
       { path: 'billing/agreements/list', element: operation('billing.setup.manage', <BillingAgreementsPage />) },

@@ -27,7 +27,7 @@ export function Grid({ headers, children, empty }: { headers: string[]; children
   return <div className="ops-table" data-testid="operations-table"><table className="hz-grid"><thead><tr>{headers.map((h, i) => <th key={i} scope="col">{h}</th>)}</tr></thead><tbody>{empty ? <tr><td colSpan={headers.length}>No records found.</td></tr> : children}</tbody></table></div>;
 }
 export function Pager({ page, count, size, change }: { page: number; count: number; size: number; change: (page: number) => void }) {
-  return <div className="ops-pager"><span>{count} records</span><button className="hz-icon-button" title="Previous page" disabled={page <= 1} onClick={() => change(page - 1)}><ChevronLeft size={16} /></button><span>Page {page} of {Math.max(1, Math.ceil(count / size))}</span><button className="hz-icon-button" title="Next page" disabled={page * size >= count} onClick={() => change(page + 1)}><ChevronRight size={16} /></button></div>;
+  return <div className="ops-pager"><span>{count} records</span><button type="button" className="hz-icon-button" title="Previous page" disabled={page <= 1} onClick={() => change(page - 1)}><ChevronLeft size={16} /></button><span>Page {page} of {Math.max(1, Math.ceil(count / size))}</span><button type="button" className="hz-icon-button" title="Next page" disabled={page * size >= count} onClick={() => change(page + 1)}><ChevronRight size={16} /></button></div>;
 }
 export function SearchBox({ value, onSearch, label = 'Search' }: { value: string; onSearch: (value: string) => void; label?: string }) {
   const [draft, setDraft] = useState(value);
