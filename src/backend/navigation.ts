@@ -7,7 +7,7 @@
  */
 
 import { Bell, BellRing, Boxes, Building2, CalendarClock, Car, ClipboardList, CreditCard, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, Package, RefreshCcw, Settings2, UsersRound, Workflow, type LucideIcon } from 'lucide-react';
-import { CERT_STOCK, CERT_VIEW, COMMISSION_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, INSURER_VIEW, POLICY_VIEW, PRODUCT_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
+import { ADMIN_USERS_VIEW, AUDIT_VIEW, CERT_STOCK, CERT_VIEW, COMMISSION_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, DELEGATION_VIEW, INSURER_VIEW, POLICY_VIEW, PRODUCT_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -116,8 +116,11 @@ export const BACKEND_NAV: BackendNavGroup[] = [
   {
     id: 'administration', title: 'Administration', icon: UsersRound,
     items: [
+      { screen: 'admin-branches', label: 'Branch hierarchy', path: '/admin/branches/list', permission: ADMIN_USERS_VIEW, icon: Building2 },
       { screen: 'admin-users-roles', label: 'Users', path: '/admin/users/list', permission: 'admin.users.view', icon: UsersRound },
       { screen: 'admin-doa', label: 'Roles & permissions', path: '/admin/roles/list', permission: 'admin.roles.manage', icon: ListChecks },
+      { screen: 'admin-delegations', label: 'Delegations', path: '/admin/delegations/list', permission: DELEGATION_VIEW, icon: Workflow },
+      { screen: 'admin-audit', label: 'Audit logs', path: '/admin/audit-logs/list', permission: AUDIT_VIEW, icon: FileText },
       { screen: 'admin-integrations', label: 'Integrations', path: '/admin/integrations/list', permission: 'admin.integrations.manage', icon: Settings2 },
       { screen: 'admin-subscription', label: 'Subscription', path: '/admin/subscription', permission: 'admin.users.view', icon: CreditCard },
     ],
