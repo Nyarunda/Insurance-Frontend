@@ -1,0 +1,33 @@
+name: ADMIN-OPS-GATE-1 frontend
+on:
+  push:
+    branches: [fix/admin-ops-gate-20261013]
+  pull_request:
+    branches: [feat/workflow-only-approvals]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: TypeScript gate
+        run: npm run lint
+      - name: Vitest full gate
+        run: npm test
+      - name: Standard bundle
+        run: npm run build
+      - name: Backend-integrated bundle
+        run: npm run build:backend
