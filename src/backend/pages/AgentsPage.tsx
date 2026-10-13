@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { Check, ClipboardCheck, Pencil, Plus, Save, Send, ShieldOff, Undo2, X } from 'lucide-react';
-import { useMe, usePermission } from '../../lib/auth/me';
+import { ClipboardCheck, Pencil, Plus, Save, Send, ShieldOff, Undo2 } from 'lucide-react';
+import { usePermission } from '../../lib/auth/me';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
 import { AgentPicker, AgentReference } from '../agents/AgentPicker';
@@ -65,8 +65,6 @@ export function AgentWorkspace() {
   const query = useOperationsQuery<Agent>(path);
   const a = query.data;
   const manage = usePermission(MANAGE);
-  const approve = usePermission('intermediaries.agent.approve');
-  const actor = useMe().data?.user.id;
   const [addingChild, setAddingChild] = useState(false);
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [notice, setNotice] = useState('');
@@ -79,7 +77,7 @@ export function AgentWorkspace() {
     {manage && ['DRAFT', 'REJECTED', 'SUSPENDED'].includes(a.status) && <button className="hz-button hz-button-primary" onClick={() => start('submit', 'Submit for approval')}><Send size={14} />Submit for approval</button>}
     {manage && a.status === 'PENDING' && <button className="hz-button hz-button-secondary" onClick={() => start('withdraw', 'Withdraw submission')}><Undo2 size={14} />Withdraw</button>}
     {a.status === 'PENDING' && a.workflow?.instance_id && <button className="hz-button hz-button-secondary" onClick={() => navigate(`/my-work/list/${encodeURIComponent(a.workflow!.instance_id)}`)}><ClipboardCheck size={14} />Open approval</button>}
-    {approve && a.status === 'PENDING' && !a.workflow?.instance_id && !a.contributors.includes(actor ?? '') && <><button className="hz-button hz-button-primary" onClick={() => start('approve', 'Approve agent')}><Check size={14} />Approve</button><button className="hz-button hz-button-secondary" onClick={() => start('reject', 'Reject agent')}><X size={14} />Reject</button></>}
+    
     {manage && a.status === 'ACTIVE' && <button className="hz-button hz-button-secondary" onClick={() => start('suspend', 'Suspend agent')}><ShieldOff size={14} />Suspend</button>}
     {manage && a.status === 'ACTIVE' && a.kind === 'AGENT' && <button className="hz-button hz-button-primary" onClick={() => setAddingChild(true)}><Plus size={14} />New sub-agent</button>}
   </>}</>}>
