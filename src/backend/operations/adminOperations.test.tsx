@@ -99,3 +99,22 @@ it('renders the append-only audit directory for audit viewers', async () => {
   expect(await screen.findByText('BRANCH_UPDATED')).toBeVisible();
   expect(screen.getByText('admin@example.test')).toBeVisible();
 });
+
+
+it('audit detail shows metadata only, even if an upstream adds sensitive JSON', async () => {
+  at('/admin/audit-logs/list/a1', ['admin.audit.view'], url =>
+    url.endsWith('/admin/audit-logs/a1')
+      ? json(200, {
+          id: 'a1', actor_id: 'u1', actor_email: 'admin@example.test',
+          timestamp: '2026-10-13T10:00:00Z', ip_address: null,
+          correlation_id: 'trace-a1', action: 'BRANCH_UPDATED',
+          resource_type: 'BRANCH', resource_id: 'b1',
+          payloads_exposed: false,
+          before_state: { private: 'DO_NOT_SHOW_AUDIT_SECRET' },
+          after_state: { private: 'DO_NOT_SHOW_AUDIT_SECRET' },
+        })
+      : json(200, {}));
+  expect(await screen.findByText('Audit event')).toBeVisible();
+  expect(screen.getByText(/payloads are not disclosed/i)).toBeVisible();
+  expect(screen.queryByText(/DO_NOT_SHOW_AUDIT_SECRET/)).not.toBeInTheDocument();
+});
