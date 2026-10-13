@@ -5,6 +5,8 @@ import { useOperationsQuery } from '../operations/data';
 import { ActionDialog, ActionSpec, Grid, QueryState, Refresh, Surface, Tabs } from '../operations/ui';
 import { StatusBadge } from '../../components/horizon';
 
+interface PlanOption { code: string; name: string; max_users: number | null; modules: string[] }
+
 interface TenantRow {
   id: string; name: string; slug: string; status: string; created_at: string;
   active_members: number;
@@ -29,6 +31,7 @@ export function PlatformTenantsPage() {
 
 function TenantList() {
   const query = useOperationsQuery<TenantRow[]>('/platform/tenants');
+  const plans = useOperationsQuery<PlanOption[]>('/platform/plans');
   const [action, setAction] = useState<ActionSpec | null>(null);
   const [notice, setNotice] = useState('');
   return <Surface title="Platform tenants" subtitle="Manage all tenants" actions={<>
@@ -38,13 +41,15 @@ function TenantList() {
         { name: 'name', label: 'Name', required: true },
         { name: 'slug', label: 'Slug', required: true },
         { name: 'domain', label: 'Domain', required: true },
-        { name: 'plan_code', label: 'Plan code', required: true },
+        { name: 'plan_code', label: 'Plan', required: true,
+          options: (plans.data ?? []).map(p => ({ value: p.code, label: `${p.name} (${p.code})` })) },
         { name: 'reason', label: 'Reason' },
       ],
-    })}><Plus size={15} />New tenant</button>
+    })} disabled={!plans.data?.length}><Plus size={15} />New tenant</button>
   </>}>
     {notice && <div role="status" className="ops-notice">{notice}</div>}
     <QueryState query={query} />
+    {plans.isError && <QueryState query={plans} />}
     {query.data && <Grid headers={['Tenant', 'Slug', 'Status', 'Members', 'Plan', 'Subscription end']} empty={!query.data.length}>
       {query.data.map(t => <tr key={t.id}>
         <td><Link className="ops-link" to={`/platform/tenants/list/${t.id}`}>{t.name}</Link></td>
