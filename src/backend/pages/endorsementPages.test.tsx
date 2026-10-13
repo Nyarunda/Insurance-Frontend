@@ -953,11 +953,9 @@ describe('the lightweight approval path (endorsements never; one sanctioned unde
     // Billing authority has its own server-enforced maker/checker approval, not an
     // endorsement approval shortcut. Allow exactly that endpoint, not the file.
     const billing = join(root, 'backend', 'pages', 'BillingAgreementsPage.tsx');
-    const guardedCode = (file: string) => file === billing
-      ? code(file).replace('`${path}/collection-authority/approve`', '')
-      : code(file);
-    expect(code(billing).split('`${path}/collection-authority/approve`')).toHaveLength(2);
-    const offenders = files.filter((file) => file !== sanctioned && literals(guardedCode(file)).length > 0);
+    // Workflow-only decisions remove the former collection-authority direct decision route.
+    expect(code(billing)).not.toContain('${path}/collection-authority/approve');
+    const offenders = files.filter((file) => file !== sanctioned && literals(code(file)).length > 0);
     expect(offenders).toEqual([]);
     const proposals = code(sanctioned);
     expect(literals(proposals)).toEqual(['/approve']);
