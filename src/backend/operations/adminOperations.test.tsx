@@ -97,7 +97,7 @@ it('renders the append-only audit directory for audit viewers', async () => {
       ip_address: null, correlation_id: 'corr-1', action: 'BRANCH_UPDATED', resource_type: 'BRANCH', resource_id: 'b1',
     }] }) : json(200, {}));
   expect(await screen.findByText('BRANCH_UPDATED')).toBeVisible();
-  expect(screen.getByText('admin@example.test')).toBeVisible();
+  expect(within(screen.getByTestId('operations-table')).getByText('admin@example.test')).toBeVisible();
 });
 
 
@@ -115,7 +115,7 @@ it('audit detail shows metadata only, even if an upstream adds sensitive JSON', 
         })
       : json(200, {}));
   expect(await screen.findByText('Audit event')).toBeVisible();
-  expect(screen.getByText(/payloads are not disclosed/i)).toBeVisible();
+  expect(await screen.findByText(/payloads are not disclosed/i)).toBeVisible();
   expect(screen.queryByText(/DO_NOT_SHOW_AUDIT_SECRET/)).not.toBeInTheDocument();
 });
 
