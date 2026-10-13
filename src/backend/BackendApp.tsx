@@ -100,6 +100,8 @@ const WorkflowDefinitionsPage = React.lazy(() => import('./pages/WorkflowDefinit
 const BranchHierarchyPage = React.lazy(() => import('./pages/AdminObservabilityPages').then(m => ({ default: m.BranchHierarchyPage })));
 const DelegationsPage = React.lazy(() => import('./pages/AdminObservabilityPages').then(m => ({ default: m.DelegationsPage })));
 const AuditLogsPage = React.lazy(() => import('./pages/AdminObservabilityPages').then(m => ({ default: m.AuditLogsPage })));
+const KycComplianceDeskPage = React.lazy(() => import('./pages/OperationalDesksPage').then(m => ({ default: m.KycComplianceDeskPage })));
+const UnderwritingWorkbenchPage = React.lazy(() => import('./pages/OperationalDesksPage').then(m => ({ default: m.UnderwritingWorkbenchPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
 const operation = (permission: string | readonly string[], page: React.ReactNode) => (
@@ -171,6 +173,8 @@ export const backendRoutes: RouteObject[] = [
       },
       // NB1-A: customers, as policies: the list, the new-customer dialog over it, and the record by number.
       { path: 'customers', element: <ToList to="/customers/list" /> },
+      { path: 'customers/kyc', element: operation('clients.kyc.view', <KycComplianceDeskPage />) },
+      { path: 'underwriting/workbench', element: operation(PROPOSAL_VIEW, <UnderwritingWorkbenchPage />) },
       { path: 'customers/:record/*', element: <IntoList /> },
       {
         path: 'customers/list',
