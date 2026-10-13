@@ -117,6 +117,9 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     id: 'administration', title: 'Administration', icon: UsersRound,
     items: [
       { screen: 'admin-users-roles', label: 'Users', path: '/admin/users/list', permission: 'admin.users.view', icon: UsersRound },
+      { screen: 'admin-branches', label: 'Branch hierarchy', path: '/admin/branches', permission: 'admin.users.view', icon: Building2 },
+      { screen: 'admin-delegations', label: 'Delegations', path: '/admin/delegations', permission: ['admin.delegation.view', 'admin.delegation.manage'], icon: Workflow },
+      { screen: 'admin-audit', label: 'Audit logs', path: '/admin/audit', permission: 'admin.audit.view', icon: FileText },
       { screen: 'admin-doa', label: 'Roles & permissions', path: '/admin/roles/list', permission: 'admin.roles.manage', icon: ListChecks },
       { screen: 'admin-integrations', label: 'Integrations', path: '/admin/integrations/list', permission: 'admin.integrations.manage', icon: Settings2 },
       { screen: 'admin-subscription', label: 'Subscription', path: '/admin/subscription', permission: 'admin.users.view', icon: CreditCard },
