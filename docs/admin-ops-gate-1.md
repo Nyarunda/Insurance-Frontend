@@ -8,8 +8,8 @@ The administration pages are **thin clients** of authoritative backend query/com
 | Navigation | Permission to display | Server endpoints | UI behavior |
 | --- | --- | --- | --- |
 | `/admin/branches/list` | `admin.users.view` | `GET /admin/branch-hierarchy`, `POST /admin/regions`, `PATCH /admin/regions/:id`, `POST /admin/branches`, `PATCH /admin/branches/:id` | Read list; write controls require `admin.users.manage`. Immutable codes; strong ETag on updates; rehome active members and branch/role grants before deactivation. |
-| `/admin/delegations/list` | `admin.delegation.view` | `GET /workflows/delegations`, `GET /workflows/delegations/options`, `POST /workflows/delegations`, `POST /workflows/delegations/:id/revoke` | Creation/revocation requires `admin.delegation.manage`. Never approve or reject business records here; use My Work Queue and workflow action API. |
-| `/admin/audit-logs/list` and `/admin/audit-logs/list/:eventId` | `admin.audit.view` | `GET /admin/audit-logs`, `GET /admin/audit-logs/:id` | List and details display **metadata only**, not raw `before_state` or `after_state` contents. No write actions. |
+| `/admin/delegations/list` | `admin.delegation.view` | `GET /workflows/delegations`, `GET /workflows/delegations/options`, `POST /workflows/delegations`, `POST /workflows/delegations/:id/revoke` | Server-paged list (`page`, `page_size`, `count`); creation/revocation requires `admin.delegation.manage`. Never approve or reject business records here; use My Work Queue and workflow action API. |
+| `/admin/audit-logs/list` and `/admin/audit-logs/list/:eventId` | `admin.audit.view` | `GET /admin/audit-logs`, `GET /admin/audit-logs/:id` | Server-paged list, with searching resetting to page 1. List and details display **metadata only**, not raw `before_state` or `after_state` contents. No write actions. |
 
 All API paths above are relative to `/api/v1`. Server-side ALL scope is required for tenant-wide administration; hiding a button is only a usability aid and not authorization. Commands use the existing idempotency, correlation and concurrency client helpers. A 412 is a re-fetch/reconcile signal, not permission to force an update.
 
