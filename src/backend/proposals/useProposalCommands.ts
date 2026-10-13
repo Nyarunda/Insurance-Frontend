@@ -10,7 +10,7 @@
  *   evaluate    POST  …/evaluate                                  (settles again, e.g. after KYC is verified)
  *   satisfy     POST  …/requirements/{code}/satisfy               (an evidence reference, NB-D7)
  *   refer       POST  …/refer                                     (an underwriter's referral; needs a reason)
- *   approve     POST  …/exceptions/{id}/approve                   (lightweight path; never by a contributor)
+ *   approve     Workflow-only: decisions occur through /workflows/instances/{id}/actions (not this client)
  *   reopen      POST  …/reopen                                    (back to DRAFT; approvals lapse)
  *   decline     POST  …/decline, cancel POST …/cancel             (need a reason)
  */
@@ -28,7 +28,7 @@ export type ProposalOutcome =
   | { ok: true; view: ProposalDetail; replayed: boolean }
   | { ok: false; kind: CommandErrorKind; error: unknown };
 
-type Name = 'create' | 'update' | 'submit' | 'evaluate' | 'satisfy' | 'refer' | 'approve' | 'reopen' | 'decline' | 'cancel';
+type Name = 'create' | 'update' | 'submit' | 'evaluate' | 'satisfy' | 'refer' | 'reopen' | 'decline' | 'cancel';
 
 export function useProposalCommands() {
   const queryClient = useQueryClient();
@@ -91,8 +91,6 @@ export function useProposalCommands() {
     satisfy: (id: string, code: string, evidenceReference: string, etag: string) =>
       run('satisfy', { evidence_reference: evidenceReference }, at(id, `requirements/${encodeURIComponent(code)}/satisfy`), on(id, etag, 'POST', `requirement:${code}`)),
     refer: (id: string, reason: string, etag: string) => run('refer', { reason }, at(id, 'refer'), on(id, etag)),
-    approve: (id: string, exceptionId: string, note: string, etag: string) =>
-      run('approve', { note }, at(id, `exceptions/${encodeURIComponent(exceptionId)}/approve`), on(id, etag, 'POST', `exception:${exceptionId}`)),
     reopen: (id: string, etag: string) => run('reopen', {}, at(id, 'reopen'), on(id, etag)),
     decline: (id: string, reason: string, etag: string) => run('decline', { reason }, at(id, 'decline'), on(id, etag)),
     cancel: (id: string, reason: string, etag: string) => run('cancel', { reason }, at(id, 'cancel'), on(id, etag)),
