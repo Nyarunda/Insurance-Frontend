@@ -11,15 +11,38 @@ interface DefinitionRow {
   gaps: string[]; stages: StageInfo[];
 }
 interface Result { results: DefinitionRow[] }
+interface PendingAssignee {
+  kind: 'USER' | 'ROLE_POOL';
+  user_id: string | null; email: string | null;
+  role_id: string | null; role_name: string | null;
+  eligible_users: { user_id: string; email: string | null }[];
+}
+interface PendingRow {
+  assignment_id: string; workflow_instance_id: string; definition_code: string;
+  resource_type: string; resource_reference: string; stage: string; stage_label: string;
+  slot_no: number; branch_name: string | null; assigned_to: PendingAssignee; assigned_at: string;
+}
+interface PendingMonitor {
+  pending_instances: number; pending_slots: number;
+  by_definition: { definition_code: string; pending_instances: number; pending_slots: number }[];
+  results: PendingRow[];
+}
 
 export function WorkflowDefinitionsPage() {
   const query = useOperationsQuery<Result>('/workflows/standard-definitions');
+  const monitor = useOperationsQuery<PendingMonitor>('/workflows/pending-monitor');
   const data = query.isError ? undefined : query.data;
+  const pendingFor = (code: string) => monitor.data?.by_definition.find(row => row.definition_code === code);
 
-  return <Surface title="Workflow definitions" subtitle="Standard approval workflows and their readiness" actions={<Refresh query={query} />}>
+  return <Surface title="Workflow definitions" subtitle="Standard approval workflows, readiness and pending decisions" actions={<><Refresh query={query} /><Refresh query={monitor} /></>}>
     <QueryState query={query} />
+    <QueryState query={monitor} />
+    {monitor.data && <dl className="ops-summary" data-testid="workflow-pending-summary">
+      <div><dt>Pending workflows</dt><dd>{monitor.data.pending_instances}</dd></div>
+      <div><dt>Pending approval slots</dt><dd>{monitor.data.pending_slots}</dd></div>
+    </dl>}
     {data && <>
-      <Grid headers={['Workflow', 'Resource', 'Status', 'Version', 'Checker role', 'Staffing', 'Gaps']}
+      <Grid headers={['Workflow', 'Resource', 'Status', 'Version', 'Checker role', 'Staffing', 'Pending', 'Gaps']}
         empty={!data.results.length}>
         {data.results.map(r => <tr key={r.definition_code}>
           <td className="font-medium">{r.name}</td>
@@ -36,9 +59,33 @@ export function WorkflowDefinitionsPage() {
             ? <span className="ops-badge ops-badge-success">{r.eligible_holders} holder{r.eligible_holders !== 1 ? 's' : ''}</span>
             : <span className="ops-badge ops-badge-danger">Unstaffed</span>}
           </td>
+          <td>{pendingFor(r.definition_code)
+            ? `${pendingFor(r.definition_code)!.pending_instances} workflow(s) / ${pendingFor(r.definition_code)!.pending_slots} slot(s)`
+            : '0'}</td>
           <td className="text-[13px]">{r.gaps.length ? r.gaps.map((g, i) => <span key={i} className="block text-[var(--hz-text-muted)]">{g}</span>) : '—'}</td>
         </tr>)}
       </Grid>
+      {monitor.data && <section className="px-4 py-2">
+        <h3 className="ops-subsection-title">Pending approvals</h3>
+        <Grid headers={['Workflow', 'Reference', 'Stage', 'Branch', 'Assigned to', 'Waiting since']} empty={!monitor.data.results.length}>
+          {monitor.data.results.map(row => {
+            const assigned = row.assigned_to.kind === 'USER'
+              ? (row.assigned_to.email ?? row.assigned_to.user_id ?? 'Named user')
+              : `${row.assigned_to.role_name ?? 'Role pool'}${row.assigned_to.eligible_users.length
+                  ? ` — ${row.assigned_to.eligible_users.length} eligible: ${row.assigned_to.eligible_users.map(user => user.email ?? user.user_id).join(', ')}`
+                  : ' — no eligible holders'}`;
+            return <tr key={row.assignment_id}>
+              <td>{row.definition_code}</td>
+              <td>{row.resource_reference}</td>
+              <td>{row.stage_label}</td>
+              <td>{row.branch_name ?? 'Tenant-wide'}</td>
+              <td>{assigned}</td>
+              <td>{row.assigned_at}</td>
+            </tr>;
+          })}
+        </Grid>
+        <p className="ops-muted mt-2">This page is read-only. Approve and Reject are available only on the workflow task/instance action surface.</p>
+      </section>}
       {data.results.some(r => r.stages.length > 0) && <details className="px-4 py-2">
         <summary className="cursor-pointer text-sm font-medium">Stage details</summary>
         {data.results.filter(r => r.stages.length > 0).map(r => <div key={r.definition_code} className="mt-3">
