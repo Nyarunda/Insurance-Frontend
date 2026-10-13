@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -36,7 +36,9 @@ it('uses the platform plan catalogue instead of accepting a free-text plan code'
     if (method === 'POST') return json(201, { id: 'tenant' });
     return json(200, []);
   });
-  await user.click(await screen.findByRole('button', { name: 'New tenant' }));
+  const newTenant = await screen.findByRole('button', { name: 'New tenant' });
+  await waitFor(() => expect(newTenant).toBeEnabled());
+  await user.click(newTenant);
   expect(screen.queryByLabelText('Plan code *')).not.toBeInTheDocument();
   await user.type(screen.getByLabelText('Name *'), 'Acme Insurance');
   await user.type(screen.getByLabelText('Slug *'), 'acme');
@@ -67,7 +69,7 @@ it('keeps configuration publishing distinct from workflow approvals', async () =
   expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Publish' }));
   expect(screen.getByText(/maker–publisher/i)).toBeVisible();
-  await user.click(screen.getByRole('button', { name: 'Publish' }));
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Publish' }));
   await waitFor(() => expect(network.calls.some(c => c.method === 'POST' && c.url.endsWith('/levy-rates/levy-1/publish'))).toBe(true));
   expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
 });
