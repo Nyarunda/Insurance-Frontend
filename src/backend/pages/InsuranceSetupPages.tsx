@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Plus } from 'lucide-react';
 import { hasPermission, useMe } from '../../lib/auth/me';
@@ -6,10 +6,8 @@ import { ActionDialog, ActionSpec, Grid, QueryState, Refresh, Status, Surface, T
 import { useOperationsQuery, useOperationsResultQuery } from '../operations/data';
 import {
   COMMISSION_MANAGE,
-  COMMISSION_VIEW,
   CONFIG_PUBLISH,
   INSURER_MANAGE,
-  INSURER_VIEW,
   LEVY_MANAGE,
   PRODUCT_MANAGE,
 } from '../permissions';
