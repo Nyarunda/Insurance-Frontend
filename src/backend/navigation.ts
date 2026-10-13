@@ -59,6 +59,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       // NB1-D: the guide through the steps; for those who can start one (a quotation's maker).
       { screen: 'new-policy', label: 'New policy', path: '/new-policy', permission: QUOTATION_CREATE, icon: FilePlus2 },
       { screen: 'quotations', label: 'Quotations', path: '/quotations/list', permission: QUOTATION_VIEW, icon: FileText },
+      { screen: 'binder-agreements', label: 'Binder Agreements', path: '/sales/binder-agreements', permission: 'insurers.insurer.view', icon: FileCheck2 },
       { screen: 'intermediaries', label: 'Agents & partners', path: '/agents/list', permission: 'intermediaries.agent.view', icon: UsersRound },
       { screen: 'leads', label: 'Leads & campaigns', path: '/sales/leads', permission: 'intermediaries.sales.view', icon: UsersRound },
       { screen: 'proposals', label: 'Proposals', path: '/proposals/list', permission: PROPOSAL_VIEW, icon: ClipboardList },
