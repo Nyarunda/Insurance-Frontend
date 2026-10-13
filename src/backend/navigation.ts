@@ -46,7 +46,10 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     id: 'customers',
     title: 'Customers',
     icon: UsersRound,
-    items: [{ screen: 'customers', label: 'Customers', path: '/customers/list', permission: CUSTOMER_VIEW, icon: UsersRound }],
+    items: [
+      { screen: 'customers', label: 'Customers', path: '/customers/list', permission: CUSTOMER_VIEW, icon: UsersRound },
+      { screen: 'kyc-compliance', label: 'KYC Compliance Desk', path: '/customers/kyc', permission: 'clients.kyc.view', icon: ListChecks },
+    ],
   },
   {
     id: 'sales',
@@ -59,6 +62,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'intermediaries', label: 'Agents & partners', path: '/agents/list', permission: 'intermediaries.agent.view', icon: UsersRound },
       { screen: 'leads', label: 'Leads & campaigns', path: '/sales/leads', permission: 'intermediaries.sales.view', icon: UsersRound },
       { screen: 'proposals', label: 'Proposals', path: '/proposals/list', permission: PROPOSAL_VIEW, icon: ClipboardList },
+      { screen: 'underwriting-workbench', label: 'Underwriting Workbench', path: '/underwriting/workbench', permission: PROPOSAL_VIEW, icon: Workflow },
       { screen: 'products', label: 'Products', path: '/products/list', permission: 'products.product.view', icon: Package },
     ],
   },
