@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { Plus } from 'lucide-react';
 import { hasPermission, useMe } from '../../lib/auth/me';
 import {
-  ActionDialog, ActionSpec, Grid, QueryState, Refresh, SearchBox, Status, Surface, Tabs,
+  ActionDialog, ActionSpec, Grid, Pager, QueryState, Refresh, SearchBox, Status, Surface, Tabs,
 } from '../operations/ui';
 import { useOperationsQuery } from '../operations/data';
 import { ADMIN_USERS_MANAGE, DELEGATION_MANAGE } from '../permissions';
@@ -25,7 +25,7 @@ export function BranchHierarchyPage() {
   const branches = query.data?.branches ?? [];
   const regionOptions = regions.filter(r => r.is_active).map(r => ({ value: r.id, label: `${r.code} — ${r.name}` }));
 
-  return <Surface title="Branch hierarchy" subtitle="Tenant branches and regions" actions={<>
+  return <Surface title="Branch hierarchy" subtitle="Tenant branches and regions. Deactivation requires moving active members and branch access first." actions={<>
     <Refresh query={query} />
     {manage && tab === 'branches' && <button className="hz-button hz-button-primary" onClick={() => setAction({
       title: 'New branch', path: '/admin/branches', confirm: 'Create branch', fields: [
@@ -95,7 +95,9 @@ interface DelegationRow {
 export function DelegationsPage() {
   const me = useMe().data;
   const manage = hasPermission(me, DELEGATION_MANAGE);
-  const query = useOperationsQuery<{ results: DelegationRow[] }>('/workflows/delegations');
+  const [page, setPage] = useState(1);
+  const query = useOperationsQuery<{ results: DelegationRow[]; count: number; page: number; page_size: number }>(
+    `/workflows/delegations?page=${page}&page_size=25`);
   const options = useOperationsQuery<DelegationOptions>('/workflows/delegations/options');
   const [action, setAction] = useState<ActionSpec | null>(null);
   const users = options.data?.users ?? [];
@@ -127,7 +129,7 @@ export function DelegationsPage() {
     })}><Plus size={15} />New delegation</button>}
   </>}>
     <QueryState query={query} /><QueryState query={options} />
-    {query.data && <Grid headers={['Delegator','Delegate','Workflows','Effective','Limit','Status','']} empty={!query.data.results.length}>
+    {query.data && <><Grid headers={['Delegator','Delegate','Workflows','Effective','Limit','Status','']} empty={!query.data.results.length}>
       {query.data.results.map(row => <tr key={row.id}>
         <td>{row.delegator_email ?? 'Unknown user'}</td><td>{row.delegate_email ?? 'Unknown user'}</td>
         <td>{row.definitions.join(', ') || '—'}</td>
@@ -140,7 +142,7 @@ export function DelegationsPage() {
           message: 'This stops future delegated workflow actions. It does not approve or reject any pending business record.',
         })}>Revoke</button>}</td>
       </tr>)}
-    </Grid>}
+    </Grid><Pager page={page} count={query.data.count} size={25} change={setPage} /></>}
     <p className="ops-muted">Approve and Reject are intentionally not available here. Decisions are made only through workflow assignments.</p>
     {action && <ActionDialog spec={action} close={() => setAction(null)} done={() => setAction(null)} />}
   </Surface>;
@@ -150,7 +152,7 @@ interface AuditRow {
   id: string; actor_id: string; actor_email: string | null; timestamp: string; ip_address: string | null;
   correlation_id: string; action: string; resource_type: string; resource_id: string;
 }
-interface AuditDetail extends AuditRow { before_state: unknown; after_state: unknown }
+interface AuditDetail extends AuditRow { payloads_exposed: false }
 
 export function AuditLogsPage() {
   const { eventId } = useParams();
@@ -162,18 +164,19 @@ export function AuditLogsPage() {
 function AuditList() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
-  const path = useMemo(() => `/admin/audit-logs?q=${encodeURIComponent(q)}&page=1&page_size=50`, [q]);
+  const [page, setPage] = useState(1);
+  const path = useMemo(() => `/admin/audit-logs?q=${encodeURIComponent(q)}&page=${page}&page_size=50`, [q, page]);
   const query = useOperationsQuery<{ results: AuditRow[]; count: number; page: number; page_size: number }>(path);
   return <Surface title="Audit logs" subtitle="Append-only tenant audit trail" actions={<Refresh query={query} />}>
-    <SearchBox value={q} onSearch={setQ} label="Search action, resource or correlation ID" />
+    <SearchBox value={q} onSearch={value => { setQ(value); setPage(1); }} label="Search action, resource or correlation ID" />
     <QueryState query={query} />
-    {query.data && <Grid headers={['Time','Actor','Action','Resource','Correlation','']} empty={!query.data.results.length}>
+    {query.data && <><Grid headers={['Time','Actor','Action','Resource','Correlation','']} empty={!query.data.results.length}>
       {query.data.results.map(row => <tr key={row.id}>
         <td>{row.timestamp}</td><td>{row.actor_email ?? row.actor_id}</td><td>{row.action}</td>
         <td>{row.resource_type} · {row.resource_id}</td><td><code>{row.correlation_id || '—'}</code></td>
         <td><button className="hz-button hz-button-secondary" onClick={() => navigate(`/admin/audit-logs/list/${row.id}`)}>View</button></td>
       </tr>)}
-    </Grid>}
+    </Grid><Pager page={page} count={query.data.count} size={50} change={setPage} /></>}
   </Surface>;
 }
 
@@ -190,8 +193,7 @@ function AuditDetailPage({ eventId, back }: { eventId: string; back: () => void 
         <div><dt>Correlation ID</dt><dd><code>{row.correlation_id || '—'}</code></dd></div>
         <div><dt>IP address</dt><dd>{row.ip_address ?? '—'}</dd></div>
       </dl>
-      <h3 className="ops-subsection-title">Before</h3><pre className="ops-code">{JSON.stringify(row.before_state, null, 2)}</pre>
-      <h3 className="ops-subsection-title">After</h3><pre className="ops-code">{JSON.stringify(row.after_state, null, 2)}</pre>
+      <p className="ops-muted">Audit details display event metadata only. Before and after payloads are not disclosed in tenant administration.</p>
     </>}
   </Surface>;
 }

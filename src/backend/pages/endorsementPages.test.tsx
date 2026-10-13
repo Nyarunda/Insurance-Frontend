@@ -928,7 +928,7 @@ describe('the Policy Directory return context (FI1-D-R1)', () => {
   });
 });
 
-describe('the lightweight approval path (endorsements never; one sanctioned underwriting route)', () => {
+describe('workflow-only approval routing', () => {
   const sources = (dir: string): string[] =>
     readdirSync(dir).flatMap((name) => {
       const path = join(dir, name);
@@ -936,41 +936,18 @@ describe('the lightweight approval path (endorsements never; one sanctioned unde
       return /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
     });
 
-  it('stays forbidden for endorsements: only the sanctioned underwriting exception route names /approve, once', () => {
+  it('contains no literal lightweight /approve or /decline paths in the backend-mode browser', () => {
     const root = resolve(__dirname, '..', '..');
     const files = [...sources(join(root, 'backend')), ...sources(join(root, 'lib'))];
     expect(files.length).toBeGreaterThan(20);
-    // Comments may explain the rule; code may not build either path.
     const code = (file: string) =>
       readFileSync(file, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/^\s*\/\/.*$/gm, '');
     const literals = (text: string) => text.match(/\/(approve|decline)\b/g) ?? [];
-    // NB1-C (ruling NB1-C-R1, C2): one sanctioned lightweight route. An underwriting exception the
-    // tenant does not govern is approved on its proposal (NEW-BUSINESS-1 NB-D5). Every other source
-    // keeps the original scan; the sanctioned file holds exactly that one literal and nothing else.
-    const sanctioned = join(root, 'backend', 'proposals', 'useProposalCommands.ts');
-    // Billing authority has its own server-enforced maker/checker approval, not an
-    // endorsement approval shortcut. Allow exactly that endpoint, not the file.
-    const billing = join(root, 'backend', 'pages', 'BillingAgreementsPage.tsx');
-    const guardedCode = (file: string) => file === billing
-      ? code(file).replace('`${path}/collection-authority/approve`', '')
-      : code(file);
-    expect(code(billing).split('`${path}/collection-authority/approve`')).toHaveLength(2);
-    const offenders = files.filter((file) => file !== sanctioned && literals(guardedCode(file)).length > 0);
-    expect(offenders).toEqual([]);
-    const proposals = code(sanctioned);
-    expect(literals(proposals)).toEqual(['/approve']);
-    expect(proposals.split('`exceptions/${encodeURIComponent(exceptionId)}/approve`')).toHaveLength(2);
-    expect(proposals).toMatch(/`\/underwriting\/proposals\/\$\{encodeURIComponent\(id\)\}/);
-    expect(proposals).not.toMatch(/endorsement/i);
-    // The scan itself works: the rule is written down where the commands are.
+    expect(files.filter((file) => literals(code(file)).length > 0)).toEqual([]);
+    // The scanner is not vacuous: historical comments about /approve still exist.
     expect(readFileSync(join(root, 'backend', 'endorsements', 'useEndorsementCommands.ts'), 'utf8')).toMatch(/\/approve/);
-  });
-
-  it('if it were ever reached, WORKFLOW_APPROVAL_REQUIRED would say the approval is made through the workflow task', () => {
-    const error = new ApiError({ status: 409, code: 'WORKFLOW_APPROVAL_REQUIRED', message: 'x', correlationId: 'c', details: {} });
-    expect(describeError(error).message).toBe('This approval is made through the workflow task.');
   });
 });
 

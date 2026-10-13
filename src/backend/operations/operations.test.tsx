@@ -105,13 +105,15 @@ describe('Tenant operations', () => {
     expect(request.body).toEqual({ role_id: 'checker-role', branch_id: branch.id, scope: 'BRANCH', action: 'REMOVE', reason: 'Changed duties' });
   });
 
-  it('shows pending role proposals on the approvals tab and lets a different admin approve', async () => {
-    const user = userEvent.setup();
-    const pendingProposal = { id: 'prop-1', name: 'Checker', scope: 'BRANCH', branch_name: 'Nairobi', action: 'ASSIGN', reason: 'New duties', proposed_by: 'other-admin', status: 'PENDING' };
-    const selfProposal = { id: 'prop-2', name: 'Auditor', scope: 'ALL', branch_name: null, action: 'REMOVE', reason: 'Left team', proposed_by: 'actor', status: 'PENDING' };
+  it('shows pending role proposals with workflow links and no direct decision controls', async () => {
+    const pendingProposal = { id: 'prop-1', name: 'Checker', scope: 'BRANCH', branch_name: 'Nairobi',
+      action: 'ASSIGN', reason: 'New duties', proposed_by: 'other-admin', status: 'PENDING',
+      workflow: { instance_id: 'workflow-role-1', status: 'PENDING_APPROVAL', stage_label: 'Role Checker' } };
+    const selfProposal = { id: 'prop-2', name: 'Auditor', scope: 'ALL', branch_name: null,
+      action: 'REMOVE', reason: 'Left team', proposed_by: 'actor', status: 'PENDING',
+      workflow: { instance_id: 'workflow-role-2', status: 'PENDING_APPROVAL', stage_label: 'Role Checker' } };
     const network = fakeFetch(c => {
       if (c.url.endsWith('/auth/me')) return json(200, me);
-      if (c.method === 'POST') return json(200, { status: 'APPROVED' });
       if (c.url.endsWith('/admin/user-options')) return json(200, { branches: [branch], roles: [], permissions: [] });
       if (c.url.endsWith('/access')) return json(200, { roles: [], branches: [], overrides: [], proposals: [pendingProposal, selfProposal] });
       return json(200, member);
@@ -119,15 +121,13 @@ describe('Tenant operations', () => {
     at('/admin/users/list/person?tab=approvals');
     expect(await screen.findByText('Assign: Checker')).toBeVisible();
     expect(screen.getByText('Remove: Auditor')).toBeVisible();
-    expect(screen.getByText('You proposed — another admin must decide')).toBeVisible();
-    const approveBtn = screen.getByTitle('Approve Checker');
-    await user.click(approveBtn);
-    await user.type(screen.getByLabelText('Reason *'), 'Confirmed');
-    await user.click(screen.getByRole('button', { name: 'Approve' }));
-    await waitFor(() => expect(network.calls.filter(c => c.method === 'POST')).toHaveLength(1));
-    const sent = network.calls.find(c => c.method === 'POST')!;
-    expect(sent.url).toContain('/role-proposals/prop-1/approve');
-    expect(sent.body).toEqual({ reason: 'Confirmed' });
+    const approvalLinks = screen.getAllByRole('link', { name: /Pending approval/ });
+    expect(approvalLinks).toHaveLength(2);
+    expect(approvalLinks[0]).toHaveAttribute('href', '/my-work/list/workflow-role-1');
+    expect(approvalLinks[1]).toHaveAttribute('href', '/my-work/list/workflow-role-2');
+    expect(screen.queryByTitle('Approve Checker')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
+    expect(network.calls.filter(c => c.method === 'POST')).toHaveLength(0);
   });
 
   it('blocks direct navigation without fetching user records when permission is absent', async () => {

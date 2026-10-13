@@ -74,7 +74,7 @@ it('delegations can be revoked but never approved or rejected from administratio
       definitions: [{ code: 'ENDORSEMENT_APPROVAL', name: 'Endorsement approval' }],
       branches: [], delegation_max_days: 30,
     });
-    if (url.endsWith('/workflows/delegations')) return json(200, { results: [row] });
+    if (url.includes('/workflows/delegations?page=')) return json(200, { results: [row], count: 1, page: 1, page_size: 25 });
     if (method === 'POST' && url.endsWith('/workflows/delegations/d1/revoke')) return json(200, { ...row, status: 'REVOKED', etag: '"delegation-2"' });
     return json(200, {});
   });
@@ -97,5 +97,42 @@ it('renders the append-only audit directory for audit viewers', async () => {
       ip_address: null, correlation_id: 'corr-1', action: 'BRANCH_UPDATED', resource_type: 'BRANCH', resource_id: 'b1',
     }] }) : json(200, {}));
   expect(await screen.findByText('BRANCH_UPDATED')).toBeVisible();
-  expect(screen.getByText('admin@example.test')).toBeVisible();
+  expect(within(screen.getByTestId('operations-table')).getByText('admin@example.test')).toBeVisible();
+});
+
+
+it('audit detail shows metadata only, even if an upstream adds sensitive JSON', async () => {
+  at('/admin/audit-logs/list/a1', ['admin.audit.view'], url =>
+    url.endsWith('/admin/audit-logs/a1')
+      ? json(200, {
+          id: 'a1', actor_id: 'u1', actor_email: 'admin@example.test',
+          timestamp: '2026-10-13T10:00:00Z', ip_address: null,
+          correlation_id: 'trace-a1', action: 'BRANCH_UPDATED',
+          resource_type: 'BRANCH', resource_id: 'b1',
+          payloads_exposed: false,
+          before_state: { private: 'DO_NOT_SHOW_AUDIT_SECRET' },
+          after_state: { private: 'DO_NOT_SHOW_AUDIT_SECRET' },
+        })
+      : json(200, {}));
+  expect(await screen.findByText('Audit event')).toBeVisible();
+  expect(await screen.findByText(/payloads are not disclosed/i)).toBeVisible();
+  expect(screen.queryByText(/DO_NOT_SHOW_AUDIT_SECRET/)).not.toBeInTheDocument();
+});
+
+
+it('audit directory navigates through server pages without exposing snapshots', async () => {
+  const { user, network } = at('/admin/audit-logs/list', ['admin.audit.view'], url => {
+    if (!url.includes('/admin/audit-logs?')) return json(200, {});
+    const second = url.includes('page=2');
+    return json(200, { count: 51, page: second ? 2 : 1, page_size: 50, payloads_exposed: false,
+      results: [{ id: second ? 'a2' : 'a1', actor_id: 'u1', actor_email: 'admin@example.test',
+        timestamp: '2026-10-13T10:00:00Z', ip_address: null,
+        correlation_id: second ? 'second-page' : 'first-page',
+        action: second ? 'AUDIT_SECOND_PAGE' : 'AUDIT_FIRST_PAGE',
+        resource_type: 'BRANCH', resource_id: 'b1' }] });
+  });
+  expect(await screen.findByText('AUDIT_FIRST_PAGE')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: 'Next page' }));
+  expect(await screen.findByText('AUDIT_SECOND_PAGE')).toBeVisible();
+  expect(network.calls.some(call => call.url.includes('page=2'))).toBe(true);
 });

@@ -54,15 +54,19 @@ it('keeps an edit open after a stale-version conflict and sends its original ETa
   expect(screen.getByRole('dialog')).toBeVisible();
 });
 
-it('does not offer self-approval, but offers approval to an independent reviewer', async () => {
+it('never offers a direct approval action to maker or independent checker', async () => {
   let currentMe = me;
-  const net = fakeFetch(c => c.url.endsWith('/agents/agent-1') ? json(200, { ...agent, status: 'PENDING' }) : json(200, currentMe));
+  const pending = { ...agent, status: 'PENDING',
+    workflow: { instance_id: 'agent-workflow', status: 'PENDING_APPROVAL', stage_label: 'Agent Checker' } };
+  const net = fakeFetch(c => c.url.endsWith('/agents/agent-1') ? json(200, pending) : json(200, currentMe));
   vi.stubGlobal('fetch', net.fn); at('/agents/list/agent-1');
-  await screen.findByRole('button', { name: 'Withdraw' });
+  expect(await screen.findByRole('button', { name: 'Open approval' })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
   currentMe = { ...me, user: { ...me.user, id: 'checker' } };
   queryClient.setQueryData(ME_QUERY_KEY, currentMe);
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Approve' })).toBeVisible());
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Open approval' })).toBeVisible());
+  expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
+  expect(net.calls.some(c => c.method === 'POST' && c.url.includes('/approve'))).toBe(false);
 });
 
 it('shows Open approval when a workflow governs the pending agent', async () => {

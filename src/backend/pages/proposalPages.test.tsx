@@ -522,28 +522,27 @@ describe('Submitted', () => {
     }
   });
 
-  it('a checker approves an exception here when not governed; when governed it waits in My Work Queue', async () => {
-    const user = userEvent.setup();
+  it('never renders direct exception approval; a governed exception links to workflow', async () => {
     const backend = proposalBackend({ view: referred() });
     renderAt(`/proposals/list/${P_ID}?tab=exceptions`, CHECKER);
-    await user.click(await screen.findByRole('button', { name: "Approve: Underwriter's referral" }));
-    const dialog = await screen.findByRole('dialog', { name: 'Approve exception' });
-    await user.type(within(dialog).getByLabelText('Note'), 'Checked the loss history');
-    await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
-    await waitFor(() => expect(backend.sent(`exceptions/${EXCEPTION_ID}/approve`)).toHaveLength(1));
-    const [approve] = backend.sent(`exceptions/${EXCEPTION_ID}/approve`);
-    expect(approve.body).toEqual({ note: 'Checked the loss history' });
-    expect(approve.headers['if-match']).toBe(ETAG);
+    const unconfigured = await screen.findByRole('listitem', { name: "Underwriter's referral" });
+    expect(unconfigured).toHaveTextContent('Workflow not started');
+    expect(unconfigured).toHaveTextContent('Workflow is not configured for this approval.');
+    expect(within(unconfigured).queryByRole('button', { name: /Approve/ })).not.toBeInTheDocument();
+    expect(backend.sent(`exceptions/${EXCEPTION_ID}/approve`)).toHaveLength(0);
 
     cleanup();
     queryClient.clear();
     const governed = referred();
-    governed.exceptions = governed.exceptions.map((item) => ({ ...item, workflow: { instance_id: 'w-1', status: 'PENDING_APPROVAL', stage_label: 'Underwriting review', waiting_on: ['Underwriting Checker'] } }));
+    governed.exceptions = governed.exceptions.map((item) => ({ ...item,
+      workflow: { instance_id: 'w-1', status: 'PENDING_APPROVAL',
+        stage_label: 'Underwriting review', waiting_on: ['Underwriting Checker'] } }));
     proposalBackend({ view: governed });
-    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, CHECKER);
+    renderAt(`/proposals/list/${P_ID}?tab=exceptions`, person([...CHECKER.permissions, 'workflow.task.view']));
     const referral = await screen.findByRole('listitem', { name: "Underwriter's referral" });
     expect(referral).toHaveTextContent('Waiting for: Underwriting Checker (Underwriting review), in My Work Queue.');
-    expect(screen.queryByRole('button', { name: /^Approve/ })).not.toBeInTheDocument();
+    expect(within(referral).getByRole('button', { name: 'Open in My Work Queue' })).toBeVisible();
+    expect(within(referral).queryByRole('button', { name: /Approve/ })).not.toBeInTheDocument();
   });
 
   it('C1: a governed rejection that declined the proposal reads Rejected, with no approval and no My Work Queue link', async () => {
@@ -576,7 +575,7 @@ describe('Submitted', () => {
 
   it('C1: the exception states, one by one', () => {
     const wf = (status: string) => ({ instance_id: 'w', status, stage_label: null, waiting_on: [] });
-    expect(exceptionState(exception())).toMatchObject({ kind: 'lightweight', label: 'Awaiting approval' });
+    expect(exceptionState(exception())).toMatchObject({ kind: 'setup_needed', label: 'Workflow not started' });
     expect(exceptionState(exception({ workflow: wf('PENDING_APPROVAL') }))).toMatchObject({ kind: 'waiting' });
     expect(exceptionState(exception({ workflow: wf('RETURNED_FOR_REWORK') }))).toMatchObject({ kind: 'waiting' });
     for (const [status, label] of [['REJECTED', 'Rejected'], ['VOID', 'Void'], ['CANCELLED', 'Cancelled'], ['EXPIRED', 'Expired']]) {
