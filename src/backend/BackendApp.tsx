@@ -102,6 +102,7 @@ const DelegationsPage = React.lazy(() => import('./pages/AdminObservabilityPages
 const AuditLogsPage = React.lazy(() => import('./pages/AdminObservabilityPages').then(m => ({ default: m.AuditLogsPage })));
 const KycComplianceDeskPage = React.lazy(() => import('./pages/OperationalDesksPage').then(m => ({ default: m.KycComplianceDeskPage })));
 const UnderwritingWorkbenchPage = React.lazy(() => import('./pages/OperationalDesksPage').then(m => ({ default: m.UnderwritingWorkbenchPage })));
+const BinderAgreementsPage = React.lazy(() => import('./pages/OperationalDesksPage').then(m => ({ default: m.BinderAgreementsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
 const operation = (permission: string | readonly string[], page: React.ReactNode) => (
@@ -186,6 +187,7 @@ export const backendRoutes: RouteObject[] = [
       { path: 'customers', element: <ToList to="/customers/list" /> },
       { path: 'customers/kyc', element: operationAll(['clients.customer.view', 'clients.kyc.view'], <KycComplianceDeskPage />) },
       { path: 'underwriting/workbench', element: operation(PROPOSAL_VIEW, <UnderwritingWorkbenchPage />) },
+      { path: 'sales/binder-agreements', element: operation('insurers.insurer.view', <BinderAgreementsPage />) },
       { path: 'customers/:record/*', element: <IntoList /> },
       {
         path: 'customers/list',
