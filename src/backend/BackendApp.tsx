@@ -92,6 +92,10 @@ const BillingAgreementsPage = React.lazy(() => import('./pages/BillingAgreements
 const EndorsementsListPage = React.lazy(() => import('./pages/EndorsementsListPage').then(m => ({ default: m.EndorsementsListPage })));
 const NotificationsCenterPage = React.lazy(() => import('./pages/NotificationsCenterPage').then(m => ({ default: m.NotificationsCenterPage })));
 const ProductsCatalogPage = React.lazy(() => import('./pages/ProductsCatalogPage').then(m => ({ default: m.ProductsCatalogPage })));
+const InsurersPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.InsurersPage })));
+const InsuranceClassesPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.InsuranceClassesPage })));
+const LevyRatesPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.LevyRatesPage })));
+const CommissionRatesPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.CommissionRatesPage })));
 const WorkflowDefinitionsPage = React.lazy(() => import('./pages/WorkflowDefinitionsPage').then(m => ({ default: m.WorkflowDefinitionsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
@@ -274,6 +278,11 @@ export const backendRoutes: RouteObject[] = [
       { path: 'notifications/list', element: <React.Suspense fallback={<HorizonLoader tip="Loading..." />}><NotificationsCenterPage /></React.Suspense> },
       { path: 'products', element: <ToList to="/products/list" /> },
       { path: 'products/list', element: operation('products.product.view', <ProductsCatalogPage />) },
+      { path: 'setup/insurers/list', element: operation('insurers.insurer.view', <InsurersPage />) },
+      { path: 'setup/insurers/:insurerId', element: operation('insurers.insurer.view', <InsurersPage />) },
+      { path: 'setup/insurance-classes', element: operation('products.product.view', <InsuranceClassesPage />) },
+      { path: 'setup/levy-rates', element: operation('products.product.view', <LevyRatesPage />) },
+      { path: 'setup/commission-rates', element: operation('products.commission.view', <CommissionRatesPage />) },
       { path: 'admin/workflows/list', element: operation(WORKFLOW_VIEW, <WorkflowDefinitionsPage />) },
       { path: 'endorsements', element: <ToList to="/endorsements/list" /> },
       { path: 'endorsements/list', element: operation(POLICY_VIEW, <EndorsementsListPage />) },
