@@ -97,6 +97,9 @@ const InsuranceClassesPage = React.lazy(() => import('./pages/InsuranceSetupPage
 const LevyRatesPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.LevyRatesPage })));
 const CommissionRatesPage = React.lazy(() => import('./pages/InsuranceSetupPages').then(m => ({ default: m.CommissionRatesPage })));
 const WorkflowDefinitionsPage = React.lazy(() => import('./pages/WorkflowDefinitionsPage').then(m => ({ default: m.WorkflowDefinitionsPage })));
+const BranchHierarchyPage = React.lazy(() => import('./pages/AdminOperationsPages').then(m => ({ default: m.BranchHierarchyPage })));
+const DelegationsPage = React.lazy(() => import('./pages/AdminOperationsPages').then(m => ({ default: m.DelegationsPage })));
+const AuditLogsPage = React.lazy(() => import('./pages/AdminOperationsPages').then(m => ({ default: m.AuditLogsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
 const operation = (permission: string, page: React.ReactNode) => (
@@ -128,6 +131,10 @@ export const backendRoutes: RouteObject[] = [
       }),
       { path: 'agents/list', element: operation('intermediaries.agent.view', <AgentsPage />) },
       { path: 'agents/list/:agentId', element: operation('intermediaries.agent.view', <AgentWorkspace />) },
+      { path: 'admin/branches/list', element: operation('admin.users.view', <BranchHierarchyPage />) },
+      { path: 'admin/delegations/list', element: operation('admin.delegation.view', <DelegationsPage />) },
+      { path: 'admin/audit-logs/list', element: operation('admin.audit.view', <AuditLogsPage />) },
+      { path: 'admin/audit-logs/list/:eventId', element: operation('admin.audit.view', <AuditLogsPage />) },
       { path: 'admin/users/list', element: operation('admin.users.view', <UsersPage />) },
       { path: 'admin/users/list/:userId', element: operation('admin.users.view', <UserWorkspace />) },
       { path: 'admin/roles/list', element: operation('admin.roles.manage', <RolesPage />) },
