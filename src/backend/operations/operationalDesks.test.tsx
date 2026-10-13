@@ -69,3 +69,20 @@ it('renders underwriting readiness and keeps decisions workflow-only', async () 
   expect(screen.queryByRole('button', { name: /approve|reject/i })).not.toBeInTheDocument();
   expect(screen.getByText(/workflow task\/instance action surface/i)).toBeVisible();
 });
+
+
+it('renders binder agreements as a read-only sales directory', async () => {
+  at('/sales/binder-agreements', ['insurers.insurer.view'], url =>
+    url.includes('/binder-agreements') ? json(200, {
+      results: [{
+        id: 'a1', agreement_type: 'BINDER', reference_no: 'BND-2026-01',
+        effective_from: '2026-01-01', effective_to: null, status: 'ACTIVE',
+        binder_limit: '2500000', notes: 'Motor binder',
+        insurer: { id: 'i1', code: 'APA', name: 'APA Insurance' },
+      }],
+    }) : json(200, {}));
+  expect(await screen.findByText('BND-2026-01')).toBeVisible();
+  expect(screen.getByText(/APA Insurance/)).toBeVisible();
+  expect(screen.getByText(/read-only/i)).toBeVisible();
+  expect(screen.queryByRole('button', { name: /approve|publish|edit/i })).not.toBeInTheDocument();
+});
