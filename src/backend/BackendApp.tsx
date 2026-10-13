@@ -278,6 +278,7 @@ export const backendRoutes: RouteObject[] = [
       { path: 'notifications/list', element: <React.Suspense fallback={<HorizonLoader tip="Loading..." />}><NotificationsCenterPage /></React.Suspense> },
       { path: 'products', element: <ToList to="/products/list" /> },
       { path: 'products/list', element: operation('products.product.view', <ProductsCatalogPage />) },
+      { path: 'setup/insurers', element: <ToList to="/setup/insurers/list" /> },
       { path: 'setup/insurers/list', element: operation('insurers.insurer.view', <InsurersPage />) },
       { path: 'setup/insurers/:insurerId', element: operation('insurers.insurer.view', <InsurersPage />) },
       { path: 'setup/insurance-classes', element: operation('products.product.view', <InsuranceClassesPage />) },

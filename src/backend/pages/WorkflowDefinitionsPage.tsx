@@ -34,7 +34,9 @@ export function WorkflowDefinitionsPage() {
   const data = query.isError ? undefined : query.data;
   const pendingFor = (code: string) => monitor.data?.by_definition.find(row => row.definition_code === code);
 
-  return <Surface title="Workflow definitions" subtitle="Standard approval workflows, readiness and pending decisions" actions={<><Refresh query={query} /><Refresh query={monitor} /></>}>
+  const combined = { isFetching: query.isFetching || monitor.isFetching, refetch: () => { query.refetch(); monitor.refetch(); } };
+
+  return <Surface title="Workflow definitions" subtitle="Standard approval workflows, readiness and pending decisions" actions={<Refresh query={combined} />}>
     <QueryState query={query} />
     <QueryState query={monitor} />
     {monitor.data && <dl className="ops-summary" data-testid="workflow-pending-summary">
@@ -59,9 +61,7 @@ export function WorkflowDefinitionsPage() {
             ? <span className="ops-badge ops-badge-success">{r.eligible_holders} holder{r.eligible_holders !== 1 ? 's' : ''}</span>
             : <span className="ops-badge ops-badge-danger">Unstaffed</span>}
           </td>
-          <td>{pendingFor(r.definition_code)
-            ? `${pendingFor(r.definition_code)!.pending_instances} workflow(s) / ${pendingFor(r.definition_code)!.pending_slots} slot(s)`
-            : '0'}</td>
+          <td>{(() => { const p = pendingFor(r.definition_code); return p ? `${p.pending_instances} workflow(s) / ${p.pending_slots} slot(s)` : '0'; })()}</td>
           <td className="text-[13px]">{r.gaps.length ? r.gaps.map((g, i) => <span key={i} className="block text-[var(--hz-text-muted)]">{g}</span>) : '—'}</td>
         </tr>)}
       </Grid>

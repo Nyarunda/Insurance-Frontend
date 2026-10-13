@@ -68,7 +68,7 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
   });
 
-  it('integrates Home, My Work Queue (everyone signed in; its queue needs workflow.task.view, WFH-1 R1), Customers (clients.customer.view), the New policy guide (quotations.quotation.create), Quotations (quotations.quotation.view), Proposals (underwriting.proposal.view), the Policy Directory and Renewals (policies.policy.view, RS-C), Certificates (certificates.cert.view, CS-B), Certificate stock (certificates.stock.manage, CS-C), Vehicle makes (products.reference.manage, SD-C), Approval reasons (admin.workflow.manage, WRC-1) Renewal settings (any of its four readers, SD-E R1), Approval notifications (admin.workflow.view, NTF-2), Subscription (admin.users.view) and Platform tenants (admin.users.view)', () => {
+  it('integrates all nav items including setup surfaces (insurers, insurance classes, levy/commission rates), workflow and admin screens', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', null],
@@ -86,6 +86,10 @@ describe('permission-driven navigation', () => {
       ['renewals', 'policies.policy.view'],
       ['certificates', 'certificates.cert.view'],
       ['certificate-stock', 'certificates.stock.manage'],
+      ['insurers', 'insurers.insurer.view'],
+      ['insurance-classes', 'products.product.view'],
+      ['levy-rates', 'products.product.view'],
+      ['commission-rates', 'products.commission.view'],
       ['vehicle-makes', 'products.reference.manage'],
       ['approval-reasons', 'admin.workflow.manage'],
       ['renewal-settings', ['policies.renewal_settings.manage', 'products.config.publish', 'policies.renewal.create', 'policies.renewal.approve']],
