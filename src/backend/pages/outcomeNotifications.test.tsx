@@ -182,7 +182,7 @@ describe('Approval notifications setup (NTF-2)', () => {
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     expect(screen.getByText('A tenant-wide workflow administrator changes these.')).toBeInTheDocument();
     const setup = (permissions: string[]) => visibleNav(BACKEND_NAV, permissions).find((group) => group.id === 'setup');
-    expect(setup(['admin.workflow.view'])?.items.map((item) => item.label)).toEqual(['Approval notifications']);
+    expect(setup(['admin.workflow.view'])?.items.map((item) => item.label)).toEqual(['Approval notifications', 'Workflow definitions']);
     expect(setup(['policies.policy.view'])).toBeUndefined();
   });
 });
