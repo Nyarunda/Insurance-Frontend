@@ -103,3 +103,41 @@ export function UnderwritingWorkbenchPage() {
     </>}
   </Surface>;
 }
+
+
+interface BinderAgreement {
+  id: string; agreement_type: 'BINDER'; reference_no: string; effective_from: string;
+  effective_to: string | null; status: string; binder_limit: string | null; notes: string;
+  insurer: { id: string; code: string; name: string };
+}
+
+export function BinderAgreementsPage() {
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState('');
+  const query = useOperationsQuery<{ results: BinderAgreement[] }>(
+    `/binder-agreements?${status ? `status=${status}&` : ''}${q ? `q=${encodeURIComponent(q)}` : ''}`);
+
+  return <Surface title="Binder Agreements" subtitle="Cross-insurer binder authority directory" actions={<Refresh query={query} />}>
+    <div className="ops-toolbar">
+      <SearchBox value={q} onSearch={setQ} label="Insurer or binder reference" />
+      <label>Status <select className="hz-field" value={status} onChange={e => setStatus(e.target.value)}>
+        <option value="">All</option><option value="ACTIVE">Active</option>
+        <option value="SUSPENDED">Suspended</option><option value="TERMINATED">Terminated</option>
+      </select></label>
+    </div>
+    <QueryState query={query} />
+    {query.data && <>
+      <Grid headers={['Insurer','Reference','Period','Binder limit','Status','Notes']} empty={!query.data.results.length}>
+        {query.data.results.map(row => <tr key={row.id}>
+          <td><Link className="ops-link" to={`/setup/insurers/${row.insurer.id}`}>{row.insurer.code} — {row.insurer.name}</Link></td>
+          <td>{row.reference_no}</td>
+          <td>{row.effective_from}{row.effective_to ? ` → ${row.effective_to}` : ' → open-ended'}</td>
+          <td>{row.binder_limit ?? '—'}</td>
+          <td><Status value={row.status} /></td>
+          <td>{row.notes || '—'}</td>
+        </tr>)}
+      </Grid>
+      <p className="ops-muted">Agreement changes are made in the insurer workspace; this directory is read-only.</p>
+    </>}
+  </Surface>;
+}
