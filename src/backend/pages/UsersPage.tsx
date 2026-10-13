@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { Check, Copy, Plus, Shield, UserPlus, X } from 'lucide-react';
+import { ClipboardCheck, Copy, Plus, Shield, UserPlus } from 'lucide-react';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ActionDialog, ActionSpec, Grid, Pager, pretty, QueryState, reason, Refresh, SearchBox, Status, Surface, Tabs } from '../operations/ui';
@@ -64,7 +64,6 @@ export function UserWorkspace() {
   const [notice, setNotice] = useState('');
   const branches = options.data?.branches.map(b => option(b.id, `${b.code} - ${b.name}`)) ?? [];
   const newRole = () => setAction({ title: 'Assign role', path: `${path}/roles`, fields: [{ name: 'role_id', label: 'Role', required: true, options: options.data!.roles.map(r => option(r.id, `${r.name}${r.requires_approval ? ' (approval required)' : ''}`)) }, { name: 'scope', label: 'Scope', value: 'BRANCH', required: true, options: scopes.filter(s => s.value !== 'OWN') }, { name: 'branch_id', label: 'Branch', options: branches }, reason], transform: values => ({ ...values, branch_id: values.scope === 'ALL' ? null : values.branch_id }) });
-  const chooseAction = (spec: ActionSpec) => setAction(spec);
   const endRole = (assignment: Assignment) => {
     const protectedRole = options.data?.roles.find(r => r.id === assignment.role_id)?.requires_approval;
     setAction(protectedRole
@@ -105,7 +104,7 @@ export function UserWorkspace() {
     </>}
     {tab === 'approvals' && <>
       <QueryState query={access} />
-      {access.data && <Proposals rows={access.data.proposals} canDecide={!!active} actorId={me?.user.id} path={`${path}/role-proposals`} choose={chooseAction} isOwnWorkspace={me?.user.id === userId} />}
+      {access.data && <Proposals rows={access.data.proposals} />}
     </>}
     {action && <UserAction spec={action} roles={options.data?.roles ?? []} close={() => setAction(null)} done={data => { setAction(null); setNotice((data as { status?: string }).status === 'PENDING' ? 'Submitted for approval by another administrator.' : 'Change saved.'); }} />}
   </Surface>;
@@ -120,28 +119,22 @@ function UserAction({ spec, roles, ...rest }: { spec: ActionSpec; roles: UserOpt
   return <ActionDialog spec={{ ...spec, title: `Assign ${role.name}`, path: role.requires_approval ? spec.path.replace(/\/roles$/, '/role-proposals') : spec.path, fields: spec.fields.filter(f => f.name !== 'role_id'), body: { role_id: selection }, confirm: role.requires_approval ? 'Submit for approval' : 'Assign role' }} {...rest} />;
 }
 
-export function Proposals({ rows, canDecide, actorId, path, choose, isOwnWorkspace }: { rows: Proposal[]; canDecide: boolean; actorId?: string; path: string; choose: (action: ActionSpec) => void; isOwnWorkspace?: boolean }) {
+export function Proposals({ rows }: { rows: Proposal[] }) {
   const actionLabel = (p: Proposal) => p.action === 'ADD' ? 'Grant' : p.action === 'ASSIGN' ? 'Assign' : pretty(p.action);
-  return <Grid headers={['Change', 'Reason', 'Status', 'Decision']} empty={!rows.length}>
+  return <Grid headers={['Change', 'Reason', 'Status', 'Workflow']} empty={!rows.length}>
     {rows.map(p => {
       const target = p.name ?? permissionLabel(p.permission_code ?? 'Permission');
-      const selfProposed = p.proposed_by === actorId;
       return <tr key={p.id}>
         <td>{actionLabel(p)}: {target}
           <div className="ops-muted">{p.branch_name ?? ''} {p.scope ? pretty(p.scope) : ''}</div>
         </td>
         <td>{p.reason}</td><td><Status value={p.status} /></td>
-        <td>{p.status === 'PENDING'
-          ? canDecide && !selfProposed
-            ? <div className="ops-actions">{['approve', 'reject'].map(d => <button key={d}
-                className="hz-icon-button" title={`${pretty(d)} ${target}`}
-                onClick={() => choose({ title: `${pretty(d)} change`, message: target, path: `${path}/${p.id}/${d}`, fields: [reason], confirm: pretty(d) })}>
-                {d === 'approve' ? <Check size={16} /> : <X size={16} />}
-              </button>)}</div>
-            : selfProposed ? 'You proposed — another admin must decide'
-            : isOwnWorkspace ? 'A different admin must approve changes to your own access'
-            : 'Pending approval'
-          : null}</td>
+        <td>{p.workflow?.instance_id
+          ? <Link className="ops-link" to={`/my-work/list/${encodeURIComponent(p.workflow.instance_id)}`}>
+              <ClipboardCheck size={14} className="inline mr-1" />{pretty(p.workflow.status)}
+              {p.workflow.stage_label ? ` · ${p.workflow.stage_label}` : ''}
+            </Link>
+          : p.status === 'PENDING' ? 'Workflow not started' : '—'}</td>
       </tr>;
     })}
   </Grid>;
