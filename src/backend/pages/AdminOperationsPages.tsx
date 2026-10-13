@@ -25,7 +25,7 @@ export function BranchHierarchyPage() {
   const branches = query.data?.branches ?? [];
   const regionOptions = regions.filter(r => r.is_active).map(r => ({ value: r.id, label: `${r.code} — ${r.name}` }));
 
-  return <Surface title="Branch hierarchy" subtitle="Tenant branches and regions" actions={<>
+  return <Surface title="Branch hierarchy" subtitle="Tenant branches and regions. Deactivation requires moving active members and branch access first." actions={<>
     <Refresh query={query} />
     {manage && tab === 'branches' && <button className="hz-button hz-button-primary" onClick={() => setAction({
       title: 'New branch', path: '/admin/branches', confirm: 'Create branch', fields: [
@@ -150,7 +150,7 @@ interface AuditRow {
   id: string; actor_id: string; actor_email: string | null; timestamp: string; ip_address: string | null;
   correlation_id: string; action: string; resource_type: string; resource_id: string;
 }
-interface AuditDetail extends AuditRow { before_state: unknown; after_state: unknown }
+interface AuditDetail extends AuditRow { payloads_exposed: false }
 
 export function AuditLogsPage() {
   const { eventId } = useParams();
@@ -190,8 +190,7 @@ function AuditDetailPage({ eventId, back }: { eventId: string; back: () => void 
         <div><dt>Correlation ID</dt><dd><code>{row.correlation_id || '—'}</code></dd></div>
         <div><dt>IP address</dt><dd>{row.ip_address ?? '—'}</dd></div>
       </dl>
-      <h3 className="ops-subsection-title">Before</h3><pre className="ops-code">{JSON.stringify(row.before_state, null, 2)}</pre>
-      <h3 className="ops-subsection-title">After</h3><pre className="ops-code">{JSON.stringify(row.after_state, null, 2)}</pre>
+      <p className="ops-muted">Audit details display event metadata only. Before and after payloads are not disclosed in tenant administration.</p>
     </>}
   </Surface>;
 }
