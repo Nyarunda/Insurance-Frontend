@@ -34,7 +34,7 @@ function at(path: string, permissions: string[], responder: (url: string) => Res
 }
 
 it('renders scoped KYC readiness and offers only record drill-through', async () => {
-  at('/customers/kyc', ['clients.kyc.view'], url =>
+  at('/customers/kyc', ['clients.customer.view', 'clients.kyc.view'], url =>
     url.includes('/clients/kyc-desk') ? json(200, {
       summary: { PENDING_VERIFICATION: 1, REVIEW_DUE: 0, REJECTED: 0, IN_PROGRESS: 0, NOT_STARTED: 0, VERIFIED: 0 },
       results: [{
