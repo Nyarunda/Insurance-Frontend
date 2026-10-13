@@ -6,7 +6,7 @@
  * Later slices add their screens here (FI1-B: My work, FI1-C: Policies, FI1-D: endorsements).
  */
 
-import { BellRing, Boxes, Building2, CalendarClock, Car, ClipboardList, CreditCard, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, RefreshCcw, Settings2, UsersRound, type LucideIcon } from 'lucide-react';
+import { Bell, BellRing, Boxes, Building2, CalendarClock, Car, ClipboardList, CreditCard, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, Package, RefreshCcw, Settings2, UsersRound, Workflow, type LucideIcon } from 'lucide-react';
 import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
@@ -39,6 +39,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       // WFH-1 R1: for everyone signed in (History: the approvals they asked for); the queue, its count and
       // reminders stay with workflow.task.view, which the page and the shell check.
       { screen: 'my-work', label: 'My Work Queue', path: '/my-work/list', icon: Inbox, counter: 'pending_tasks' },
+      { screen: 'notifications', label: 'Notifications', path: '/notifications/list', icon: Bell },
     ],
   },
   {
@@ -56,7 +57,9 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       { screen: 'new-policy', label: 'New policy', path: '/new-policy', permission: QUOTATION_CREATE, icon: FilePlus2 },
       { screen: 'quotations', label: 'Quotations', path: '/quotations/list', permission: QUOTATION_VIEW, icon: FileText },
       { screen: 'intermediaries', label: 'Agents & partners', path: '/agents/list', permission: 'intermediaries.agent.view', icon: UsersRound },
+      { screen: 'leads', label: 'Leads & campaigns', path: '/sales/leads', permission: 'intermediaries.sales.view', icon: UsersRound },
       { screen: 'proposals', label: 'Proposals', path: '/proposals/list', permission: PROPOSAL_VIEW, icon: ClipboardList },
+      { screen: 'products', label: 'Products', path: '/products/list', permission: 'products.product.view', icon: Package },
     ],
   },
   {
@@ -65,6 +68,7 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     icon: FileCheck2,
     items: [
       { screen: 'policies', label: 'Policy Directory', path: '/policies/list', permission: POLICY_VIEW, icon: FileCheck2 },
+      { screen: 'endorsements', label: 'Endorsements', path: '/endorsements/list', permission: POLICY_VIEW, icon: FileText },
       { screen: 'reporting-operational', label: 'Production', path: '/reports/production', permission: POLICY_VIEW, icon: FileText },
       // RS-C: policies due for renewal, and renewals across policies.
       { screen: 'renewals', label: 'Renewals', path: '/renewals/list', permission: POLICY_VIEW, icon: RefreshCcw },
@@ -91,12 +95,15 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       },
       // NTF-2: which approval outcomes requesters are told about, for workflow administrators.
       { screen: 'approval-notifications', label: 'Approval notifications', path: '/approval-notifications', permission: WORKFLOW_VIEW, icon: BellRing },
+      { screen: 'admin-workflows', label: 'Workflow definitions', path: '/admin/workflows/list', permission: WORKFLOW_VIEW, icon: Workflow },
     ],
   },
   {
-    id: 'billing', title: 'Billing', icon: FileText,
+    id: 'billing', title: 'Finance', icon: FileText,
     items: [
       { screen: 'billing', label: 'Receipts', path: '/billing/receipts/list', permission: 'billing.document.view', icon: FileText },
+      { screen: 'finance-ledger', label: 'Finance ledger', path: '/billing/ledger', permission: 'billing.document.view', icon: FileText },
+      { screen: 'commissions', label: 'Agent commissions', path: '/sales/agreements', permission: 'intermediaries.commission.view', icon: FileText },
       { screen: 'reporting-financial', label: 'Premium collections', path: '/billing/reports/collections', permission: 'billing.document.view', icon: FileText },
       { screen: 'accounting', label: 'Billing accounts', path: '/billing/accounts/list', permission: 'billing.setup.manage', icon: Settings2 },
       { screen: 'receivables', label: 'Collection agreements', path: '/billing/agreements/list', permission: 'billing.setup.manage', icon: FileCheck2 },
@@ -144,6 +151,9 @@ export const pathForScreen = (screen: ScreenId, registry: BackendNavGroup[] = BA
 
 export const screenForPath = (pathname: string, registry: BackendNavGroup[] = BACKEND_NAV): ScreenId | null => {
   const items = allItems(registry);
+  if (/^\/billing\/journals\//.test(pathname) && items.some(i => i.screen === 'finance-ledger')) return 'finance-ledger';
+  if (/^\/sales\/(followups|campaigns|targets)(\/|$)/.test(pathname) && items.some(i => i.screen === 'leads')) return 'leads';
+  if (/^\/sales\/payouts(\/|$)/.test(pathname) && items.some(i => i.screen === 'commissions')) return 'commissions';
   const exact = items.find((item) => item.path === pathname);
   if (exact) return exact.screen;
   // A list lives at `/<module>/list` and its records at `/<module>/<number>`: both belong to the list's item.

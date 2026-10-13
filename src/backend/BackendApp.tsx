@@ -73,11 +73,15 @@ import { OperationsBoundary } from './operations/ui';
 const UsersPage = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })));
 const AgentsPage = React.lazy(() => import('./pages/AgentsPage').then(m => ({ default: m.AgentsPage })));
 const AgentWorkspace = React.lazy(() => import('./pages/AgentsPage').then(m => ({ default: m.AgentWorkspace })));
+const SalesListPage = React.lazy(() => import('./pages/SalesPages').then(m => ({ default: m.SalesListPage })));
+const SalesWorkspace = React.lazy(() => import('./pages/SalesPages').then(m => ({ default: m.SalesWorkspace })));
 const UserWorkspace = React.lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UserWorkspace })));
 const RolesPage = React.lazy(() => import('./pages/RolesPage').then(m => ({ default: m.RolesPage })));
 const ReceiptsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptsPage })));
 const ReceiptWorkspace = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.ReceiptWorkspace })));
 const BillingAccountsPage = React.lazy(() => import('./pages/BillingPages').then(m => ({ default: m.BillingAccountsPage })));
+const FinanceLedgerPage = React.lazy(() => import('./pages/FinanceLedgerPage').then(m => ({ default: m.FinanceLedgerPage })));
+const FinanceJournalWorkspace = React.lazy(() => import('./pages/FinanceLedgerPage').then(m => ({ default: m.FinanceJournalWorkspace })));
 const CollectionsReportPage = React.lazy(() => import('./pages/CollectionsReportPage').then(m => ({ default: m.CollectionsReportPage })));
 const ProductionReportPage = React.lazy(() => import('./pages/ProductionReportPage').then(m => ({ default: m.ProductionReportPage })));
 const RenewalDiaryPage = React.lazy(() => import('./pages/RenewalDiaryPage').then(m => ({ default: m.RenewalDiaryPage })));
@@ -85,6 +89,10 @@ const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage').the
 const SubscriptionPage = React.lazy(() => import('./pages/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })));
 const PlatformTenantsPage = React.lazy(() => import('./pages/PlatformTenantsPage').then(m => ({ default: m.PlatformTenantsPage })));
 const BillingAgreementsPage = React.lazy(() => import('./pages/BillingAgreementsPage').then(m => ({ default: m.BillingAgreementsPage })));
+const EndorsementsListPage = React.lazy(() => import('./pages/EndorsementsListPage').then(m => ({ default: m.EndorsementsListPage })));
+const NotificationsCenterPage = React.lazy(() => import('./pages/NotificationsCenterPage').then(m => ({ default: m.NotificationsCenterPage })));
+const ProductsCatalogPage = React.lazy(() => import('./pages/ProductsCatalogPage').then(m => ({ default: m.ProductsCatalogPage })));
+const WorkflowDefinitionsPage = React.lazy(() => import('./pages/WorkflowDefinitionsPage').then(m => ({ default: m.WorkflowDefinitionsPage })));
 const InvitationAcceptPage = React.lazy(() => import('./auth/InvitationAcceptPage').then(m => ({ default: m.InvitationAcceptPage })));
 
 const operation = (permission: string, page: React.ReactNode) => (
@@ -109,6 +117,11 @@ export const backendRoutes: RouteObject[] = [
       </RequireSession>
     ),
     children: [
+      ...(['leads', 'followups', 'campaigns', 'targets', 'agreements', 'payouts'] as const).flatMap(kind => {
+        const permission = `intermediaries.${['agreements', 'payouts'].includes(kind) ? 'commission' : 'sales'}.view`;
+        return [{ path: `sales/${kind}`, element: operation(permission, <SalesListPage kind={kind} />) },
+          { path: `sales/${kind}/:recordId`, element: operation(permission, <SalesWorkspace kind={kind} />) }];
+      }),
       { path: 'agents/list', element: operation('intermediaries.agent.view', <AgentsPage />) },
       { path: 'agents/list/:agentId', element: operation('intermediaries.agent.view', <AgentWorkspace />) },
       { path: 'admin/users/list', element: operation('admin.users.view', <UsersPage />) },
@@ -118,6 +131,8 @@ export const backendRoutes: RouteObject[] = [
       { path: 'admin/subscription', element: operation('admin.users.view', <SubscriptionPage />) },
       { path: 'admin/roles/list/:roleId', element: operation('admin.roles.manage', <RolesPage />) },
       { path: 'billing/receipts/list', element: operation('billing.document.view', <ReceiptsPage />) },
+      { path: 'billing/ledger', element: operation('billing.document.view', <FinanceLedgerPage />) },
+      { path: 'billing/journals/:postingId', element: operation('billing.document.view', <FinanceJournalWorkspace />) },
       { path: 'billing/reports/collections', element: operation('billing.document.view', <CollectionsReportPage />) },
       { path: 'reports/production', element: operation('policies.policy.view', <ProductionReportPage />) },
       { path: 'renewals/diary', element: operation('policies.policy.view', <RenewalDiaryPage />) },
@@ -255,6 +270,13 @@ export const backendRoutes: RouteObject[] = [
           </RequirePermission>
         ),
       },
+      { path: 'notifications', element: <ToList to="/notifications/list" /> },
+      { path: 'notifications/list', element: <React.Suspense fallback={<HorizonLoader tip="Loading..." />}><NotificationsCenterPage /></React.Suspense> },
+      { path: 'products', element: <ToList to="/products/list" /> },
+      { path: 'products/list', element: operation('products.product.view', <ProductsCatalogPage />) },
+      { path: 'admin/workflows/list', element: operation(WORKFLOW_VIEW, <WorkflowDefinitionsPage />) },
+      { path: 'endorsements', element: <ToList to="/endorsements/list" /> },
+      { path: 'endorsements/list', element: operation(POLICY_VIEW, <EndorsementsListPage />) },
       { path: 'policies', element: <ToList to="/policies/list" /> },
       // A record outside its list (`/policies/POL0000001/…`, an older address) moves under it.
       { path: 'policies/:record/*', element: <IntoList /> },

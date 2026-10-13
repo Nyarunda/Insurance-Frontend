@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { Check, Pencil, Plus, Save, Send, ShieldOff, Undo2, X } from 'lucide-react';
+import { Check, ClipboardCheck, Pencil, Plus, Save, Send, ShieldOff, Undo2, X } from 'lucide-react';
 import { useMe, usePermission } from '../../lib/auth/me';
 import { DialogFrame } from '../../components/modals/DialogFrame';
 import { ApiErrorAlert } from '../components/ApiErrorAlert';
@@ -8,10 +8,11 @@ import { AgentPicker, AgentReference } from '../agents/AgentPicker';
 import { PageResult, useOperationsCommand, useOperationsQuery } from '../operations/data';
 import { ActionDialog, ActionSpec, Grid, Pager, pretty, QueryState, reason, Refresh, SearchBox, Status, Surface, Tabs } from '../operations/ui';
 
+interface WorkflowBlock { instance_id: string; status: string; stage_label: string | null }
 interface Agent extends AgentReference {
   parent: AgentReference | null; email: string; phone: string; licence_no: string; status: string;
   reason: string; contributors: string[]; approved_at: string | null; created_at: string;
-  updated_at: string; etag: string;
+  updated_at: string; etag: string; workflow?: WorkflowBlock | null;
 }
 const statuses = ['DRAFT', 'PENDING', 'ACTIVE', 'REJECTED', 'SUSPENDED'];
 const kinds = ['AGENT', 'SUB_AGENT', 'AFFINITY'];
@@ -77,7 +78,8 @@ export function AgentWorkspace() {
     {manage && ['DRAFT', 'REJECTED'].includes(a.status) && <button className="hz-button hz-button-secondary" onClick={() => setAction({ title: 'Edit agent', path, method: 'PATCH', ifMatch: a.etag, fields: profileFields(a) })}><Pencil size={14} />Edit</button>}
     {manage && ['DRAFT', 'REJECTED', 'SUSPENDED'].includes(a.status) && <button className="hz-button hz-button-primary" onClick={() => start('submit', 'Submit for approval')}><Send size={14} />Submit for approval</button>}
     {manage && a.status === 'PENDING' && <button className="hz-button hz-button-secondary" onClick={() => start('withdraw', 'Withdraw submission')}><Undo2 size={14} />Withdraw</button>}
-    {approve && a.status === 'PENDING' && !a.contributors.includes(actor ?? '') && <><button className="hz-button hz-button-primary" onClick={() => start('approve', 'Approve agent')}><Check size={14} />Approve</button><button className="hz-button hz-button-secondary" onClick={() => start('reject', 'Reject agent')}><X size={14} />Reject</button></>}
+    {a.status === 'PENDING' && a.workflow?.instance_id && <button className="hz-button hz-button-secondary" onClick={() => navigate(`/my-work/list/${encodeURIComponent(a.workflow!.instance_id)}`)}><ClipboardCheck size={14} />Open approval</button>}
+    {approve && a.status === 'PENDING' && !a.workflow?.instance_id && !a.contributors.includes(actor ?? '') && <><button className="hz-button hz-button-primary" onClick={() => start('approve', 'Approve agent')}><Check size={14} />Approve</button><button className="hz-button hz-button-secondary" onClick={() => start('reject', 'Reject agent')}><X size={14} />Reject</button></>}
     {manage && a.status === 'ACTIVE' && <button className="hz-button hz-button-secondary" onClick={() => start('suspend', 'Suspend agent')}><ShieldOff size={14} />Suspend</button>}
     {manage && a.status === 'ACTIVE' && a.kind === 'AGENT' && <button className="hz-button hz-button-primary" onClick={() => setAddingChild(true)}><Plus size={14} />New sub-agent</button>}
   </>}</>}>
@@ -88,6 +90,7 @@ export function AgentWorkspace() {
       <div><dt>Parent agent</dt><dd>{a.parent ? <Link className="ops-link" to={`/agents/list/${a.parent.id}`}>{a.parent.name}</Link> : '-'}</dd></div>
       <div><dt>Approved</dt><dd>{a.approved_at ? new Date(a.approved_at).toLocaleString() : '-'}</dd></div><div><dt>Last updated</dt><dd>{new Date(a.updated_at).toLocaleString()}</dd></div>
       <div><dt>Latest reason</dt><dd>{a.reason || '-'}</dd></div>
+      {a.workflow && <div><dt>Approval</dt><dd><Link className="ops-link" to={`/my-work/list/${encodeURIComponent(a.workflow.instance_id)}`}>{pretty(a.workflow.status)}{a.workflow.stage_label ? ` · ${a.workflow.stage_label}` : ''}</Link></dd></div>}
     </dl>}
     {tab === 'sub-agents' && a?.kind === 'AGENT' && <><QueryState query={children} />{children.data && <><Grid headers={['Code', 'Name', 'Status']} empty={!children.data.results.length}>{children.data.results.map(child => <tr key={child.id}><td>{child.code}</td><td><Link className="ops-link" to={`/agents/list/${child.id}`}>{child.name}</Link></td><td><Status value={child.status} /></td></tr>)}</Grid><Pager page={childPage} count={children.data.count} size={25} change={p => setParams({ tab, page: String(p) })} /></>}</>}
     {tab === 'activity' && <><QueryState query={activity} />{activity.data && <><p className="text-sm mb-2">Latest 100 events</p><Grid headers={['Time', 'Action', 'Reason']} empty={!activity.data.results.length}>{activity.data.results.map(event => <tr key={event.id}><td>{new Date(event.at).toLocaleString()}</td><td>{pretty(event.action)}</td><td>{event.reason || '-'}</td></tr>)}</Grid></>}</>}

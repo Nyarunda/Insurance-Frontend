@@ -63,6 +63,8 @@ describe('permission-driven navigation', () => {
     expect(screenForPath('/renewals/list/REN0000001')).toBe('renewals');
     expect(screenForPath('/approval-reasons/list')).toBe('approval-reasons');
     expect(screenForPath('/new-policy')).toBe('new-policy');
+    expect(screenForPath('/billing/ledger')).toBe('finance-ledger');
+    expect(screenForPath('/billing/journals/record')).toBe('finance-ledger');
     expect(screenForPath('/quotations/list/QUO0000002')).toBe('quotations');
   });
 
@@ -70,12 +72,16 @@ describe('permission-driven navigation', () => {
     expect(BACKEND_NAV.flatMap((group) => group.items).map((item) => [item.screen, item.permission ?? null])).toEqual([
       ['dashboard', null],
       ['my-work', null],
+      ['notifications', null],
       ['customers', 'clients.customer.view'],
       ['new-policy', 'quotations.quotation.create'],
       ['quotations', 'quotations.quotation.view'],
       ['intermediaries', 'intermediaries.agent.view'],
+      ['leads', 'intermediaries.sales.view'],
       ['proposals', 'underwriting.proposal.view'],
+      ['products', 'products.product.view'],
       ['policies', 'policies.policy.view'],
+      ['endorsements', 'policies.policy.view'],
       ['reporting-operational', 'policies.policy.view'],
       ['renewals', 'policies.policy.view'],
       ['certificates', 'certificates.cert.view'],
@@ -84,7 +90,10 @@ describe('permission-driven navigation', () => {
       ['approval-reasons', 'admin.workflow.manage'],
       ['renewal-settings', ['policies.renewal_settings.manage', 'products.config.publish', 'policies.renewal.create', 'policies.renewal.approve']],
       ['approval-notifications', 'admin.workflow.view'],
+      ['admin-workflows', 'admin.workflow.view'],
       ['billing', 'billing.document.view'],
+      ['finance-ledger', 'billing.document.view'],
+      ['commissions', 'intermediaries.commission.view'],
       ['reporting-financial', 'billing.document.view'],
       ['accounting', 'billing.setup.manage'],
       ['receivables', 'billing.setup.manage'],

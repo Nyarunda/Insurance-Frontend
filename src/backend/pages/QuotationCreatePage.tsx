@@ -6,8 +6,8 @@
  * is entered from the product's own rating factors, priced and issued.
  */
 
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { FilePlus2, Search } from 'lucide-react';
 import { FieldError, HorizonLoader } from '../../components/horizon';
 import { DialogFrame } from '../../components/modals/DialogFrame';
@@ -22,6 +22,8 @@ import { quotationHref } from '../quotations/refs';
 import { useQuotationCommands } from '../quotations/useQuotationCommands';
 import { quotationsFrom } from './QuotationsPage';
 import { AgentPicker, AgentReference } from '../agents/AgentPicker';
+import { useOperationsQuery } from '../operations/data';
+import { QueryState } from '../operations/ui';
 
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
@@ -40,6 +42,11 @@ const handedOver = (state: unknown): Chosen | null => {
 export const QuotationCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [params] = useSearchParams();
+  const leadId = params.get('lead');
+  const lead = useOperationsQuery<{ id: string; name: string; etag: string; product_id: string | null; branch_id: string | null; quotation_agent: AgentReference | null; quotation_sub_agent: AgentReference | null }>(`/sales/leads/${encodeURIComponent(leadId ?? '')}`, !!leadId);
+  const seededLead = useRef<string | null>(null);
+  const sourceVersion = useRef<string | undefined>(undefined);
   const branches = useBranchStore((state) => state.branches);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const products = useActiveProducts();
@@ -57,6 +64,15 @@ export const QuotationCreatePage: React.FC = () => {
   const [attempted, setAttempted] = useState(false);
   const [serverFields, setServerFields] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<unknown>(null);
+  useEffect(() => {
+    if (!lead.data || seededLead.current === lead.data.id) return;
+    seededLead.current = lead.data.id;
+    sourceVersion.current = lead.data.etag;
+    setProduct(lead.data.product_id ?? '');
+    if (lead.data.branch_id) setBranch(lead.data.branch_id);
+    setAgent(lead.data.quotation_agent);
+    setSubAgent(lead.data.quotation_sub_agent);
+  }, [lead.data]);
 
   const back = () => navigate(quotationsFrom(location.state));
   const clientErrors: Record<string, string | undefined> = {
@@ -69,6 +85,7 @@ export const QuotationCreatePage: React.FC = () => {
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setAttempted(true);
+    if (leadId && (!lead.data || lead.isError)) return;
     if (Object.values(clientErrors).some(Boolean) || !customer) return;
     setFailure(null);
     setServerFields({});
@@ -76,6 +93,7 @@ export const QuotationCreatePage: React.FC = () => {
       customer_id: customer.id,
       product_id: product,
       branch_id: branch,
+      ...(leadId ? { lead_id: leadId, lead_etag: sourceVersion.current } : {}),
       ...(validUntil ? { valid_until: validUntil } : {}),
       ...(agent ? { agent_id: agent.id, sub_agent_id: subAgent?.id ?? null } : {}),
     });
@@ -103,13 +121,14 @@ export const QuotationCreatePage: React.FC = () => {
           <button type="button" className="hz-button hz-button-secondary" onClick={back} disabled={pending}>
             Cancel
           </button>
-          <button type="submit" form="quotation-create-form" className="hz-button hz-button-primary" disabled={pending}>
+          <button type="submit" form="quotation-create-form" className="hz-button hz-button-primary" disabled={pending || (!!leadId && !lead.data)}>
             {pending ? 'Creating…' : 'Create quotation'}
           </button>
         </>
       }
     >
       {failure !== null && <ApiErrorAlert error={failure} title="The quotation was not created" />}
+      {leadId && <><QueryState query={lead} />{lead.data && <p className="text-sm mb-3">Lead: {lead.data.name}</p>}</>}
       <form id="quotation-create-form" noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-5">
         <div>
           <span className={label}>

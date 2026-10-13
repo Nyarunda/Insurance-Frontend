@@ -22,9 +22,15 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     });
     await page.goto(`${base}/reports/production?date_from=2026-10-01&date_to=2026-10-31`);
     await expect(page.getByTestId('production-totals')).toContainText('45250.30');
+    await page.getByLabel('Production agent', { exact: true }).selectOption('agent');
+    await page.getByLabel('Production sub-agent', { exact: true }).selectOption('sub-agent');
+    await page.getByLabel('Group production by').selectOption('sub_agent');
+    await page.getByRole('button', { name: 'Run report' }).click();
+    await expect(page).toHaveURL(/sub_agent_id=sub-agent/);
     await page.screenshot({ path: info.outputPath('production.png'), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
     await page.getByRole('tab', { name: 'Policies', exact: true }).click();
+    await expect(page).toHaveURL(/agent_id=agent/);
     await expect(page.getByRole('link', { name: 'POL0000021' })).toHaveAttribute('href', '/policies/list/policy');
     await page.goto(`${base}/renewals/diary?date_from=2026-10-01&date_to=2026-12-31`);
     await expect(page.getByTestId('diary-totals')).toContainText('450250.30');

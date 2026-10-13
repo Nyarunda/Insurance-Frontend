@@ -100,6 +100,7 @@ const FACTORS = [
 ];
 
 interface Options {
+  lead?: Record<string, unknown>;
   agents?: NonNullable<QuotationDetail['agent']>[];
   list?: QuotationSummary[];
   view?: QuotationDetail;
@@ -117,6 +118,7 @@ function quotationBackend(options: Options = {}) {
   let gets = 0;
   const network = fakeFetch((call) => {
     const path = call.url.replace('/api/v1', '');
+    if (path.startsWith('/sales/leads/')) return json(200, options.lead);
     if (path.startsWith('/agents/options?')) return json(200, { results: options.agents ?? [], count: options.agents?.length ?? 0, page: 1, page_size: 10 });
     if (path.startsWith('/quotations?')) {
       const results = options.list ?? [summary()];
@@ -205,6 +207,18 @@ describe('Quotations list', () => {
 });
 
 describe('New quotation', () => {
+  it('retains a lead identity and version while explicitly selecting the customer', async () => {
+    const user = userEvent.setup();
+    const backend = quotationBackend({ lead: { id: 'lead-1', name: 'Fleet opportunity', etag: '"lead-v1"', product_id: PRODUCT_ID, branch_id: BRANCH.id, quotation_agent: null, quotation_sub_agent: null } });
+    renderAt('/quotations/list/new?lead=lead-1');
+    const dialog = within(await screen.findByRole('dialog', { name: 'New quotation' }));
+    await dialog.findByText('Lead: Fleet opportunity');
+    await user.type(dialog.getByLabelText('Find the customer'), 'Wanjiku');
+    await user.click(dialog.getByRole('button', { name: 'Find' }));
+    await user.click(await dialog.findByRole('button', { name: /Wanjiku Kamau/ }));
+    await user.click(dialog.getByRole('button', { name: 'Create quotation' }));
+    await waitFor(() => expect(backend.calls.find(c => c.method === 'POST' && c.url.endsWith('/quotations'))?.body).toMatchObject({ lead_id: 'lead-1', lead_etag: '"lead-v1"', customer_id: CUSTOMER_ID, product_id: PRODUCT_ID }));
+  });
   it('saves verified agent identity instead of a typed reference', async () => {
     const user = userEvent.setup();
     const agent = { id: 'agent-id', code: 'AG-12', name: 'Karibu Agency', kind: 'AGENT' };

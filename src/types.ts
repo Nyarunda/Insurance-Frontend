@@ -58,6 +58,7 @@ export type ScreenId =
   | 'salvage'
   // FINANCE
   | 'finance-landing'
+  | 'finance-ledger'
   | 'billing'
   | 'receivables'
   | 'payments'

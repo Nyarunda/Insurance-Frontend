@@ -1,6 +1,7 @@
 export const productionOptions = {
   branches: [{ id: 'branch', name: 'Nairobi' }], products: [{ id: 'motor', name: 'Commercial motor' }],
   insurers: [{ id: 'insurer', name: 'Horizon Underwriters' }],
+  agents: [{ id: 'agent', name: 'Karibu Agency' }], sub_agents: [{ id: 'sub-agent', name: 'Karibu Sub-agent' }],
 };
 const premium = { currency: 'KES', basic_premium: '45000.00', levies_total: '250.30', total_premium: '45250.30' };
 export const productionReport = {

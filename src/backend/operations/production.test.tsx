@@ -36,6 +36,25 @@ function setup({ permission = true, failure = false } = {}) {
 }
 
 describe('Production reporting', () => {
+  it('keeps agent filters across policy drill-down, paging and export', async () => {
+    const { user, network, router } = setup();
+    await screen.findByTestId('production-totals');
+    await user.selectOptions(screen.getByLabelText('Production agent'), 'agent');
+    await user.selectOptions(screen.getByLabelText('Production sub-agent'), 'sub-agent');
+    await user.selectOptions(screen.getByLabelText('Group production by'), 'sub_agent');
+    await user.click(screen.getByRole('button', { name: 'Run report' }));
+    await waitFor(() => expect(network.calls.some(c => c.url.includes('group_by=sub_agent') && c.url.includes('agent_id=agent') && c.url.includes('sub_agent_id=sub-agent'))).toBe(true));
+    await user.click(screen.getByTitle('Next page'));
+    expect(router.state.location.search).toContain('agent_id=agent');
+    await user.click(screen.getByRole('tab', { name: 'Policies' }));
+    await screen.findByRole('link', { name: 'POL0000021' });
+    expect(router.state.location.search).toContain('sub_agent_id=sub-agent');
+    await user.click(screen.getByTestId('production-export'));
+    expect(downloadCsv).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining([
+      expect.arrayContaining(['Scope', 'Karibu Agency', 'Karibu Sub-agent']),
+      expect.arrayContaining(['Policy', 'Agent', 'Sub-agent']),
+    ]));
+  });
   it('shows separate currencies and exports only the displayed page with full filtered totals', async () => {
     const { user } = setup();
     const totals = await screen.findByTestId('production-totals');

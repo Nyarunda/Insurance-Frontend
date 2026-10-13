@@ -8,6 +8,8 @@ const modules: Record<string, string> = {
 };
 const resources: Record<string, string> = {
   'intermediaries.agent': 'agents and sub-agents',
+  'intermediaries.sales': 'leads, follow-ups, campaigns and targets',
+  'intermediaries.commission': 'commission agreements and payouts',
   'admin.authority': 'approval limits', 'admin.delegation': 'delegations',
   'admin.roles': 'roles and permissions', 'admin.users': 'users', 'admin.workflow': 'approval workflows',
   'admin.integrations': 'integrations and provider credentials',
@@ -40,6 +42,7 @@ const exceptions: Record<string, string> = {
   'quotations.quotation.decide': 'Record quotation decisions',
   'workflow.task.view_team': 'View team work items',
   'billing.receipt.create': 'Record receipts',
+  'intermediaries.commission.settle': 'Record externally completed commission settlements',
 };
 const words = (value: string) => value.replace(/[._-]+/g, ' ').trim();
 const sentence = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);

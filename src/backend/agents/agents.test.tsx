@@ -65,6 +65,15 @@ it('does not offer self-approval, but offers approval to an independent reviewer
   await waitFor(() => expect(screen.getByRole('button', { name: 'Approve' })).toBeVisible());
 });
 
+it('shows Open approval when a workflow governs the pending agent', async () => {
+  const governed = { ...agent, status: 'PENDING', workflow: { instance_id: 'wf-instance-1', status: 'PENDING_APPROVAL', stage_label: 'Agent Checker' } };
+  const net = fakeFetch(c => c.url.endsWith('/agents/agent-1') ? json(200, governed) : json(200, me));
+  vi.stubGlobal('fetch', net.fn); at('/agents/list/agent-1');
+  expect(await screen.findByRole('button', { name: 'Open approval' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
+  expect(screen.getByText(/Pending approval/)).toBeVisible();
+});
+
 it('creates a persisted draft with contact details', async () => {
   const user = userEvent.setup();
   const net = fakeFetch(c => c.method === 'POST' ? json(201, agent) : c.url.includes('/agents?') ? json(200, page) : c.url.includes('/agents/agent-1') ? json(200, agent) : json(200, me));

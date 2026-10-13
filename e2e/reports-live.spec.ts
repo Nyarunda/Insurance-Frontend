@@ -26,6 +26,13 @@ test('real tenant API: production and dated renewal diary', async ({ page }) => 
   await page.goto(`${url}/reports/production?date_from=${date(start)}&date_to=${date(today)}`);
   await expect(page.getByTestId('production-totals')).toContainText('KES');
   await expect(page.getByTestId('operations-workspace').getByRole('alert')).toHaveCount(0);
+  await page.getByLabel('Group production by').selectOption('agent');
+  const grouped = page.waitForResponse(response => response.url().includes('/policies/reports/production?') && response.url().includes('group_by=agent'));
+  await page.getByRole('button', { name: 'Run report' }).click();
+  const response = await grouped;
+  expect(response.status()).toBe(200);
+  expect((await response.json()).group_by).toBe('agent');
+  await expect(page.getByTestId('operations-workspace').getByRole('alert')).toHaveCount(0);
   await page.getByRole('tab', { name: 'Policies', exact: true }).click();
   await expect(page.getByRole('link', { name: /^POL/ }).first()).toBeVisible();
 
