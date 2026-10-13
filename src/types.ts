@@ -103,6 +103,7 @@ export type ScreenId =
   // ADMINISTRATION
   | 'admin-organization'
   | 'admin-branches'
+  | 'admin-delegations'
   | 'admin-users-roles'
   | 'admin-doa'
   | 'admin-workflows'
