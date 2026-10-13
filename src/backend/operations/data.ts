@@ -80,7 +80,7 @@ export interface Permission { id: string; code: string; module: string; descript
 export interface Role { id: string; name: string; code: string | null; description: string; origin: string; editable: boolean; permissions?: Permission[]; requires_approval?: boolean }
 export interface UserOptions { branches: Branch[]; roles: Role[]; permissions: Permission[] }
 export interface Assignment { id: string; role_id?: string; branch_id?: string | null; name: string; code: string; scope: string; branch_name?: string; effective_from: string; effective_to: string | null }
-export interface Proposal { id: string; name?: string; permission_code?: string; action: string; reason: string; status: string; proposed_by: string; scope?: string; branch_name?: string }
+export interface Proposal { id: string; name?: string; permission_code?: string; action: string; reason: string; status: string; proposed_by: string; scope?: string; branch_name?: string; workflow?: { instance_id: string; status: string; stage_label: string | null } | null }
 export interface UserAccess {
   branches: Assignment[]; roles: Assignment[];
   overrides: { id: string; code: string; effect: string; reason: string; effective_from: string; effective_to: string | null }[];
