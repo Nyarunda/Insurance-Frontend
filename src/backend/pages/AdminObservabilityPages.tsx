@@ -100,8 +100,8 @@ export function DelegationsPage() {
       definition_codes: values.definition_codes.trim()
         ? values.definition_codes.split(',').map(x => x.trim().toUpperCase()).filter(Boolean)
         : undefined,
-      effective_from: values.effective_from || null,
-      effective_to: values.effective_to,
+      effective_from: values.effective_from ? new Date(values.effective_from).toISOString() : null,
+      effective_to: new Date(values.effective_to).toISOString(),
       branch_id: values.branch_id || null,
       max_amount: values.max_amount || null,
       currency: values.currency.trim().toUpperCase(),
