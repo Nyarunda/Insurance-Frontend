@@ -24,6 +24,17 @@ export function useOperationsQuery<T>(path: string, enabled = true) {
   });
 }
 
+export function useOperationsResultQuery<T>(path: string, enabled = true) {
+  const scope = useOperationsScope();
+  const me = useMe().data;
+  return useQuery({
+    queryKey: operationsKey(scope, `result:${path}`),
+    queryFn: ({ signal }) => api.request<T>(path, { signal }),
+    enabled: enabled && !!me,
+    staleTime: 10_000,
+  });
+}
+
 /** A form owns its command key and in-flight lock; unrelated forms remain usable. */
 export function useOperationsCommand() {
   const cache = useQueryClient();
