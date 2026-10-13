@@ -108,6 +108,17 @@ const operation = (permission: string | readonly string[], page: React.ReactNode
   <RequirePermission permission={permission}><OperationsBoundary><React.Suspense fallback={<HorizonLoader tip="Loading..." />}>{page}</React.Suspense></OperationsBoundary></RequirePermission>
 );
 
+const operationAll = (permissions: readonly string[], page: React.ReactNode) => (
+  <OperationsBoundary>
+    <React.Suspense fallback={<HorizonLoader tip="Loading..." />}>
+      {permissions.reduceRight<React.ReactNode>(
+        (child, permission) => <RequirePermission permission={permission}>{child}</RequirePermission>,
+        page,
+      )}
+    </React.Suspense>
+  </OperationsBoundary>
+);
+
 export const backendRoutes: RouteObject[] = [
   { path: '/accept-invitation', element: <React.Suspense fallback={<HorizonLoader tip="Loading..." />}><InvitationAcceptPage /></React.Suspense> },
   {
@@ -173,7 +184,7 @@ export const backendRoutes: RouteObject[] = [
       },
       // NB1-A: customers, as policies: the list, the new-customer dialog over it, and the record by number.
       { path: 'customers', element: <ToList to="/customers/list" /> },
-      { path: 'customers/kyc', element: operation('clients.kyc.view', <KycComplianceDeskPage />) },
+      { path: 'customers/kyc', element: operationAll(['clients.customer.view', 'clients.kyc.view'], <KycComplianceDeskPage />) },
       { path: 'underwriting/workbench', element: operation(PROPOSAL_VIEW, <UnderwritingWorkbenchPage />) },
       { path: 'customers/:record/*', element: <IntoList /> },
       {
