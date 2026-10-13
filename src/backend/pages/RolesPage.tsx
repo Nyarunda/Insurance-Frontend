@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Pencil, Plus } from 'lucide-react';
-import { useMe } from '../../lib/auth/me';
 import { ActionDialog, ActionSpec, Grid, QueryState, reason, Refresh, SearchBox, Surface, Tabs } from '../operations/ui';
 import { Permission, Proposal, Role, useOperationsQuery } from '../operations/data';
 import { Proposals } from './UsersPage';
@@ -14,7 +13,6 @@ export function RolesPage() {
   const [params, setParams] = useSearchParams();
   const tab = roleId ? (params.get('tab') === 'approvals' ? 'approvals' : 'permissions') : 'list';
   const navigate = useNavigate();
-  const actor = useMe().data?.user.id;
   const roles = useOperationsQuery<Role[]>('/admin/roles', !roleId);
   const role = useOperationsQuery<Role>(`/admin/roles/${roleId}`, !!roleId);
   const catalogue = useOperationsQuery<Permission[]>('/admin/permissions', !!roleId && tab === 'permissions');
@@ -99,7 +97,7 @@ export function RolesPage() {
       </>}
       {tab === 'approvals' && <>
         <QueryState query={proposals} />
-        {proposals.data && <Proposals rows={proposals.data} canDecide={!!role.data?.editable} actorId={actor} path={`/admin/roles/${roleId}/permission-proposals`} choose={setAction} />}
+        {proposals.data && <Proposals rows={proposals.data} />}
       </>}
     </>}
     {action && <ActionDialog spec={action} close={() => setAction(null)} done={() => { setNotice(action.path.endsWith('permission-proposals') ? 'Submitted for approval. Access changes after a different administrator approves.' : 'Change saved.'); setAction(null); }} />}
