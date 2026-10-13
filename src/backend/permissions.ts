@@ -67,3 +67,11 @@ export const PRODUCT_MANAGE = 'products.product.manage';
 export const LEVY_MANAGE = 'products.levy.manage';
 export const COMMISSION_VIEW = 'products.commission.view';
 export const COMMISSION_MANAGE = 'products.commission.manage';
+
+
+// Administration workspaces.
+export const ADMIN_USERS_VIEW = 'admin.users.view';
+export const ADMIN_USERS_MANAGE = 'admin.users.manage';
+export const DELEGATION_VIEW = 'admin.delegation.view';
+export const DELEGATION_MANAGE = 'admin.delegation.manage';
+export const AUDIT_VIEW = 'admin.audit.view';
