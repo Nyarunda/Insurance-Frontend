@@ -57,3 +57,12 @@ export const CONFIG_PUBLISH = 'products.config.publish';
 
 // NTF-2: the tenant's approval notification settings (read with view; WORKFLOW_MANAGE above changes them).
 export const WORKFLOW_VIEW = 'admin.workflow.view';
+
+
+// INSURANCE-SETUP-1 setup workspaces.
+export const INSURER_VIEW = 'insurers.insurer.view';
+export const INSURER_MANAGE = 'insurers.insurer.manage';
+export const PRODUCT_MANAGE = 'products.product.manage';
+export const LEVY_MANAGE = 'products.levy.manage';
+export const COMMISSION_VIEW = 'products.commission.view';
+export const COMMISSION_MANAGE = 'products.commission.manage';
