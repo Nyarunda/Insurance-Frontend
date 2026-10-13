@@ -13,6 +13,20 @@ import { useSessionStore } from '../../lib/auth/sessionStore';
 import { useBranchStore } from '../../lib/context/branchStore';
 import { backendRoutes } from '../BackendApp';
 
+const pendingMonitor = {
+  pending_instances: 2,
+  pending_slots: 3,
+  by_definition: [{ definition_code: 'ENDORSEMENT_APPROVAL', pending_instances: 2, pending_slots: 3 }],
+  results: [{
+    assignment_id: 'a1', workflow_instance_id: 'w1', definition_code: 'ENDORSEMENT_APPROVAL',
+    resource_type: 'ENDORSEMENT', resource_reference: 'END0000042', stage: 'CHECK',
+    stage_label: 'Checker review', slot_no: 1, branch_name: 'Nairobi',
+    assigned_to: { kind: 'ROLE_POOL', user_id: null, email: null, role_id: 'r1', role_name: 'ENDORSEMENT_CHECKER',
+      eligible_users: [{ user_id: 'u2', email: 'checker@example.test' }] },
+    assigned_at: '2026-10-13T09:00:00Z',
+  }],
+};
+
 beforeEach(() => { queryClient.clear(); useBranchStore.getState().reset(); vi.clearAllMocks(); });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -21,6 +35,7 @@ function setup(permission = true, failure = false) {
   const net = fakeFetch(c => {
     if (c.url.endsWith('/auth/me')) return json(200, me);
     if (failure) return envelope(403, 'PERMISSION_DENIED', 'denied');
+    if (c.url.endsWith('/workflows/pending-monitor')) return json(200, pendingMonitor);
     return json(200, workflowDefinitionsResult);
   });
   vi.stubGlobal('fetch', net.fn); setAccessToken('test'); useSessionStore.setState({ status: 'signed-in' }); queryClient.setQueryData(ME_QUERY_KEY, me);
@@ -42,6 +57,16 @@ it('renders workflow definitions with readiness status', async () => {
 it('shows staffing gaps', async () => {
   setup();
   expect(await screen.findByText('No checker assigned in branch Mombasa')).toBeVisible();
+});
+
+it('shows pending workflow counts and who can approve without exposing decision buttons', async () => {
+  setup();
+  expect(await screen.findByText('END0000042')).toBeVisible();
+  expect(screen.getByText('2')).toBeVisible();
+  expect(screen.getByText('3')).toBeVisible();
+  expect(screen.getByText(/ENDORSEMENT_CHECKER/)).toBeVisible();
+  expect(screen.getByText(/checker@example.test/)).toBeVisible();
+  expect(screen.queryByRole('button', { name: /approve|reject/i })).not.toBeInTheDocument();
 });
 
 it('denies access without permission', async () => {
