@@ -13,6 +13,10 @@ The administration pages are **thin clients** of authoritative backend query/com
 
 All API paths above are relative to `/api/v1`. Server-side ALL scope is required for tenant-wide administration; hiding a button is only a usability aid and not authorization. Commands use the existing idempotency, correlation and concurrency client helpers. A 412 is a re-fetch/reconcile signal, not permission to force an update.
 
+## Workflow-only regression scope
+
+The candidate additionally removes the last backend-mode direct underwriting-exception approval command and its inline modal. The backend workflow-only boundary already denies that legacy path; presenting it as a usable action was misleading. When an exception has no workflow instance, the UI now explicitly reports "Workflow not started" and directs administrators to configure the approval rather than offering a bypass. When it has a live instance, an authorized user opens the task in My Work Queue. Agent and role proposals likewise contain no direct approval controls. The static route test requires zero literal `/approve` or `/decline` paths in backend-mode executable source. The backend's compatibility HTTP endpoints remain fail-closed pending a separately authorized API removal decision.
+
 ## Security regression
 
 `src/backend/operations/adminOperations.test.tsx` now asserts that audit details never render raw snapshots, even if an upstream mistakenly includes them in the response. The backend independently omits the fields. The backend's test suite checks canary secrecy, scoped permission denial and cross-tenant 404s.
