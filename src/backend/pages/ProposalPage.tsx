@@ -9,9 +9,9 @@
  * - Requirements (NB-D7): evidence is a reference only, recorded per requirement.
  * - Submit settles the proposal: READY_TO_BIND, UNDER_REVIEW (what is outstanding, in words) or
  *   REFERRED (which exception, and who it waits for). A refusal to submit lists the server's problems.
- * - Exceptions: an underwriter's referral (with a reason); approval by someone who did not prepare
- *   the proposal, in My Work Queue when the tenant governs it, or here otherwise (the server refuses
- *   a contributor). Reopen (approvals lapse), check again, decline and cancel (with a reason).
+ * - Exceptions: an underwriter's referral (with a reason); approval only through My Work Queue
+ *   and a workflow instance. If there is no instance, show the configuration blocker, never
+ *   an inline approval button. Reopen, check again, decline and cancel remain domain commands.
  * - Bind (NB1-D): a READY_TO_BIND proposal is bound into a policy with its ETag and an optional
  *   insurer policy number; the new policy opens in the policy workspace. The re-checks the server
  *   makes at bind (still bindable, KYC verified, inception not passed without an approved
@@ -61,7 +61,6 @@ import {
   PROPOSAL_CANCEL,
   PROPOSAL_DECLINE,
   PROPOSAL_EDIT,
-  PROPOSAL_EXCEPTION_APPROVE,
   TASK_VIEW,
 } from '../permissions';
 import { policyHref } from '../policies/refs';
@@ -81,7 +80,7 @@ import { proposalsFrom } from './ProposalsPage';
 const label = 'mb-1.5 block text-[13px] font-medium text-[var(--hz-text-primary)]';
 const field = (invalid: boolean) => `hz-field h-9 w-full px-3 text-sm ${invalid ? 'hz-field-invalid' : ''}`;
 
-type Dialog = 'bind' | 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | { approve: ProposalException } | null;
+type Dialog = 'bind' | 'refer' | 'decline' | 'cancel' | { evidence: Requirement } | null;
 
 const OPEN_STATUSES = ['DRAFT', 'UNDER_REVIEW', 'REFERRED'];
 
@@ -146,7 +145,6 @@ export const ProposalPage: React.FC = () => {
   const canEdit = usePermission(PROPOSAL_EDIT);
   const canDecline = usePermission(PROPOSAL_DECLINE);
   const canCancel = usePermission(PROPOSAL_CANCEL);
-  const canApprove = usePermission(PROPOSAL_EXCEPTION_APPROVE);
   const canSeeTasks = usePermission(TASK_VIEW);
   const canBind = usePermission(POLICY_BIND);
   const canSeePolicies = usePermission(POLICY_VIEW);
@@ -261,7 +259,7 @@ export const ProposalPage: React.FC = () => {
   /** Exceptions still waiting for a decision: open, and not closed by a governed outcome. */
   const openExceptions = view.exceptions.filter((item) => {
     const state = exceptionState(item);
-    return state.kind === 'lightweight' || state.kind === 'waiting';
+    return state.kind === 'setup_needed' || state.kind === 'waiting';
   }).length;
   const settled = (after: ProposalDetail) => `${view.proposal_no}: ${PROPOSAL_STATUS_LABEL[after.status] ?? humanize(after.status)}`;
 
@@ -394,9 +392,7 @@ export const ProposalPage: React.FC = () => {
               {tab === 'exceptions' && (
                 <ExceptionsSection
                   view={view}
-                  canApprove={view.status === 'REFERRED' && canApprove}
                   canSeeTasks={canSeeTasks}
-                  onApprove={(exception) => setDialog({ approve: exception })}
                   onTask={(instanceId) => navigate(`/my-work/list/${encodeURIComponent(instanceId)}`)}
                 />
               )}
@@ -452,10 +448,7 @@ export const ProposalPage: React.FC = () => {
         <EvidenceDialog view={view} requirement={dialog.evidence} etag={etag} onClose={() => setDialog(null)}
           onDone={(after) => { setDialog(null); setToast(`Evidence recorded · ${settled(after)}`); }} />
       )}
-      {dialog && typeof dialog === 'object' && 'approve' in dialog && etag && (
-        <ApproveDialog view={view} exception={dialog.approve} etag={etag} onClose={() => setDialog(null)}
-          onDone={(after) => { setDialog(null); setToast(`Exception approved · ${settled(after)}`); }} />
-      )}
+
     </HorizonPage>
   );
 };
@@ -847,13 +840,13 @@ const RequirementsSection: React.FC<{ view: ProposalDetail; canRecord: boolean; 
  * when the tenant governs it, the decision lives in its workflow block, and a governed rejection
  * declines the proposal while the row stays OPEN. So:
  *   APPROVED                         approved
- *   OPEN, no workflow                awaiting approval; the lightweight approval may be offered
+ *   OPEN, no workflow                workflow setup is required; no direct approval action
  *   OPEN, workflow still open        waiting in My Work Queue; never approved inline
  *   OPEN, workflow closed            the workflow's own outcome (rejected, void, cancelled, expired);
  *                                    never approved inline, never a My Work Queue link
  */
 type ExceptionState =
-  | { kind: 'approved' | 'lightweight' | 'waiting'; label: string; tone: StatusTone }
+  | { kind: 'approved' | 'setup_needed' | 'waiting'; label: string; tone: StatusTone }
   | { kind: 'decided'; label: string; tone: StatusTone; note: string };
 
 const DECIDED: Record<string, { label: string; tone: StatusTone; note: string }> = {
@@ -866,18 +859,16 @@ const DECIDED: Record<string, { label: string; tone: StatusTone; note: string }>
 
 export function exceptionState(item: ProposalException): ExceptionState {
   if (item.status === 'APPROVED') return { kind: 'approved', label: 'Approved', tone: 'success' };
-  if (!item.workflow) return { kind: 'lightweight', label: 'Awaiting approval', tone: 'warning' };
+  if (!item.workflow) return { kind: 'setup_needed', label: 'Workflow not started', tone: 'warning' };
   if (OPEN_WORKFLOW.includes(item.workflow.status)) return { kind: 'waiting', label: 'Awaiting approval', tone: 'warning' };
   return { kind: 'decided', ...(DECIDED[item.workflow.status] ?? { label: humanize(item.workflow.status), tone: 'neutral', note: 'Its approval in My Work Queue is closed.' }) };
 }
 
 const ExceptionsSection: React.FC<{
   view: ProposalDetail;
-  canApprove: boolean;
   canSeeTasks: boolean;
-  onApprove: (exception: ProposalException) => void;
   onTask: (instanceId: string) => void;
-}> = ({ view, canApprove, canSeeTasks, onApprove, onTask }) => {
+}> = ({ view, canSeeTasks, onTask }) => {
   const shown = view.exceptions.filter((item) => item.status !== 'SUPERSEDED');
   return (
     <DetailGroup title="Exceptions" description="Referrals that need approval by someone who did not prepare the proposal.">
@@ -906,17 +897,13 @@ const ExceptionsSection: React.FC<{
                     </p>
                   )}
                   {state.kind === 'decided' && <p className="text-[13px] text-[var(--hz-text-secondary)]">{state.note}</p>}
+                  {state.kind === 'setup_needed' && <p className="text-[13px] text-[var(--hz-text-secondary)]">Workflow is not configured for this approval. An administrator must activate the required definition; direct approval is unavailable.</p>}
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge square label={state.label} tone={state.tone} />
                   {waiting && canSeeTasks && (
                     <button type="button" className="hz-button hz-button-secondary" onClick={() => onTask(waiting.instance_id)}>
                       Open in My Work Queue
-                    </button>
-                  )}
-                  {state.kind === 'lightweight' && canApprove && (
-                    <button type="button" className="hz-button hz-button-primary" onClick={() => onApprove(item)} aria-label={`Approve: ${exceptionLabel(item.code)}`}>
-                      Approve
                     </button>
                   )}
                 </div>
@@ -1049,59 +1036,6 @@ const EvidenceDialog: React.FC<{ view: ProposalDetail; requirement: Requirement;
   );
 };
 
-const ApproveDialog: React.FC<{ view: ProposalDetail; exception: ProposalException; etag: string; onClose: () => void; onDone: (after: ProposalDetail) => void }> = ({ view, exception, etag, onClose, onDone }) => {
-  const { approve, pending } = useProposalCommands();
-  const [note, setNote] = useState('');
-  const [failure, setFailure] = useState<unknown>(null);
-  const [stale, setStale] = useState(false);
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setFailure(null);
-    setStale(false);
-    const outcome = await approve(view.id, exception.id, note.trim(), etag);
-    if (outcome.ok === true) return onDone(outcome.view);
-    if (outcome.kind === 'stale') setStale(true);
-    else setFailure(outcome.error);
-  };
-  return (
-    <DialogFrame
-      titleId="proposal-approve-title"
-      title="Approve exception"
-      subtitle={`${view.proposal_no} · ${exceptionLabel(exception.code)}`}
-      onClose={onClose}
-      size="md"
-      footer={
-        <>
-          <button type="button" className="hz-button hz-button-secondary" onClick={onClose} disabled={pending}>
-            Cancel
-          </button>
-          <button type="submit" form="proposal-approve-form" className="hz-button hz-button-primary" disabled={pending}>
-            {pending ? 'Approving…' : 'Approve'}
-          </button>
-        </>
-      }
-    >
-      {stale && (
-        <div role="status">
-          <HorizonAlert tone="warning">{STALE_TEXT}</HorizonAlert>
-        </div>
-      )}
-      {failure !== null && <ApiErrorAlert error={failure} title="The exception was not approved" />}
-      <form id="proposal-approve-form" noValidate onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-3">
-        <p className="text-sm text-[var(--hz-text-secondary)]">{exception.reason.charAt(0).toUpperCase() + exception.reason.slice(1)}.</p>
-        {Object.keys(exception.details).length > 0 && (
-          <DetailGrid dense columns={2} items={Object.entries(exception.details).map(([key, value]) => ({ label: humanize(key), value: String(value) }))} />
-        )}
-        <div>
-          <label htmlFor="proposal-approve-note" className={label}>
-            Note
-          </label>
-          <textarea id="proposal-approve-note" rows={2} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} className="hz-field w-full px-3 py-2 text-sm" />
-        </div>
-      </form>
-    </DialogFrame>
-  );
-};
 
 /** The server's refusals at bind, in words (NB1-D); anything else as the backend's error. */
 const BIND_REFUSALS: Record<string, (error: ApiError) => string> = {
