@@ -105,6 +105,7 @@ export type ScreenId =
   | 'admin-branches'
   | 'admin-users-roles'
   | 'admin-doa'
+  | 'admin-delegations'
   | 'admin-workflows'
   | 'admin-documents'
   | 'admin-number-series'
