@@ -77,6 +77,7 @@ describe('permission-driven navigation', () => {
       ['kyc-compliance', 'clients.kyc.view'],
       ['new-policy', 'quotations.quotation.create'],
       ['quotations', 'quotations.quotation.view'],
+      ['binder-agreements', 'insurers.insurer.view'],
       ['intermediaries', 'intermediaries.agent.view'],
       ['leads', 'intermediaries.sales.view'],
       ['proposals', 'underwriting.proposal.view'],
