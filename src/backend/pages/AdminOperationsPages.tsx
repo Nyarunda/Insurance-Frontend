@@ -6,7 +6,7 @@ import {
   ActionDialog, ActionSpec, Grid, QueryState, Refresh, SearchBox, Status, Surface, Tabs,
 } from '../operations/ui';
 import { useOperationsQuery } from '../operations/data';
-import { ADMIN_USERS_MANAGE, AUDIT_VIEW, DELEGATION_MANAGE } from '../permissions';
+import { ADMIN_USERS_MANAGE, DELEGATION_MANAGE } from '../permissions';
 
 interface RegionRow { id: string; code: string; name: string; is_active: boolean; etag: string }
 interface BranchRow {
