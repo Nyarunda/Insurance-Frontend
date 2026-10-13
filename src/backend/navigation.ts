@@ -7,7 +7,7 @@
  */
 
 import { Bell, BellRing, Boxes, Building2, CalendarClock, Car, ClipboardList, CreditCard, FileBadge, FileCheck2, FilePlus2, FileText, Inbox, LayoutDashboard, ListChecks, Package, RefreshCcw, Settings2, UsersRound, Workflow, type LucideIcon } from 'lucide-react';
-import { CERT_STOCK, CERT_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, POLICY_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
+import { CERT_STOCK, CERT_VIEW, COMMISSION_VIEW, CONFIG_PUBLISH, CUSTOMER_VIEW, INSURER_VIEW, POLICY_VIEW, PRODUCT_VIEW, PROPOSAL_VIEW, QUOTATION_CREATE, QUOTATION_VIEW, REFERENCE_MANAGE, RENEWAL_APPROVE, RENEWAL_CREATE, RENEWAL_SETTINGS_MANAGE, TASK_VIEW, WORKFLOW_MANAGE, WORKFLOW_VIEW } from './permissions';
 import type { NavGroup, NavigationCountersResponse } from '../data/navigation';
 import type { ScreenId } from '../types';
 
@@ -83,6 +83,10 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     title: 'Setup',
     icon: Settings2,
     items: [
+      { screen: 'insurers', label: 'Insurers', path: '/setup/insurers/list', permission: INSURER_VIEW, icon: Building2 },
+      { screen: 'insurance-classes', label: 'Insurance classes', path: '/setup/insurance-classes', permission: PRODUCT_VIEW, icon: Package },
+      { screen: 'levy-rates', label: 'Levy rates', path: '/setup/levy-rates', permission: PRODUCT_VIEW, icon: CreditCard },
+      { screen: 'commission-rates', label: 'Commission rates', path: '/setup/commission-rates', permission: COMMISSION_VIEW, icon: CreditCard },
       // SD-C: the vehicle makes and models quotations choose from, for tenant-wide reference data managers.
       { screen: 'vehicle-makes', label: 'Vehicle makes', path: '/vehicle-makes/list', permission: REFERENCE_MANAGE, icon: Car },
       // WRC-1: the reasons checkers choose from in My Work Queue, for tenant-wide workflow administrators.
