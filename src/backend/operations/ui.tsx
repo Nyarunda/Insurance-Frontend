@@ -37,7 +37,7 @@ export function SearchBox({ value, onSearch, label = 'Search' }: { value: string
 export function Tabs({ value, options, change }: { value: string; options: { value: string; label: string }[]; change: (value: string) => void }) {
   return <div className="ops-tabs" role="tablist">{options.map(o => <button key={o.value} data-testid={`operations-tab-${o.value}`} role="tab" aria-selected={value === o.value} onClick={() => change(o.value)}>{o.label}</button>)}</div>;
 }
-export interface FormField { name: string; label: string; value?: string; required?: boolean; type?: 'text' | 'email' | 'date' | 'number' | 'textarea' | 'checkbox'; maxLength?: number; options?: { value: string; label: string }[] }
+export interface FormField { name: string; label: string; value?: string; required?: boolean; type?: 'text' | 'email' | 'date' | 'datetime-local' | 'number' | 'textarea' | 'checkbox'; maxLength?: number; options?: { value: string; label: string }[] }
 export interface ActionSpec { title: string; path: string; fields: FormField[]; method?: 'POST' | 'PATCH'; ifMatch?: string; body?: object; confirm?: string; message?: string; transform?: (data: Record<string, string>) => object }
 export function ActionDialog({ spec, close, done }: { spec: ActionSpec; close: () => void; done: (data: unknown) => void }) {
   const command = useOperationsCommand();
