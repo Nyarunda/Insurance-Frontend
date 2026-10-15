@@ -98,37 +98,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id="insure-erp-sidebar"
       aria-label="Primary navigation"
       className={`flex shrink-0 flex-col border-r border-[var(--hz-sidebar-border)] bg-[var(--hz-sidebar-bg)] text-[var(--hz-sidebar-text)] transition-[width] duration-200 ease-linear select-none ${
-        isMobile ? 'fixed inset-y-0 left-0 z-40 shadow-xl' : 'z-20 h-full'
+        isMobile ? 'fixed inset-y-0 left-0 z-[60] shadow-xl' : 'z-20 h-full'
       }`}
       style={{ width: showLabels ? 'var(--hz-sidebar-width)' : 'var(--hz-sidebar-collapsed)' }}
     >
       {/* Product mark */}
-      <div className={`flex items-center p-2 ${showLabels ? '' : 'justify-center'}`}>
+      <div
+        className={`flex shrink-0 items-center border-b border-[var(--hz-sidebar-border)] px-2 ${showLabels ? '' : 'justify-center'}`}
+        style={{ height: 'var(--hz-topbar-height)' }}
+      >
         <button
           type="button"
           onClick={() => navigate('dashboard')}
           title={brand.title}
-          className={`flex min-w-0 items-center gap-2 rounded-md p-1.5 text-left hover:bg-[var(--hz-sidebar-bg-hover)] ${showLabels ? 'flex-1' : ''}`}
+          className={`flex min-w-0 items-center gap-2 rounded-md p-1 text-left hover:bg-[var(--hz-sidebar-bg-hover)] ${showLabels ? 'flex-1' : ''}`}
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hz-primary-700)] text-[var(--hz-text-inverse)]">
-            <ShieldCheck className="h-4 w-4" />
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--hz-primary-700)] text-[var(--hz-text-inverse)]">
+            <ShieldCheck className="h-3.5 w-3.5" />
           </span>
           {showLabels && (
             <span className="min-w-0 leading-tight">
-              <span className="block truncate text-[15px] font-semibold">{brand.title}</span>
-              {brand.subtitle && <span className="block truncate text-xs text-[var(--hz-sidebar-muted)]">{brand.subtitle}</span>}
+              <span className="block truncate text-[13px] font-semibold">{brand.title}</span>
+              {brand.subtitle && <span className="block truncate text-[12px] text-[var(--hz-sidebar-muted)]">{brand.subtitle}</span>}
             </span>
           )}
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-1">
+      <nav className="flex-1 overflow-y-auto px-2 py-2">
         {groups.map((group) => {
           const isOpen = isGroupOpen(group.id);
 
           if (!showLabels) {
             return (
-              <ul key={group.id} className="flex flex-col items-center gap-1 border-b border-[var(--hz-sidebar-border)] py-2 last:border-b-0">
+              <ul key={group.id} className="flex flex-col items-center gap-0.5 border-b border-[var(--hz-sidebar-border)] py-1.5 first:pt-0 last:border-b-0">
                 {group.items.map((item) => {
                   const Icon = item.icon ?? group.icon;
                   const active = item.id === activeScreen;
@@ -157,23 +160,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }
 
           return (
-            <div key={group.id} className="py-2">
+            <div key={group.id} className="pb-2 last:pb-0">
               <button
                 type="button"
                 onClick={() => toggleGroup(group.id)}
                 aria-expanded={isOpen}
-                className="group/label flex h-8 w-full items-center justify-between rounded-md px-2 text-xs font-medium text-[var(--hz-sidebar-muted)] hover:text-[var(--hz-sidebar-text)]"
+                className="group/label flex h-7 w-full items-center justify-between rounded-md px-2 text-[12px] font-medium text-[var(--hz-sidebar-muted)] hover:text-[var(--hz-sidebar-text)]"
               >
                 <span>{group.title}</span>
                 {isOpen ? (
-                  <ChevronDown className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover/label:opacity-100" />
+                  <ChevronDown className="h-3 w-3 opacity-0 transition-opacity group-hover/label:opacity-100" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <ChevronRight className="h-3 w-3" />
                 )}
               </button>
 
               {isOpen && (
-                <ul className="flex flex-col gap-0.5">
+                <ul className="flex flex-col gap-px">
                   {group.items.map((item) => {
                     const Icon = item.icon ?? group.icon;
                     const active = item.id === activeScreen;
@@ -185,16 +188,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           data-path={item.id}
                           aria-current={active ? 'page' : undefined}
                           onClick={() => navigate(item.id)}
-                          className={`flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-sm transition-colors ${
+                          className={`flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] leading-none transition-colors ${
                             active
                               ? 'bg-[var(--hz-sidebar-active)] font-medium text-[var(--hz-sidebar-text)]'
                               : 'text-[var(--hz-sidebar-text)] hover:bg-[var(--hz-sidebar-bg-hover)]'
                           }`}
                         >
-                          <Icon className="h-4 w-4 shrink-0" />
+                          <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
                           <span className="flex-1 truncate">{item.label}</span>
                           {count !== undefined && count > 0 && (
-                            <span className="ml-2 min-w-[20px] rounded-full bg-[var(--hz-surface-main)] px-1.5 text-center text-xs font-medium tabular-nums text-[var(--hz-text-secondary)] ring-1 ring-[var(--hz-sidebar-border)]">
+                            <span className="ml-2 min-w-[18px] rounded-full bg-[var(--hz-surface-main)] px-1.5 py-0.5 text-center text-[12px] font-medium leading-none tabular-nums text-[var(--hz-text-secondary)] ring-1 ring-[var(--hz-sidebar-border)]">
                               {count}
                             </span>
                           )}
@@ -215,17 +218,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             onClick={onToggleCollapse}
             title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
-            className={`flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-[var(--hz-sidebar-muted)] hover:bg-[var(--hz-sidebar-bg-hover)] hover:text-[var(--hz-sidebar-text)] ${
+            className={`flex h-7 items-center gap-2 rounded-md px-2 text-[12px] text-[var(--hz-sidebar-muted)] hover:bg-[var(--hz-sidebar-bg-hover)] hover:text-[var(--hz-sidebar-text)] ${
               collapsed ? 'w-8 justify-center' : 'w-full'
             }`}
           >
-            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            {collapsed ? <PanelLeftOpen className="h-[15px] w-[15px]" /> : <PanelLeftClose className="h-[15px] w-[15px]" />}
             {!collapsed && <span>Collapse</span>}
           </button>
         </div>
       )}
 
-      {footer && <div className="border-t border-[var(--hz-sidebar-border)] p-2">{footer(!showLabels)}</div>}
+      {footer && <div className="border-t border-[var(--hz-sidebar-border)] px-2 py-1.5">{footer(!showLabels)}</div>}
     </aside>
   );
 
@@ -233,7 +236,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-[var(--hz-scrim)]" onClick={onToggleCollapse} aria-hidden />
+      <div className="fixed inset-0 z-[55] bg-[var(--hz-scrim)]" onClick={onToggleCollapse} aria-hidden />
       {panel}
     </>
   );

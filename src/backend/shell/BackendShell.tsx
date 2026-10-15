@@ -165,8 +165,8 @@ export const BackendShell: React.FC = () => {
 
 /** The signed-in user at the foot of the sidebar, as in the template. Actions live in the account menu. */
 const SidebarUser: React.FC<{ email: string; branch?: string; rail: boolean }> = ({ email, branch, rail }) => (
-  <div className={`flex items-center gap-2 rounded-md p-1.5 ${rail ? 'justify-center' : ''}`} title={email}>
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--hz-surface-main)] text-[13px] font-semibold ring-1 ring-[var(--hz-sidebar-border)]" aria-hidden>
+  <div className={`flex items-center gap-2 rounded-md p-1 ${rail ? 'justify-center' : ''}`} title={email}>
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--hz-surface-main)] text-[13px] font-semibold ring-1 ring-[var(--hz-sidebar-border)]" aria-hidden>
       {userInitials(email)}
     </span>
     {!rail && (

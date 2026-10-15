@@ -121,7 +121,7 @@ const MenuHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const barButton =
-  'flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--hz-text-primary)] hover:bg-[var(--hz-surface-muted)] transition-colors';
+  'flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--hz-text-primary)] hover:bg-[var(--hz-surface-muted)] transition-colors';
 
 export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
   onNavigate,
@@ -181,8 +181,8 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
     >
       {/* Left: navigation toggle, product mark, tenant, branch, search */}
       <div className="flex min-w-0 items-center gap-1">
-        <button type="button" onClick={onToggleSidebar} className={`${barButton} w-8 justify-center`} title="Toggle navigation">
-          <PanelLeft className="h-4 w-4" />
+        <button type="button" onClick={onToggleSidebar} className={`${barButton} w-7 justify-center px-0`} title="Toggle navigation">
+          <PanelLeft className="h-[15px] w-[15px]" />
         </button>
 
         {showBrand && (
@@ -194,7 +194,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
           </button>
         )}
 
-        <span className="mx-1 hidden h-5 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
+        <span className="mx-1.5 hidden h-4 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
 
         {/* Tenant */}
         <div className="relative hidden sm:block">
@@ -298,15 +298,15 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="ml-2 hidden h-8 w-[300px] items-center gap-2 rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-2.5 text-left text-[13px] text-[var(--hz-text-muted)] shadow-xs hover:bg-[var(--hz-surface-muted)] lg:flex"
+          className="ml-2 hidden h-7 w-[280px] items-center gap-2 rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-main)] px-2.5 text-left text-[13px] text-[var(--hz-text-muted)] shadow-xs hover:bg-[var(--hz-surface-muted)] lg:flex"
           title="Search (Ctrl+K)"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1 truncate">Search customer, policy, claim…</span>
           <kbd className="rounded-md border border-[var(--hz-border-default)] bg-[var(--hz-surface-muted)] px-1 font-sans text-xs text-[var(--hz-text-muted)]">Ctrl K</kbd>
         </button>
-        <button type="button" onClick={onOpenCommandPalette} className={`${barButton} w-8 justify-center lg:hidden`} title="Search (Ctrl+K)">
-          <Search className="h-4 w-4" />
+        <button type="button" onClick={onOpenCommandPalette} className={`${barButton} w-7 justify-center px-0 lg:hidden`} title="Search (Ctrl+K)">
+          <Search className="h-[15px] w-[15px]" />
         </button>
         </>
         )}
@@ -317,7 +317,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         {quickActions && quickActions.length > 0 && (
         <div className="relative">
           <button type="button" onClick={() => toggle('new')} className={barButton} title="Create a new record" aria-haspopup="menu">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-[15px] w-[15px]" />
             <span className="hidden md:inline">New</span>
           </button>
           {openMenu === 'new' && (
@@ -342,7 +342,7 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         {notifications && (
         <div className="relative">
           <button type="button" onClick={() => toggle('alerts')} className={barButton} title="Notifications" aria-haspopup="menu">
-            <Bell className="h-4 w-4" />
+            <Bell className="h-[15px] w-[15px]" />
             <span className="rounded-md bg-[var(--hz-border-grid)] px-1 text-xs font-medium tabular-nums text-[var(--hz-text-primary)]">{notifications.unread}</span>
           </button>
           {openMenu === 'alerts' && (
@@ -382,8 +382,8 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
         )}
 
         <div className="relative">
-          <button type="button" onClick={() => toggle('help')} className={`${barButton} w-8 justify-center`} title="Keyboard shortcuts and help">
-            <HelpCircle className="h-4 w-4" />
+          <button type="button" onClick={() => toggle('help')} className={`${barButton} w-7 justify-center px-0`} title="Keyboard shortcuts and help">
+            <HelpCircle className="h-[15px] w-[15px]" />
           </button>
           {openMenu === 'help' && (
             <MenuPanel width="w-80">
@@ -404,14 +404,14 @@ export const GlobalTopBar: React.FC<GlobalTopBarProps> = ({
           )}
         </div>
 
-        <span className="mx-1 hidden h-5 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
+        <span className="mx-1.5 hidden h-4 w-px bg-[var(--hz-border-grid)] sm:block" aria-hidden />
 
         <div className="relative">
-          <button type="button" onClick={() => toggle('user')} className={barButton} aria-haspopup="menu" aria-label="Account menu">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--hz-surface-muted)] text-xs font-semibold text-[var(--hz-text-primary)] ring-1 ring-[var(--hz-border-grid)]" aria-hidden>
+          <button type="button" onClick={() => toggle('user')} className={`${barButton} pl-1`} aria-haspopup="menu" aria-label="Account menu">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--hz-surface-muted)] text-[11px] font-semibold text-[var(--hz-text-primary)] ring-1 ring-[var(--hz-border-grid)]" aria-hidden>
               {initials}
             </span>
-            <span className="hidden max-w-[140px] truncate font-medium text-[var(--hz-text-primary)] lg:inline">{shortName}</span>
+            <span className="hidden max-w-[180px] truncate text-[12.5px] font-medium text-[var(--hz-text-primary)] lg:inline">{shortName}</span>
             <ChevronDown className="h-3 w-3 text-[var(--hz-text-muted)]" />
           </button>
           {openMenu === 'user' && (

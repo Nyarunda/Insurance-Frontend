@@ -236,9 +236,9 @@
     --hz-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 
     /* Shell dimensions */
-    --hz-topbar-height: 56px;
-    --hz-sidebar-width: 256px;
-    --hz-sidebar-collapsed: 56px;
+    --hz-topbar-height: 48px;
+    --hz-sidebar-width: 240px;
+    --hz-sidebar-collapsed: 48px;
 
     /* Density: compact tokens (comfortable is the default preference; see below) */
     --hz-row-height: 40px;

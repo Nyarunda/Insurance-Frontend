@@ -79,6 +79,17 @@ export const BACKEND_NAV: BackendNavGroup[] = [
     ],
   },
   {
+    id: 'billing', title: 'Finance', icon: FileText,
+    items: [
+      { screen: 'billing', label: 'Receipts', path: '/billing/receipts/list', permission: 'billing.document.view', icon: FileText },
+      { screen: 'finance-ledger', label: 'Finance ledger', path: '/billing/ledger', permission: 'billing.document.view', icon: FileText },
+      { screen: 'commissions', label: 'Agent commissions', path: '/sales/agreements', permission: 'intermediaries.commission.view', icon: FileText },
+      { screen: 'reporting-financial', label: 'Premium collections', path: '/billing/reports/collections', permission: 'billing.document.view', icon: FileText },
+      { screen: 'accounting', label: 'Billing accounts', path: '/billing/accounts/list', permission: 'billing.setup.manage', icon: Settings2 },
+      { screen: 'receivables', label: 'Collection agreements', path: '/billing/agreements/list', permission: 'billing.setup.manage', icon: FileCheck2 },
+    ],
+  },
+  {
     id: 'setup',
     title: 'Setup',
     icon: Settings2,
@@ -100,17 +111,6 @@ export const BACKEND_NAV: BackendNavGroup[] = [
       // NTF-2: which approval outcomes requesters are told about, for workflow administrators.
       { screen: 'approval-notifications', label: 'Approval notifications', path: '/approval-notifications', permission: WORKFLOW_VIEW, icon: BellRing },
       { screen: 'admin-workflows', label: 'Workflow definitions', path: '/admin/workflows/list', permission: WORKFLOW_VIEW, icon: Workflow },
-    ],
-  },
-  {
-    id: 'billing', title: 'Finance', icon: FileText,
-    items: [
-      { screen: 'billing', label: 'Receipts', path: '/billing/receipts/list', permission: 'billing.document.view', icon: FileText },
-      { screen: 'finance-ledger', label: 'Finance ledger', path: '/billing/ledger', permission: 'billing.document.view', icon: FileText },
-      { screen: 'commissions', label: 'Agent commissions', path: '/sales/agreements', permission: 'intermediaries.commission.view', icon: FileText },
-      { screen: 'reporting-financial', label: 'Premium collections', path: '/billing/reports/collections', permission: 'billing.document.view', icon: FileText },
-      { screen: 'accounting', label: 'Billing accounts', path: '/billing/accounts/list', permission: 'billing.setup.manage', icon: Settings2 },
-      { screen: 'receivables', label: 'Collection agreements', path: '/billing/agreements/list', permission: 'billing.setup.manage', icon: FileCheck2 },
     ],
   },
   {
